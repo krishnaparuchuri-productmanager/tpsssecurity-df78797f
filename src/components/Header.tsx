@@ -49,11 +49,11 @@ const Header = () => {
         <div className="flex items-center gap-3">
           <img src={tpssLogo} alt="TPSS Logo" className="h-12 w-12 rounded-full object-cover" />
           <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-navy">
+            <span className="text-xl font-extrabold tracking-tight text-navy font-mono">
               TPSS
             </span>
             <span className="text-[9px] tracking-widest uppercase text-muted-foreground leading-tight">
-              Trinetra Professional Security Services
+              TRINETRA PROFESSIONAL SECURITY & SERVICES
             </span>
           </div>
         </div>
