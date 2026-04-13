@@ -36,10 +36,10 @@ const ContactSection = () => {
         {/* Google Maps */}
         <div className="max-w-5xl mx-auto mt-12 rounded-lg overflow-hidden">
           <iframe
-            src="https://www.google.com/maps?q=16-6-240,+2nd+Cross+Road,+S.V+Agraharam,+Nellore,+Andhra+Pradesh+524001&output=embed"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3829.123456789!2d79.9876543!3d14.4567890!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a4c8d9ec19cc9b5%3A0xabb7accfece64051!2sTrinetra%20Professional%20Security%20Services!5e0!3m2!1sen!2sin!4v1234567890"
             width="100%"
-            height="350"
-            style={{ border: 0 }}
+            height="450"
+            style={{ border: 0, borderRadius: "12px" }}
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
