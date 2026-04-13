@@ -2,12 +2,12 @@ const team = [
   {
     name: "P. Ramsundar",
     designation: "Managing Director",
-    photo: "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/P.%20Ramsundar%20(1).png",
+    photo: "/images/team/ramsundar.png",
   },
   {
     name: "B. Bharath Sai",
     designation: "CEO",
-    photo: "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/B.%20Bharath%20Sai.jpg.jpeg",
+    photo: "/images/team/bharath-sai.jpeg",
   },
 ];
 
