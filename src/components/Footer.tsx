@@ -23,7 +23,7 @@ const Footer = () => {
             <img src={tpssLogo} alt="TPSS Logo" className="h-10 w-10 rounded-full object-cover" />
             <div>
               <span className="text-xl font-extrabold text-white">
-                TP<span className="text-gold">SS</span>
+                TPSS
               </span>
               <p className="text-xs text-white/60">Your Safety, Our Priority</p>
             </div>
@@ -60,7 +60,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-white/10 pt-6 text-center text-xs text-white/40 space-y-1">
-          <p>© 2025 Trinetra Professional Security Services. All Rights Reserved.</p>
+          <p>© 2020 Trinetra Professional Security Services. All Rights Reserved.</p>
           <p>Office Hours: Mon–Sat, 9:00 AM – 7:00 PM | Security Operations: 24/7</p>
         </div>
       </div>

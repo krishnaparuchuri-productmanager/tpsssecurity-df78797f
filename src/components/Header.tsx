@@ -50,7 +50,7 @@ const Header = () => {
           <img src={tpssLogo} alt="TPSS Logo" className="h-12 w-12 rounded-full object-cover" />
           <div className="flex flex-col">
             <span className="text-xl font-extrabold tracking-tight text-navy">
-              TP<span className="text-gold">SS</span>
+              TPSS
             </span>
             <span className="text-[9px] tracking-widest uppercase text-muted-foreground leading-tight">
               Trinetra Professional Security Services
