@@ -1,23 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
-const images = [
-  "/images/gallery/guard-1.jpeg",
-  "/images/gallery/guard-2.jpeg",
-  "/images/gallery/guard-3.jpg",
-  "/images/gallery/housekeeping.png",
-  "/images/gallery/event-1.jpg",
-  "/images/gallery/event-bouncers.jpg",
-  "/images/gallery/event-2.jpg",
-  "/images/gallery/opening-ceremony.jpg",
-  "/images/gallery/drill-smof.jpg",
-  "/images/gallery/drill-natco.jpg",
-  "/images/gallery/drill-nat1.jpg",
-  "/images/gallery/appreciation-1.jpg",
-  "/images/gallery/appreciation-2.jpg",
-  "/images/gallery/appreciation-3.jpg",
-  "/images/gallery/appreciation-4.jpg",
-];
+const images = Array.from({ length: 54 }, (_, i) => `/images/gallery/slide-${i + 1}.jpg`);
 
 const GallerySection = () => {
   const [current, setCurrent] = useState(0);
@@ -29,7 +13,7 @@ const GallerySection = () => {
 
   useEffect(() => {
     if (paused || lightbox) return;
-    const id = setInterval(next, 2000);
+    const id = setInterval(next, 1000);
     return () => clearInterval(id);
   }, [paused, lightbox, next]);
 
