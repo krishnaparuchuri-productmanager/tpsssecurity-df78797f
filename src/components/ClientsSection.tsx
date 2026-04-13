@@ -1,3 +1,5 @@
+const clientImages = Array.from({ length: 11 }, (_, i) => `/images/clients/client-${i + 1}.jpeg`);
+
 const ClientsSection = () => (
   <section id="clients" className="py-20 bg-secondary/30">
     <div className="container mx-auto px-4 text-center">
@@ -5,14 +7,18 @@ const ClientsSection = () => (
       <p className="text-muted-foreground max-w-2xl mx-auto mb-10">
         Trusted by leading enterprises, institutions, and government bodies across Andhra Pradesh &amp; Telangana.
       </p>
-      <div className="flex flex-wrap justify-center gap-8 opacity-50">
-        {/* Placeholder for client logos — will populate when logos are uploaded */}
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="flex flex-wrap justify-center gap-8">
+        {clientImages.map((src, i) => (
           <div
             key={i}
-            className="w-28 h-16 rounded border border-border bg-muted/50 flex items-center justify-center text-xs text-muted-foreground"
+            className="w-32 h-20 rounded-lg border border-border bg-white flex items-center justify-center p-2 grayscale hover:grayscale-0 transition-all duration-300"
           >
-            Client {i + 1}
+            <img
+              src={src}
+              alt={`Client ${i + 1}`}
+              className="max-w-full max-h-full object-contain"
+              loading="lazy"
+            />
           </div>
         ))}
       </div>
