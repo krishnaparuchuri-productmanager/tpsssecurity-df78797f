@@ -1,45 +1,96 @@
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const images = [
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Security%20guard%20image.jpeg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Security%20Animated%20Image.jpeg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Security%20Gunman%20image.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/House%20Keeping%20Image.png",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Event%20Security/Event%20Security%20SS-1.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Event%20Security/Event%20Security%20-%20Bouncers.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Event%20Security/Event%20Security.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Event%20Security/OPENING%20CERMONY.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Drill/SMOF%202.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Drill/NATCO%20FACE%20SHIELDS.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Drill/nat%201.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Appreciation/Appreciation%20Received%201.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Appreciation/Appreciation%20received%202.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Appreciation/Appreciation%20received%203.jpg",
-  "https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/Security%20Guards/Appreciation/Appreciation%20received%204.jpg",
+  "/images/gallery/guard-1.jpeg",
+  "/images/gallery/guard-2.jpeg",
+  "/images/gallery/guard-3.jpg",
+  "/images/gallery/housekeeping.png",
+  "/images/gallery/event-1.jpg",
+  "/images/gallery/event-bouncers.jpg",
+  "/images/gallery/event-2.jpg",
+  "/images/gallery/opening-ceremony.jpg",
+  "/images/gallery/drill-smof.jpg",
+  "/images/gallery/drill-natco.jpg",
+  "/images/gallery/drill-nat1.jpg",
+  "/images/gallery/appreciation-1.jpg",
+  "/images/gallery/appreciation-2.jpg",
+  "/images/gallery/appreciation-3.jpg",
+  "/images/gallery/appreciation-4.jpg",
 ];
 
 const GallerySection = () => {
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+
+  const next = useCallback(() => setCurrent((c) => (c + 1) % images.length), []);
+  const prev = useCallback(() => setCurrent((c) => (c - 1 + images.length) % images.length), []);
+
+  useEffect(() => {
+    if (paused || lightbox) return;
+    const id = setInterval(next, 2000);
+    return () => clearInterval(id);
+  }, [paused, lightbox, next]);
 
   return (
     <section id="gallery" className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-navy text-center mb-12">Our Team in Action</h2>
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 max-w-5xl mx-auto">
-          {images.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              alt={`TPSS gallery ${i + 1}`}
-              className="w-full mb-4 rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-              loading="lazy"
-              onClick={() => setLightbox(src)}
-            />
-          ))}
+
+        <div
+          className="relative max-w-4xl mx-auto overflow-hidden rounded-xl"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {/* Slides */}
+          <div className="relative aspect-[16/10] bg-muted">
+            {images.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`TPSS gallery ${i + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover cursor-pointer transition-opacity duration-700 ${
+                  i === current ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+                onClick={() => setLightbox(src)}
+              />
+            ))}
+          </div>
+
+          {/* Arrows */}
+          <button
+            onClick={prev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-navy/60 text-white flex items-center justify-center hover:bg-navy/90 transition-colors"
+            aria-label="Previous"
+          >
+            <ChevronLeft size={22} />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-navy/60 text-white flex items-center justify-center hover:bg-navy/90 transition-colors"
+            aria-label="Next"
+          >
+            <ChevronRight size={22} />
+          </button>
+
+          {/* Dots */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  i === current ? "bg-gold" : "bg-white/50"
+                }`}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* Lightbox */}
       {lightbox && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"

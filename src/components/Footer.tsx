@@ -46,8 +46,8 @@ const Footer = () => {
           <div className="space-y-2 text-sm">
             <p>
               Phone:{" "}
-              <a href="tel:+919550214234" className="hover:text-gold transition-colors">
-                +91 95502 14234
+              <a href="tel:+919347903636" className="hover:text-gold transition-colors">
+                +91 93479 03636
               </a>
             </p>
             <p>
