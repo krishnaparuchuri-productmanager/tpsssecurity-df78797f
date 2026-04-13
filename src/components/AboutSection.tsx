@@ -1,7 +1,7 @@
 import { Users, Award, Calendar } from "lucide-react";
 
 const stats = [
-  { icon: Users, label: "150+ Team Members" },
+  { icon: Users, label: "200+ Team Members" },
   { icon: Award, label: "ISO 9001:2015 Certified" },
   { icon: Calendar, label: "Since 2019" },
 ];
@@ -12,7 +12,7 @@ const AboutSection = () => (
       <h2 className="text-3xl md:text-4xl font-bold text-navy text-center mb-8">About TPSS</h2>
       <p className="text-muted-foreground text-center leading-relaxed mb-12">
         Founded in 2019 in Nellore, Andhra Pradesh, Trinetra Professional Security & Services is a PSARA-compliant,
-        ISO 9001:2015 certified security organization with 150+ trained professionals. Led by retired Defense and
+        ISO 9001:2015 certified security organization with 200+ trained professionals. Led by retired Defense and
         Police officers, TPSS delivers round-the-clock security, housekeeping, and surveillance services across
         Nellore, Tirupati, and expanding throughout AP &amp; Telangana.
       </p>

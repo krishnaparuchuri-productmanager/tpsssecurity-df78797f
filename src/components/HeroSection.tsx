@@ -14,7 +14,7 @@ const HeroSection = () => {
           Your Safety, Our Priority
         </h1>
         <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-10 leading-relaxed">
-          PSARA-Compliant, ISO-Certified Security Services across Andhra Pradesh &amp; Telangana — 150+ trained professionals, 24/7 operations
+          PSARA-Compliant, ISO-Certified Security Services across Andhra Pradesh &amp; Telangana — 200+ trained professionals, 24/7 operations
         </p>
         <button
           onClick={scrollToContact}
