@@ -1,3 +1,5 @@
+import tpssLogo from "@/assets/tpss-logo.jpg";
+
 const quickLinks = ["About", "Services", "Certifications", "Gallery", "Executive Team", "Contact"];
 const sectionIds: Record<string, string> = {
   About: "#about",
@@ -17,11 +19,14 @@ const Footer = () => {
     <footer className="bg-navy text-white/80 pt-16 pb-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
-          <div>
-            <span className="text-2xl font-extrabold text-white">
-              TP<span className="text-gold">SS</span>
-            </span>
-            <p className="text-sm mt-2 text-white/60">Your Safety, Our Priority</p>
+          <div className="flex items-center gap-3">
+            <img src={tpssLogo} alt="TPSS Logo" className="h-10 w-10 rounded-full object-cover" />
+            <div>
+              <span className="text-xl font-extrabold text-white">
+                TP<span className="text-gold">SS</span>
+              </span>
+              <p className="text-xs text-white/60">Your Safety, Our Priority</p>
+            </div>
           </div>
           <div>
             <h4 className="font-semibold text-white mb-3 text-sm">Quick Links</h4>

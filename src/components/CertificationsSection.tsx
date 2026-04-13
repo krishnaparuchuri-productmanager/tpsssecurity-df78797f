@@ -5,10 +5,9 @@ const CertificationsSection = () => (
     <div className="container mx-auto px-4">
       <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">Certified &amp; Compliant</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-        {/* ISO Card */}
         <div className="bg-white/10 backdrop-blur rounded-lg p-8 text-center flex flex-col items-center">
           <img
-            src="https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/ISO%20%26%20PSARA/ISO%20Certificate%20and%20PSARA/9001-2015%20LOGO.jpg"
+            src="/images/certifications/iso-logo.jpg"
             alt="ISO 9001:2015 Logo"
             className="w-24 h-24 object-contain mb-4 rounded"
           />
@@ -19,7 +18,6 @@ const CertificationsSection = () => (
           </p>
         </div>
 
-        {/* PSARA Card */}
         <div className="bg-white/10 backdrop-blur rounded-lg p-8 text-center flex flex-col items-center">
           <div className="w-24 h-24 flex items-center justify-center mb-4">
             <Shield className="text-gold" size={56} strokeWidth={1.5} />
@@ -30,7 +28,7 @@ const CertificationsSection = () => (
             legally compliant, professionally trained security personnel.
           </p>
           <a
-            href="https://raw.githubusercontent.com/krishnaparuchuri-productmanager/TPSS-Images/main/ISO%20%26%20PSARA/ISO%20Certificate%20and%20PSARA/TPSS%20-%20PSARA%20Certificate.pdf"
+            href="/images/certifications/psara-certificate.pdf"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block px-6 py-2 bg-gold text-navy font-semibold text-sm rounded hover:opacity-90 transition-opacity"

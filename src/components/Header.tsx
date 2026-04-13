@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import tpssLogo from "@/assets/tpss-logo.jpg";
 
 const navLinks = [
   { label: "About", href: "#about" },
@@ -44,14 +45,17 @@ const Header = () => {
         scrolled ? "shadow-md" : ""
       }`}
     >
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-2xl font-extrabold tracking-tight text-navy">
-            TP<span className="text-gold">SS</span>
-          </span>
-          <span className="text-[10px] tracking-widest uppercase text-muted-foreground leading-tight">
-            Trinetra Professional Security Services
-          </span>
+      <div className="container mx-auto px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img src={tpssLogo} alt="TPSS Logo" className="h-12 w-12 rounded-full object-cover" />
+          <div className="flex flex-col">
+            <span className="text-xl font-extrabold tracking-tight text-navy">
+              TP<span className="text-gold">SS</span>
+            </span>
+            <span className="text-[9px] tracking-widest uppercase text-muted-foreground leading-tight">
+              Trinetra Professional Security Services
+            </span>
+          </div>
         </div>
 
         <nav className="hidden lg:flex gap-6">
