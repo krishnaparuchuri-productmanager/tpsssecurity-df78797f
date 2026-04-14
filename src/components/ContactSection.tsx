@@ -20,8 +20,8 @@ const ContactSection = () => {
           </div>
           <div className="flex items-center gap-3">
             <Mail className="text-gold shrink-0" size={20} />
-            <a href="mailto:admin@tpss.com" className="text-sm text-foreground hover:text-gold transition-colors">
-              admin@tpss.com
+            <a href="mailto:admin@tpsssecurity.com" className="text-sm text-foreground hover:text-gold transition-colors">
+              admin@tpsssecurity.com
             </a>
           </div>
           <div className="flex items-start gap-3">
