@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
-const images = Array.from({ length: 54 }, (_, i) => `/images/gallery/slide-${i + 1}.jpg`);
+const images = Array.from({ length: 61 }, (_, i) => `/images/gallery/slide-${i + 1}.jpg`);
 
 const GallerySection = () => {
   const [current, setCurrent] = useState(0);
