@@ -52,8 +52,8 @@ const Footer = () => {
             </p>
             <p>
               Email:{" "}
-              <a href="mailto:admin@tpss.com" className="hover:text-gold transition-colors">
-                admin@tpss.com
+              <a href="mailto:admin@tpsssecurity.com" className="hover:text-gold transition-colors">
+                admin@tpsssecurity.com
               </a>
             </p>
             <p>Nellore, Andhra Pradesh – 524001</p>
