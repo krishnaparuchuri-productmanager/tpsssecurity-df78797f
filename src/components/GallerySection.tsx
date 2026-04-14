@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
-const images = Array.from({ length: 54 }, (_, i) => `/images/gallery/slide-${i + 1}.jpg`);
+const images = Array.from({ length: 61 }, (_, i) => `/images/gallery/slide-${i + 1}.jpg`);
 
 const GallerySection = () => {
   const [current, setCurrent] = useState(0);
@@ -28,13 +28,13 @@ const GallerySection = () => {
           onMouseLeave={() => setPaused(false)}
         >
           {/* Slides */}
-          <div className="relative aspect-[16/10] bg-muted">
+          <div className="relative aspect-[16/10] bg-navy">
             {images.map((src, i) => (
               <img
                 key={i}
                 src={src}
                 alt={`TPSS gallery ${i + 1}`}
-                className={`absolute inset-0 w-full h-full object-cover cursor-pointer transition-opacity duration-700 ${
+                className={`absolute inset-0 w-full h-full object-contain cursor-pointer transition-opacity duration-700 ${
                   i === current ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
                 onClick={() => setLightbox(src)}
