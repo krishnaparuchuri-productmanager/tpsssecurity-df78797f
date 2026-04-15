@@ -44,11 +44,10 @@ const Footer = () => {
             </ul>
           </div>
           <div className="space-y-2 text-sm">
-            <p>
+            <p className="flex flex-wrap gap-x-1">
               Phone:{" "}
-              <a href="tel:+919347903636" className="hover:text-gold transition-colors">
-                +91 93479 03636
-              </a>
+              <a href="tel:+919550214234" className="hover:text-gold transition-colors">+91 95502 14234</a>,
+              <a href="tel:+919347903636" className="hover:text-gold transition-colors">+91 93479 03636</a>
             </p>
             <p>
               Email:{" "}
