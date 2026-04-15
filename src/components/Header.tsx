@@ -7,7 +7,7 @@ const navLinks = [
   { label: "Services", href: "#services" },
   { label: "Certifications", href: "#certifications" },
   { label: "Gallery", href: "#gallery" },
-  { label: "Executive Team", href: "#team" },
+  { label: "Leadership", href: "#team" },
   { label: "Clients & Partners", href: "#clients" },
   { label: "Contact", href: "#contact" },
 ];
