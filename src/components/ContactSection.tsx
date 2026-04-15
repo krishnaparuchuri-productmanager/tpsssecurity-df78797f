@@ -1,4 +1,28 @@
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { useRef, useEffect } from "react";
+
+const GoogleMap = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current && !containerRef.current.querySelector("iframe")) {
+      const iframe = document.createElement("iframe");
+      iframe.src =
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3829.123456789!2d79.9876543!3d14.4567890!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a4c8d9ec19cc9b5%3A0xabb7accfece64051!2sTrinetra%20Professional%20Security%20Services!5e0!3m2!1sen!2sin!4v1234567890";
+      iframe.width = "100%";
+      iframe.height = "450";
+      iframe.style.border = "0";
+      iframe.style.borderRadius = "12px";
+      iframe.allowFullscreen = true;
+      iframe.loading = "lazy";
+      iframe.referrerPolicy = "no-referrer-when-downgrade";
+      iframe.title = "TPSS Location";
+      containerRef.current.appendChild(iframe);
+    }
+  }, []);
+
+  return <div ref={containerRef} className="max-w-5xl mx-auto mt-12 rounded-lg overflow-hidden" />;
+};
 
 const ContactSection = () => {
   return (
@@ -34,19 +58,7 @@ const ContactSection = () => {
           </div>
         </div>
 
-        {/* Google Maps */}
-        <div className="max-w-5xl mx-auto mt-12 rounded-lg overflow-hidden">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3829.123456789!2d79.9876543!3d14.4567890!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a4c8d9ec19cc9b5%3A0xabb7accfece64051!2sTrinetra%20Professional%20Security%20Services!5e0!3m2!1sen!2sin!4v1234567890"
-            width="100%"
-            height="450"
-            style={{ border: 0, borderRadius: "12px" }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="TPSS Location"
-          />
-        </div>
+        <GoogleMap />
       </div>
     </section>
   );
