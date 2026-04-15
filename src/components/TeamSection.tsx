@@ -14,7 +14,7 @@ const team = [
 const TeamSection = () => (
   <section id="team" className="py-20 bg-background">
     <div className="container mx-auto px-4">
-      <h2 className="text-3xl md:text-4xl font-bold text-navy text-center mb-12">Our Leadership</h2>
+      <h2 className="text-3xl md:text-4xl font-bold text-navy text-center mb-12">Leadership</h2>
       <div className="flex flex-wrap justify-center gap-16">
         {team.map((m) => (
           <div key={m.name} className="flex flex-col items-center w-72">
