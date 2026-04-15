@@ -1,12 +1,12 @@
 import tpssLogo from "@/assets/tpss-logo.jpg";
 
-const quickLinks = ["About", "Services", "Certifications", "Gallery", "Executive Team", "Contact"];
+const quickLinks = ["About", "Leadership", "Services", "Certifications", "Gallery", "Contact"];
 const sectionIds: Record<string, string> = {
   About: "#about",
+  Leadership: "#team",
   Services: "#services",
   Certifications: "#certifications",
   Gallery: "#gallery",
-  "Executive Team": "#team",
   Contact: "#contact",
 };
 
