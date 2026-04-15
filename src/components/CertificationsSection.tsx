@@ -1,20 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
-
-const certificates = [
-  {
-    title: "ISO 9001:2015 (MQA Certification)",
-    image: "/images/certifications/iso-cert-mqa.jpg",
-  },
-  {
-    title: "ISO 9001:2015 (UK Cert Limited)",
-    image: "/images/certifications/iso-cert-ukcert.jpg",
-  },
-  {
-    title: "PSARA License – Govt. of Andhra Pradesh",
-    image: "/images/certifications/psara-license.jpg",
-  },
-];
+import { Shield, X } from "lucide-react";
 
 const CertificationsSection = () => {
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -22,30 +7,62 @@ const CertificationsSection = () => {
   return (
     <section id="certifications" className="py-20 bg-navy">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+        <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
           Certified &amp; Compliant
         </h2>
-        <p className="text-white/60 text-center text-sm mb-12 max-w-xl mx-auto">
-          Click any certificate to view in full size
-        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {certificates.map((cert) => (
+        {/* Description Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto mb-14">
+          <div className="bg-white/10 backdrop-blur rounded-lg p-8 text-center flex flex-col items-center">
+            <img
+              src="/images/certifications/iso-logo.jpg"
+              alt="ISO 9001:2015 Logo"
+              className="w-24 h-24 object-contain mb-4 rounded"
+            />
+            <h3 className="text-lg font-bold text-white mb-2">ISO 9001:2015 Certified</h3>
+            <p className="text-white/70 text-sm leading-relaxed">
+              Our quality management systems meet international ISO 9001:2015 standards, ensuring consistent,
+              high-quality service delivery across all operations.
+            </p>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur rounded-lg p-8 text-center flex flex-col items-center">
+            <div className="w-24 h-24 flex items-center justify-center mb-4">
+              <Shield className="text-gold" size={56} strokeWidth={1.5} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">PSARA Licensed</h3>
+            <p className="text-white/70 text-sm leading-relaxed">
+              Fully licensed under the Private Security Agencies Regulation Act (PSARA), Andhra Pradesh — ensuring
+              legally compliant, professionally trained security personnel.
+            </p>
+          </div>
+        </div>
+
+        {/* Certificate Images */}
+        <h3 className="text-lg font-semibold text-gold text-center mb-6">
+          View Our Certificates
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          {[
+            { title: "ISO 9001:2015 – MQA Certification", image: "/images/certifications/iso-cert-mqa.jpg" },
+            { title: "ISO 9001:2015 – UK Cert Limited", image: "/images/certifications/iso-cert-ukcert.jpg" },
+            { title: "PSARA License – Govt. of AP", image: "/images/certifications/psara-license.jpg" },
+          ].map((cert) => (
             <div
               key={cert.title}
-              className="bg-white/10 backdrop-blur rounded-lg p-4 flex flex-col items-center cursor-pointer group hover:bg-white/15 transition-colors"
+              className="bg-white rounded-lg overflow-hidden cursor-pointer group hover:shadow-lg hover:shadow-gold/20 transition-all duration-300"
               onClick={() => setLightbox(cert.image)}
             >
-              <div className="w-full aspect-[3/4] rounded overflow-hidden mb-4 bg-white">
+              <div className="aspect-[3/4] p-2">
                 <img
                   src={cert.image}
                   alt={cert.title}
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <h3 className="text-sm font-semibold text-white text-center leading-snug">
-                {cert.title}
-              </h3>
+              <div className="bg-navy/90 px-3 py-2.5 text-center">
+                <p className="text-xs font-medium text-white/80">{cert.title}</p>
+              </div>
             </div>
           ))}
         </div>
