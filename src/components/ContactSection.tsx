@@ -14,8 +14,8 @@ const ContactSection = () => {
           </div>
           <div className="flex items-center gap-3">
             <Phone className="text-gold shrink-0" size={20} />
-            <div className="flex flex-wrap gap-x-2 text-sm text-foreground">
-              <a href="tel:+919550214234" className="hover:text-gold transition-colors">+91 95502 14234</a>,
+            <div className="flex flex-col text-sm text-foreground">
+              <a href="tel:+919550214234" className="hover:text-gold transition-colors">+91 95502 14234</a>
               <a href="tel:+919347903636" className="hover:text-gold transition-colors">+91 93479 03636</a>
             </div>
           </div>
