@@ -52,7 +52,7 @@ const Header = () => {
             <span className="text-xl font-extrabold tracking-tight text-navy font-mono">
               TPSS
             </span>
-            <span className="text-[9px] tracking-widest uppercase text-muted-foreground leading-tight">
+            <span className="tracking-widest uppercase text-muted-foreground leading-tight text-base font-semibold">
               TRINETRA PROFESSIONAL SECURITY & SERVICES
             </span>
           </div>
