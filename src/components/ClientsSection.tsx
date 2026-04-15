@@ -1,4 +1,12 @@
-const clientImages = Array.from({ length: 11 }, (_, i) => `/images/clients/client-${i + 1}.jpeg`);
+const clientImages = [
+  ...Array.from({ length: 11 }, (_, i) => `/images/clients/client-${i + 1}.jpeg`),
+  "/images/clients/client-12.png",
+  "/images/clients/client-13.jpg",
+  "/images/clients/client-14.png",
+  "/images/clients/client-15.jpg",
+  "/images/clients/client-16.png",
+  "/images/clients/client-17.png",
+];
 
 const ClientsSection = () => (
   <section id="clients" className="py-20 bg-secondary/30">
