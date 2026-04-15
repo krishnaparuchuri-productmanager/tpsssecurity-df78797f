@@ -4,10 +4,10 @@ import tpssLogo from "@/assets/tpss-logo.jpg";
 
 const navLinks = [
   { label: "About", href: "#about" },
+  { label: "Leadership", href: "#team" },
   { label: "Services", href: "#services" },
   { label: "Certifications", href: "#certifications" },
   { label: "Gallery", href: "#gallery" },
-  { label: "Leadership", href: "#team" },
   { label: "Clients & Partners", href: "#clients" },
   { label: "Contact", href: "#contact" },
 ];
