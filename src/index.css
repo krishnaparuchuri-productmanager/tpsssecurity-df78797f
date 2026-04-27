@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -90,22 +91,34 @@
 }
 
 @layer utilities {
-  .text-navy {
-    color: hsl(var(--navy));
-  }
-  .bg-navy {
-    background-color: hsl(var(--navy));
-  }
-  .text-gold {
-    color: hsl(var(--gold));
-  }
-  .bg-gold {
-    background-color: hsl(var(--gold));
-  }
-  .border-gold {
-    border-color: hsl(var(--gold));
-  }
-  .border-navy {
-    border-color: hsl(var(--navy));
-  }
+  .text-navy { color: hsl(var(--navy)); }
+  .bg-navy { background-color: hsl(var(--navy)); }
+  .text-gold { color: hsl(var(--gold)); }
+  .bg-gold { background-color: hsl(var(--gold)); }
+  .border-gold { border-color: hsl(var(--gold)); }
+  .border-navy { border-color: hsl(var(--navy)); }
 }
+
+/* ============================================================
+   Internal admin app (.app-shell scope) — does NOT affect the
+   public marketing site.
+   ============================================================ */
+.app-shell {
+  font-family: 'Inter', system-ui, sans-serif;
+  --app-navy: 217 47% 18%;        /* #1a2744 */
+  --app-saffron: 24 95% 53%;      /* #f97316 */
+  --app-bg: 0 0% 100%;
+  --app-surface: 220 20% 98%;
+  --app-border: 220 14% 90%;
+  --app-text: 220 30% 14%;
+  --app-text-muted: 220 10% 45%;
+}
+.app-shell .bg-app-navy { background-color: hsl(var(--app-navy)); }
+.app-shell .text-app-navy { color: hsl(var(--app-navy)); }
+.app-shell .border-app-navy { border-color: hsl(var(--app-navy)); }
+.app-shell .bg-app-saffron { background-color: hsl(var(--app-saffron)); }
+.app-shell .text-app-saffron { color: hsl(var(--app-saffron)); }
+.app-shell .bg-app-bg { background-color: hsl(var(--app-bg)); }
+.app-shell .bg-app-surface { background-color: hsl(var(--app-surface)); }
+.app-shell .border-app-border { border-color: hsl(var(--app-border)); }
+.app-shell .text-app-muted { color: hsl(var(--app-text-muted)); }
