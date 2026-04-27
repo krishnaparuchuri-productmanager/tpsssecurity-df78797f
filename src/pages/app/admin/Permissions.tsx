@@ -19,7 +19,8 @@ export default function Permissions() {
   }, []);
 
   async function update(id: string, action: Action, value: boolean) {
-    const { error } = await supabase.from("role_permissions").update({ [action]: value }).eq("id", id);
+    const patch: Record<string, boolean> = { [action]: value };
+    const { error } = await supabase.from("role_permissions").update(patch as never).eq("id", id);
     if (error) { toast.error(error.message); return; }
     setRows((cur) => (cur ?? []).map((r) => r.id === id ? { ...r, [action]: value } : r));
   }
