@@ -13,8 +13,8 @@ export async function logAudit(args: {
   action: AuditAction;
   table?: string;
   recordId?: string | null;
-  oldValues?: Record<string, unknown> | null;
-  newValues?: Record<string, unknown> | null;
+  oldValues?: unknown;
+  newValues?: unknown;
 }) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -24,8 +24,8 @@ export async function logAudit(args: {
     action: args.action,
     table_name: args.table ?? null,
     record_id: args.recordId ?? null,
-    old_values: args.oldValues ?? null,
-    new_values: args.newValues ?? null,
+    old_values: (args.oldValues ?? null) as never,
+    new_values: (args.newValues ?? null) as never,
     ip_address: null,
   });
 }
