@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function ProtectedRoute({ requireRoles, requireScreen }: Props) {
-  const { user, role, loading, can } = useAuth();
+  const { user, role, profile, loading, can } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -20,6 +20,19 @@ export default function ProtectedRoute({ requireRoles, requireScreen }: Props) {
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+
+  if (profile && profile.is_active === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md text-center space-y-3">
+          <h2 className="text-xl font-semibold">Account deactivated</h2>
+          <p className="text-muted-foreground text-sm">
+            Your account has been deactivated. Please contact your administrator.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (!role) {
