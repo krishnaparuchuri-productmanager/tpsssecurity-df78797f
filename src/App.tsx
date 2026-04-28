@@ -19,6 +19,7 @@ import UsersAdmin from "@/pages/app/admin/Users";
 import Permissions from "@/pages/app/admin/Permissions";
 import AuditLogs from "@/pages/app/admin/AuditLogs";
 import Placeholder from "@/pages/app/Placeholder";
+import HostRouter from "@/components/HostRouter";
 
 const queryClient = new QueryClient();
 
