@@ -15,12 +15,22 @@ import { formatINR, toISODate } from "@/lib/format";
 
 const DESIGNATIONS = ["ASO", "S.GUARD", "WRITER", "SUPERVISOR", "FIELD OFFICER"];
 
+// Optional-or-empty regex helper: allows blank string OR exact regex match
+const optionalRegex = (re: RegExp, message: string) =>
+  z.string().trim().refine((v) => v === "" || re.test(v), { message });
+
 const schema = z.object({
-  full_name: z.string().trim().min(1).max(150),
-  designation: z.string().min(1),
+  full_name: z.string().trim().min(1, "Full name is required").max(150, "Full name too long"),
+  designation: z.string().min(1, "Designation is required"),
   client_id: z.string().uuid().or(z.literal("")),
-  date_of_joining: z.string().min(1),
+  date_of_joining: z.string().min(1, "Date of joining is required"),
   status: z.enum(["Active", "Relieved", "Absconded"]),
+  aadhaar_number: optionalRegex(/^[0-9]{12}$/, "Aadhaar must be exactly 12 digits"),
+  uan_number: optionalRegex(/^[0-9]{12}$/, "UAN must be exactly 12 digits"),
+  esi_number: optionalRegex(/^[0-9]{17}$/, "ESI must be exactly 17 digits"),
+  bank_ifsc: optionalRegex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "IFSC must match format AAAA0XXXXXX (uppercase)"),
+  bank_account_number: optionalRegex(/^[0-9]{9,18}$/, "Bank account must be 9–18 digits"),
+  mobile: optionalRegex(/^[0-9]{10}$/, "Mobile must be exactly 10 digits"),
 });
 
 interface ClientLite { id: string; client_name: string; }
