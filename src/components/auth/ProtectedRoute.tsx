@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function ProtectedRoute({ requireRoles, requireScreen }: Props) {
-  const { user, role, loading, can } = useAuth();
+  const { user, role, profile, loading, can } = useAuth();
   const location = useLocation();
 
   if (loading) {
