@@ -29,6 +29,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <HostRouter />
           <Routes>
             {/* Public marketing site — UNCHANGED */}
             <Route path="/" element={<Index />} />
