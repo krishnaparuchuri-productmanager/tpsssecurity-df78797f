@@ -126,8 +126,15 @@ export default function EmployeeForm() {
     const parsed = schema.safeParse({
       full_name: form.full_name, designation: form.designation,
       client_id: form.client_id, date_of_joining: form.date_of_joining, status: form.status,
+      aadhaar_number: form.aadhaar_number, uan_number: form.uan_number, esi_number: form.esi_number,
+      bank_ifsc: form.bank_ifsc, bank_account_number: form.bank_account_number, mobile: form.mobile,
     });
-    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Invalid input"); return; }
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      const field = issue?.path?.join(".") ?? "field";
+      toast.error(`${field}: ${issue?.message ?? "Invalid input"}`);
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
