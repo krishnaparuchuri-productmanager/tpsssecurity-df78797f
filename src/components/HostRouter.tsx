@@ -31,12 +31,9 @@ export default function HostRouter() {
     }
 
     if (isPublic) {
-      const isInternal = path === "/login" || path.startsWith("/app");
-      if (isInternal) {
-        window.location.replace(
-          `https://${ADMIN_HOST}${path}${location.search}${location.hash}`
-        );
-      }
+      // Allow /login and /app/* to render directly on www to avoid redirect
+      // loops with the admin subdomain (which currently redirects back to www
+      // at the hosting/DNS layer). No-op here.
       return;
     }
 
