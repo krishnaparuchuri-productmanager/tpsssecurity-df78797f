@@ -138,6 +138,7 @@ const NAV: NavGroup[] = [
       { to: "/app/admin/branch-summary", label: "Branch Summary", icon: Building2, roles: ["ceo_admin"] },
       { to: "/app/admin/backup", label: "Backups", icon: History, roles: ["ceo_admin"] },
       { to: "/app/masters/expense-categories", label: "Expense Categories", icon: Settings, roles: ["ceo_admin"] },
+      { to: "/app/masters/branches/manage", label: "Branches Management", icon: Building2, roles: ["ceo_admin"] },
     ],
   },
 ];
