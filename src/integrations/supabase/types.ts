@@ -141,6 +141,45 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_logs: {
+        Row: {
+          backup_date: string
+          backup_type: string
+          created_at: string
+          error_message: string | null
+          file_path: string | null
+          file_size_kb: number | null
+          id: string
+          status: string
+          tables_included: Json
+          triggered_by: string | null
+        }
+        Insert: {
+          backup_date?: string
+          backup_type: string
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size_kb?: number | null
+          id?: string
+          status?: string
+          tables_included?: Json
+          triggered_by?: string | null
+        }
+        Update: {
+          backup_date?: string
+          backup_type?: string
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size_kb?: number | null
+          id?: string
+          status?: string
+          tables_included?: Json
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       branches: {
         Row: {
           branch_address: string | null
@@ -679,6 +718,75 @@ export type Database = {
           state?: string
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      compliance_payments: {
+        Row: {
+          amount: number
+          bank_name: string | null
+          branch_id: string | null
+          challan_number: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          interest: number
+          is_deleted: boolean
+          is_sandbox: boolean
+          late_fee: number
+          ledger_entry_id: string | null
+          notes: string | null
+          payment_date: string
+          payment_month: string
+          payment_type: string
+          paysheet_id: string | null
+          recorded_by: string | null
+          reference_number: string | null
+          total_paid: number
+        }
+        Insert: {
+          amount?: number
+          bank_name?: string | null
+          branch_id?: string | null
+          challan_number?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          interest?: number
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          late_fee?: number
+          ledger_entry_id?: string | null
+          notes?: string | null
+          payment_date?: string
+          payment_month: string
+          payment_type: string
+          paysheet_id?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          total_paid?: number
+        }
+        Update: {
+          amount?: number
+          bank_name?: string | null
+          branch_id?: string | null
+          challan_number?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          interest?: number
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          late_fee?: number
+          ledger_entry_id?: string | null
+          notes?: string | null
+          payment_date?: string
+          payment_month?: string
+          payment_type?: string
+          paysheet_id?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          total_paid?: number
         }
         Relationships: []
       }
@@ -1266,6 +1374,113 @@ export type Database = {
           },
         ]
       }
+      expense_categories: {
+        Row: {
+          category_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          ledger_category: Database["public"]["Enums"]["ledger_category"]
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          ledger_category?: Database["public"]["Enums"]["ledger_category"]
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          ledger_category?: Database["public"]["Enums"]["ledger_category"]
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          category_id: string
+          created_at: string
+          deleted_at: string | null
+          description: string
+          expense_date: string
+          expense_number: string
+          id: string
+          is_deleted: boolean
+          is_sandbox: boolean
+          ledger_entry_id: string | null
+          payment_mode: string
+          receipt_url: string | null
+          recorded_by: string | null
+          reference_number: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          category_id: string
+          created_at?: string
+          deleted_at?: string | null
+          description: string
+          expense_date?: string
+          expense_number: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          ledger_entry_id?: string | null
+          payment_mode: string
+          receipt_url?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          category_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string
+          expense_date?: string
+          expense_number?: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          ledger_entry_id?: string | null
+          payment_mode?: string
+          receipt_url?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_ledger: {
         Row: {
           balance_after: number
@@ -1347,6 +1562,66 @@ export type Database = {
           template_rows?: Json
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      invoice_followups: {
+        Row: {
+          client_id: string
+          closed_reason: string | null
+          contact_mode: string | null
+          contacted_by: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          followup_date: string
+          id: string
+          invoice_id: string
+          is_deleted: boolean
+          is_sandbox: boolean
+          next_followup_date: string | null
+          promise_date: string | null
+          response: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          closed_reason?: string | null
+          contact_mode?: string | null
+          contacted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          followup_date?: string
+          id?: string
+          invoice_id: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          next_followup_date?: string | null
+          promise_date?: string | null
+          response?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          closed_reason?: string | null
+          contact_mode?: string | null
+          contacted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          followup_date?: string
+          id?: string
+          invoice_id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          next_followup_date?: string | null
+          promise_date?: string | null
+          response?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1988,8 +2263,14 @@ export type Database = {
         Returns: undefined
       }
       approve_advance: { Args: { _id: string }; Returns: undefined }
+      approve_expense: { Args: { _id: string }; Returns: undefined }
       approve_ffs: { Args: { _id: string; _payment: Json }; Returns: undefined }
       approve_paysheet: { Args: { _id: string }; Returns: undefined }
+      auto_close_followups_for_invoice: {
+        Args: { _invoice_id: string }
+        Returns: number
+      }
+      auto_open_followups: { Args: never; Returns: number }
       cancel_advance: { Args: { _id: string }; Returns: undefined }
       complete_compliance_task: {
         Args: { _amount: number; _challan: string; _id: string; _notes: string }
@@ -1999,6 +2280,7 @@ export type Database = {
       create_compliance_task: { Args: { _payload: Json }; Returns: string }
       create_contract: { Args: { _payload: Json }; Returns: string }
       create_deployment: { Args: { _payload: Json }; Returns: string }
+      create_followup: { Args: { _payload: Json }; Returns: string }
       current_environment: { Args: never; Returns: string }
       fy_string: { Args: { _d: string }; Returns: string }
       gen_advance_number: {
@@ -2006,6 +2288,7 @@ export type Database = {
         Returns: string
       }
       gen_contract_number: { Args: { _client_id: string }; Returns: string }
+      gen_expense_number: { Args: { _date: string }; Returns: string }
       gen_ffs_number: {
         Args: { _d: string; _sandbox: boolean }
         Returns: string
@@ -2053,9 +2336,13 @@ export type Database = {
       }
       is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_sandbox_env: { Args: never; Returns: boolean }
+      manage_expense_category: { Args: { _payload: Json }; Returns: string }
       mark_contract_status_and_notify: { Args: never; Returns: number }
       mark_overdue_invoices: { Args: never; Returns: number }
+      record_backup_log: { Args: { _payload: Json }; Returns: string }
+      record_compliance_payment: { Args: { _payload: Json }; Returns: string }
       record_expense: { Args: { _payload: Json }; Returns: string }
+      record_expense_v2: { Args: { _payload: Json }; Returns: string }
       reject_advance: {
         Args: { _id: string; _reason: string }
         Returns: undefined
@@ -2069,6 +2356,10 @@ export type Database = {
         Returns: undefined
       }
       renew_contract: { Args: { _payload: Json }; Returns: string }
+      reorder_expense_categories: {
+        Args: { _orders: Json }
+        Returns: undefined
+      }
       request_advance: { Args: { _payload: Json }; Returns: string }
       run_compliance_daily_checks: { Args: never; Returns: Json }
       save_ffs: { Args: { _payload: Json }; Returns: string }
@@ -2078,6 +2369,10 @@ export type Database = {
         Returns: number
       }
       update_compliance_task: {
+        Args: { _id: string; _payload: Json }
+        Returns: undefined
+      }
+      update_followup: {
         Args: { _id: string; _payload: Json }
         Returns: undefined
       }
