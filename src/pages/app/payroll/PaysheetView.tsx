@@ -13,6 +13,7 @@ export default function PaysheetView() {
   const navigate = useNavigate();
   const { role } = useAuth();
   const canExportExcel = role === "ceo_admin" || role === "coo_ops";
+  const [head, setHead] = useState<{
     paysheet_number: string; month: string; status: string; rejection_reason: string | null;
     total_employees: number; total_net_salary: number;
     clients: { client_name: string } | null;
