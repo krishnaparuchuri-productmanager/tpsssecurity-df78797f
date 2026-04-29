@@ -439,6 +439,24 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_secrets: {
+        Row: {
+          name: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          name: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          name?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           aadhaar_number: string | null
