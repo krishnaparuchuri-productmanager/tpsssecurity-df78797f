@@ -3,12 +3,16 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Download } from "lucide-react";
 import { formatINR } from "@/lib/format";
+import { useAuth } from "@/contexts/AuthContext";
+import { downloadPaysheetExcel } from "@/lib/exportPaysheet";
 
 export default function PaysheetView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const canExportExcel = role === "ceo_admin" || role === "coo_ops";
   const [head, setHead] = useState<{
     paysheet_number: string; month: string; status: string; rejection_reason: string | null;
     total_employees: number; total_net_salary: number;
@@ -43,11 +47,18 @@ export default function PaysheetView() {
           <div className="text-sm text-app-muted">{head.clients?.client_name} • {head.month} • <Badge>{head.status}</Badge></div>
           {head.rejection_reason && <div className="text-sm text-red-600 mt-1">Reason: {head.rejection_reason}</div>}
         </div>
-        {head.status === "approved" && (
-          <Link to={`/app/invoices/new?paysheet=${id}`} className="ml-auto">
-            <Button className="bg-app-navy text-white"><FileText className="h-4 w-4 mr-1" /> Generate Invoice</Button>
-          </Link>
-        )}
+        <div className="ml-auto flex gap-2">
+          {canExportExcel && (
+            <Button variant="outline" onClick={() => downloadPaysheetExcel(head, emps)}>
+              <Download className="h-4 w-4 mr-1" /> Excel
+            </Button>
+          )}
+          {head.status === "approved" && (
+            <Link to={`/app/invoices/new?paysheet=${id}`}>
+              <Button className="bg-app-navy text-white"><FileText className="h-4 w-4 mr-1" /> Generate Invoice</Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="bg-white border border-app-border rounded-lg overflow-x-auto">

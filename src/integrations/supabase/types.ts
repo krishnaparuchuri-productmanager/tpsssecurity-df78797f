@@ -1216,6 +1216,7 @@ export type Database = {
     Functions: {
       _iw_under_hundred: { Args: { n: number }; Returns: string }
       amount_in_words_inr: { Args: { amt: number }; Returns: string }
+      approve_paysheet: { Args: { _id: string }; Returns: undefined }
       current_environment: { Args: never; Returns: string }
       fy_string: { Args: { _d: string }; Returns: string }
       gen_invoice_number: {
@@ -1248,6 +1249,11 @@ export type Database = {
       }
       is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_sandbox_env: { Args: never; Returns: boolean }
+      reject_paysheet: {
+        Args: { _id: string; _reason: string }
+        Returns: undefined
+      }
+      save_paysheet: { Args: { _payload: Json }; Returns: string }
       wipe_sandbox: { Args: never; Returns: undefined }
     }
     Enums: {
