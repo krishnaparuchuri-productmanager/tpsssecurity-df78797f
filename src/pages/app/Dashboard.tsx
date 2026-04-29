@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatINR, formatDate } from "@/lib/format";
 import { Briefcase, Users, Wallet, TrendingUp, AlertTriangle } from "lucide-react";
@@ -9,30 +10,50 @@ interface KPI { label: string; value: string; icon: React.ComponentType<{ classN
 
 export default function Dashboard() {
   const { profile, role } = useAuth();
+  const { isSandbox } = useEnvironment();
   const [counts, setCounts] = useState<{ clients: number; employees: number } | null>(null);
   const [recent, setRecent] = useState<Array<{ id: string; action: string; table_name: string | null; created_at: string }>>([]);
+  const [fin, setFin] = useState({ billing: 0, received: 0, outstanding: 0, margin: 0, salaries: 0 });
 
   useEffect(() => {
     (async () => {
-      const [{ count: c }, { count: e }, { data: logs }] = await Promise.all([
-        supabase.from("clients").select("*", { count: "exact", head: true }).eq("is_active", true),
-        supabase.from("employees").select("*", { count: "exact", head: true }).eq("status", "Active"),
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+      const [{ count: c }, { count: e }, { data: logs }, { data: invs }, { data: psheets }] = await Promise.all([
+        supabase.from("clients").select("*", { count: "exact", head: true }).eq("is_active", true).eq("is_sandbox", isSandbox),
+        supabase.from("employees").select("*", { count: "exact", head: true }).eq("status", "Active").eq("is_sandbox", isSandbox),
         supabase.from("audit_logs").select("id, action, table_name, created_at").order("created_at", { ascending: false }).limit(5),
+        supabase.from("invoices")
+          .select("billing_amount, amount_received, outstanding_amount, net_margin")
+          .eq("is_sandbox", isSandbox)
+          .gte("month_date", monthStart).lte("month_date", monthEnd),
+        supabase.from("paysheets")
+          .select("total_net_salary")
+          .eq("is_sandbox", isSandbox)
+          .gte("month_date", monthStart).lte("month_date", monthEnd),
       ]);
       setCounts({ clients: c ?? 0, employees: e ?? 0 });
       setRecent((logs ?? []) as typeof recent);
+      const billing = (invs ?? []).reduce((s, i) => s + Number(i.billing_amount || 0), 0);
+      const received = (invs ?? []).reduce((s, i) => s + Number(i.amount_received || 0), 0);
+      const outstanding = (invs ?? []).reduce((s, i) => s + Number(i.outstanding_amount || 0), 0);
+      const margin = (invs ?? []).reduce((s, i) => s + Number(i.net_margin || 0), 0);
+      const salaries = (psheets ?? []).reduce((s, p) => s + Number(p.total_net_salary || 0), 0);
+      setFin({ billing, received, outstanding, margin, salaries });
     })();
-  }, []);
+  }, [isSandbox]);
 
   const kpis: KPI[] = [
-    { label: "Total Billing (Month)", value: formatINR(0), icon: Wallet },
-    { label: "Amount Received", value: formatINR(0), icon: TrendingUp },
-    { label: "Outstanding Dues", value: formatINR(0), icon: AlertTriangle },
-    { label: "Net Income", value: formatINR(0), icon: TrendingUp },
+    { label: "Total Billing (Month)", value: formatINR(fin.billing), icon: Wallet },
+    { label: "Amount Received", value: formatINR(fin.received), icon: TrendingUp },
+    { label: "Outstanding Dues", value: formatINR(fin.outstanding), icon: AlertTriangle },
+    { label: "Net Margin", value: formatINR(fin.margin), icon: TrendingUp },
     { label: "Active Clients", value: String(counts?.clients ?? "—"), icon: Briefcase },
     { label: "Active Employees", value: String(counts?.employees ?? "—"), icon: Users },
     { label: "Admin Expenses", value: formatINR(0), icon: Wallet },
-    { label: "Staff Salaries", value: formatINR(0), icon: Users },
+    { label: "Staff Salaries", value: formatINR(fin.salaries), icon: Users },
   ];
 
   const isAccountant = role === "accountant";
