@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, Download } from "lucide-react";
+import { ArrowLeft, FileText, Download, Printer } from "lucide-react";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { downloadPaysheetExcel } from "@/lib/exportPaysheet";
@@ -47,7 +47,10 @@ export default function PaysheetView() {
           <div className="text-sm text-app-muted">{head.clients?.client_name} • {head.month} • <Badge>{head.status}</Badge></div>
           {head.rejection_reason && <div className="text-sm text-red-600 mt-1">Reason: {head.rejection_reason}</div>}
         </div>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex gap-2 print:hidden">
+          <Button variant="outline" onClick={() => window.print()}>
+            <Printer className="h-4 w-4 mr-1" /> Print / PDF
+          </Button>
           {canExportExcel && (
             <Button variant="outline" onClick={() => downloadPaysheetExcel(head, emps)}>
               <Download className="h-4 w-4 mr-1" /> Excel

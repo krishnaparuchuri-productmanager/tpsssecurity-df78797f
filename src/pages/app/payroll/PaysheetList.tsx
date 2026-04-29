@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye } from "lucide-react";
-import { formatINR, formatDate } from "@/lib/format";
+import { Plus, Eye, Send, Pencil } from "lucide-react";
+import { toast } from "sonner";
+import { formatINR } from "@/lib/format";
 
 interface Row {
   id: string; paysheet_number: string; month: string; month_date: string;
@@ -24,15 +26,27 @@ const STATUS_BADGE: Record<string, string> = {
 
 export default function PaysheetList() {
   const { isSandbox } = useEnvironment();
+  const { user } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
 
-  useEffect(() => {
-    supabase.from("paysheets")
+  async function load() {
+    const { data } = await supabase.from("paysheets")
       .select("*, clients(client_name)")
       .eq("is_sandbox", isSandbox).eq("is_deleted", false)
-      .order("month_date", { ascending: false })
-      .then(({ data }) => setRows((data ?? []) as unknown as Row[]));
-  }, [isSandbox]);
+      .order("month_date", { ascending: false });
+    setRows((data ?? []) as unknown as Row[]);
+  }
+  useEffect(() => { load(); }, [isSandbox]);
+
+  async function submitForApproval(r: Row) {
+    if (r.anomaly_count > 0 && !confirm(`This paysheet has ${r.anomaly_count} anomaly flag(s). Submit anyway?`)) return;
+    const { error } = await supabase.from("paysheets").update({
+      status: "submitted", submitted_by: user?.id, submitted_at: new Date().toISOString(),
+    }).eq("id", r.id);
+    if (error) return toast.error(error.message);
+    toast.success("Submitted for approval");
+    load();
+  }
 
   return (
     <div className="space-y-4">
@@ -49,7 +63,7 @@ export default function PaysheetList() {
               <th className="p-2">No</th><th className="p-2">Month</th><th className="p-2">Client</th>
               <th className="p-2">Employees</th><th className="p-2 text-right">Wages</th>
               <th className="p-2 text-right">EPF</th><th className="p-2 text-right">ESI</th>
-              <th className="p-2">Anomalies</th><th className="p-2">Status</th><th className="p-2"></th>
+              <th className="p-2">Anomalies</th><th className="p-2">Status</th><th className="p-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -66,8 +80,16 @@ export default function PaysheetList() {
                 <td className="p-2 text-right tabular-nums">{formatINR(Number(r.total_esi_employee))}</td>
                 <td className="p-2">{r.anomaly_count > 0 ? <Badge variant="outline" className="text-yellow-700 border-yellow-300">⚠️ {r.anomaly_count}</Badge> : "—"}</td>
                 <td className="p-2"><Badge className={STATUS_BADGE[r.status]}>{r.status}</Badge></td>
-                <td className="p-2">
-                  <Link to={`/app/payroll/${r.id}/view`}><Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button></Link>
+                <td className="p-2 text-right whitespace-nowrap">
+                  <Link to={`/app/payroll/${r.id}/view`}><Button size="sm" variant="ghost" title="View"><Eye className="h-4 w-4" /></Button></Link>
+                  {(r.status === "draft" || r.status === "rejected") && (
+                    <>
+                      <Link to={`/app/payroll/create?id=${r.id}`}><Button size="sm" variant="ghost" title="Edit"><Pencil className="h-4 w-4" /></Button></Link>
+                      <Button size="sm" variant="ghost" className="text-blue-700" title="Submit for approval" onClick={() => submitForApproval(r)}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
