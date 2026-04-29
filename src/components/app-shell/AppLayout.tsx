@@ -51,6 +51,19 @@ const NAV: NavGroup[] = [
       { to: "/app/masters/clients", label: "Clients", icon: Briefcase, screen: "clients" },
       { to: "/app/masters/employees", label: "Employees", icon: Users, screen: "employees" },
       { to: "/app/masters/company-profile", label: "Company Profile", icon: Building2, roles: ["ceo_admin"] },
+      { to: "/app/masters/branches", label: "Branches", icon: Building2, roles: ["ceo_admin", "coo_ops"] },
+      { to: "/app/masters/deployments/shifts", label: "Shifts", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
+      { to: "/app/masters/deployments", label: "Deployments", icon: Users },
+      { to: "/app/masters/contracts/list", label: "Contracts", icon: FileText },
+    ],
+  },
+  {
+    label: "Employee Lifecycle",
+    items: [
+      { to: "/app/employees/advances/list", label: "Advances", icon: Wallet },
+      { to: "/app/employees/advances/approvals", label: "Advance Approvals", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
+      { to: "/app/employees/ffs/list", label: "Full & Final", icon: FileText },
+      { to: "/app/employees/ffs/approvals", label: "FFS Approvals", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
     ],
   },
   {
