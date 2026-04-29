@@ -33,6 +33,18 @@ import ReceiptsList from "@/pages/app/finance/ReceiptsList";
 import ReceiptView from "@/pages/app/finance/ReceiptView";
 import CashBook from "@/pages/app/finance/CashBook";
 import MonthlySummary from "@/pages/app/finance/MonthlySummary";
+import AdvancesList from "@/pages/app/employees/AdvancesList";
+import AdvanceForm from "@/pages/app/employees/AdvanceForm";
+import AdvanceApprovals from "@/pages/app/employees/AdvanceApprovals";
+import EmployeeAdvances from "@/pages/app/employees/EmployeeAdvances";
+import FfsList from "@/pages/app/employees/FfsList";
+import FfsForm from "@/pages/app/employees/FfsForm";
+import FfsView from "@/pages/app/employees/FfsView";
+import FfsApprovals from "@/pages/app/employees/FfsApprovals";
+import BranchesList from "@/pages/app/masters/BranchesList";
+import ShiftsList from "@/pages/app/masters/ShiftsList";
+import DeploymentsList from "@/pages/app/masters/DeploymentsList";
+import ContractsList from "@/pages/app/masters/ContractsList";
 
 const queryClient = new QueryClient();
 
