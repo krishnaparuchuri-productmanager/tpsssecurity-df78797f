@@ -253,15 +253,16 @@ export default function ClientForm() {
       }
 
       // Deduction template
+      const tplJson = JSON.parse(JSON.stringify(deductionTemplate));
       if (deductionTemplateId) {
         await supabase.from("invoice_deduction_templates").update({
-          template_rows: deductionTemplate as unknown as object[],
+          template_rows: tplJson,
           updated_by: user?.id,
         }).eq("id", deductionTemplateId);
       } else {
         await supabase.from("invoice_deduction_templates").insert({
           client_id: clientId,
-          template_rows: deductionTemplate as unknown as object[],
+          template_rows: tplJson,
           updated_by: user?.id,
         });
       }
