@@ -47,11 +47,18 @@ export default function PaysheetView() {
           <div className="text-sm text-app-muted">{head.clients?.client_name} • {head.month} • <Badge>{head.status}</Badge></div>
           {head.rejection_reason && <div className="text-sm text-red-600 mt-1">Reason: {head.rejection_reason}</div>}
         </div>
-        {head.status === "approved" && (
-          <Link to={`/app/invoices/new?paysheet=${id}`} className="ml-auto">
-            <Button className="bg-app-navy text-white"><FileText className="h-4 w-4 mr-1" /> Generate Invoice</Button>
-          </Link>
-        )}
+        <div className="ml-auto flex gap-2">
+          {canExportExcel && (
+            <Button variant="outline" onClick={() => downloadPaysheetExcel(head, emps)}>
+              <Download className="h-4 w-4 mr-1" /> Excel
+            </Button>
+          )}
+          {head.status === "approved" && (
+            <Link to={`/app/invoices/new?paysheet=${id}`}>
+              <Button className="bg-app-navy text-white"><FileText className="h-4 w-4 mr-1" /> Generate Invoice</Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="bg-white border border-app-border rounded-lg overflow-x-auto">
