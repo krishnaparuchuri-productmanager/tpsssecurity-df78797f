@@ -1,118 +1,157 @@
-## Phase 2 Gap Fix — Financial Dashboard & Month-on-Month Analysis
+## Phase 2 Gap Fix — Monthly Expenses & Compliance Calendar
 
-Both screens are wired in the sidebar and `App.tsx` but currently render `<Placeholder />`. This plan replaces only those two stubs. No existing tables, RPCs, components, or routes are modified.
+Both routes (`/app/expenses`, `/app/compliance`) currently render `<Placeholder />`. This plan replaces only those two stubs and adds the minimum backend needed for compliance tracking. Phase 1, 2, 3A code remains untouched.
 
 ---
 
 ### Scope
 
 **In scope**
-1. `/app/reports/financial` → real **Financial Dashboard** page
-2. `/app/reports/mom` → real **Month-on-Month Analysis** page
-3. Two tiny additions to `App.tsx` (swap `<Placeholder />` for the new components — imports only)
+1. `/app/expenses` → real **Monthly Expenses** module (entry + list + summary)
+2. `/app/compliance` → real **Compliance Calendar** module (statutory due-date tracker)
+3. One new table (`compliance_tasks`) + small RPCs for write operations
+4. Two `App.tsx` route swaps (placeholders → real components)
 
 **Out of scope** (untouched)
-- All existing Phase 1, 2, 3A files
-- DB schema, RPCs, RLS, edge functions, cron
-- Sidebar nav (already correct)
-- `MonthlySummary.tsx` (kept as-is — it serves a different, single-month CA-export use case)
+- All Phase 1 / 2 / 3A pages, RPCs, RLS, edge functions
+- `MonthlySummary.tsx`, `FinancialDashboard.tsx`, `MomReport.tsx` (already done)
+- GST/ECR/ESI challan generation (Phase 3B)
+- Statement of Account / Aging (Phase 3B)
 
 ---
 
-### 1. Financial Dashboard (`src/pages/app/reports/FinancialDashboard.tsx`)
+### 1. Monthly Expenses (`src/pages/app/expenses/`)
 
-A read-only KPI + chart view for any selected **financial year** (Apr–Mar) with optional client filter.
+Single page with three tabs: **Add Expense**, **List**, **Monthly Summary**. All data flows through the existing `financial_ledger` table — **no new expense table needed** (the ledger already has every expense category in `ledger_category` enum and the right INSERT RLS for accountant/CEO/COO).
 
-**Filters**
-- FY selector (defaults to current FY)
-- Client (optional, multi → "All clients")
-- Sandbox/Live respected via `useEnvironment()` (matches existing pattern)
+**Tab 1 — Add Expense (form)**
+Fields:
+- Date (default today)
+- Category dropdown (filtered to expense categories: `epf_payment`, `esi_payment`, `gst_payment`, `pt_payment`, `staff_salary`, `salary_advance`, `admin_expense`, `vehicle_expense`, `other_expense`)
+- Particulars (text, required)
+- Amount (₹, required, > 0)
+- Client (optional — only for client-attributable expenses)
+- Reference number (optional — challan no., bill no., etc.)
+- Notes (optional)
 
-**KPI tiles (top row, 4 cards)**
-- Total Revenue (sum `client_billing` + `payment_received` credits from `financial_ledger`)
-- Total Expenses (sum of all `EXPENSE_CATS` debits — same list as `MonthlySummary`)
-- Net Profit/(Loss)
-- Outstanding Receivables (sum `invoices.outstanding_amount` where status ≠ paid)
+On submit: call new RPC `record_expense(_payload jsonb)` which:
+- Generates voucher number via existing `gen_voucher_number()`
+- Computes `balance_after` (max balance ≤ entry_date, minus amount)
+- Inserts a debit row into `financial_ledger` with `entry_type='payment'`
+- Writes audit_logs row
+- Returns the new row id
 
-**Secondary tiles (4 cards)**
-- Total Invoiced (`invoices.total_invoice_value`)
-- Total Collected (`payments.amount`)
-- Total Payroll (`paysheets.total_net_salary` for approved sheets)
-- Active Clients count
+**Tab 2 — List (filterable table)**
+Columns: Date, Voucher #, Category, Particulars, Client, Amount, Reference, Created by
+Filters: Month/year picker, Category multi-select, Client filter, search by particulars
+Source: `financial_ledger` where `category IN (expense cats)` and `is_sandbox = env`, `is_deleted=false`
+Export: Excel via `xlsx` (already in deps)
 
-**Charts** (recharts — already used in shadcn `chart.tsx`)
-- Bar chart: Income vs Expense per month for the FY
-- Pie chart: Expense breakdown by category for the FY
-- Line chart: Cumulative collections vs invoicing across the FY
+**Tab 3 — Monthly Summary**
+- KPI tiles: Total this month, Total YTD, Largest category, Count of entries
+- Bar chart: expenses by category for selected month (recharts)
+- Line chart: monthly expense trend, last 12 months
+(Reuses styling from `FinancialDashboard.tsx`)
 
-**Data source**
-- `financial_ledger` aggregated client-side (group by `entry_date` month + `category`)
-- `invoices` for receivables
-- `payments` for collections
-- `paysheets` for payroll
-- All queries use `is_sandbox = current env`, `is_deleted = false`
-
-**Permissions**
-- Visible per existing `reports` permission (already in nav `screen: "reports"`)
-- No writes — pure SELECT
-
----
-
-### 2. Month-on-Month Analysis (`src/pages/app/reports/MomReport.tsx`)
-
-Comparative table + trend view across a configurable range of months.
-
-**Filters**
-- "From month" / "To month" pickers (defaults: last 12 months ending current month)
-- Metric toggle group: Revenue / Expense / Net / Payroll / Collections / Invoicing
-- Client filter (optional)
-
-**Output**
-- Wide table: rows = categories (income cats, expense cats, totals), columns = each month in range, last column = total + % change month-over-month vs previous column
-- Trend chart above the table: line chart of selected metric across months
-- "Top movers" panel: 3 categories with largest MoM % change in the latest month
-- Excel export button using `xlsx` (already in deps via `MonthlySummary`) — exports the table verbatim
-
-**Data source**
-- Single query against `financial_ledger` for the range, grouped client-side by `(category, month)`
-- For Payroll metric: query `paysheets` grouped by `month_date`
-- For Collections metric: query `payments` grouped by `payment_date` month
-
-**No new DB objects.** Everything is computable from existing tables.
+**Permissions** — uses existing `expenses` screen permission (already seeded in `role_permissions`):
+- Accountant: view/create/edit
+- CEO: full
+- COO: view/export only
 
 ---
 
-### 3. App.tsx wiring (2-line change)
+### 2. Compliance Calendar (`src/pages/app/compliance/`)
 
-Replace the two existing `Placeholder` route elements with the new components. Add two imports. Nothing else in the routes block changes.
+A statutory due-date tracker for monthly/quarterly/annual filings (EPF ECR, ESI challan, GST returns, PT, TDS, etc.). One main page with a calendar grid view + an upcoming-tasks list.
 
+**New table: `compliance_tasks`**
 ```text
-- <Route path="reports/financial" element={<Placeholder title="Financial Dashboard" />} />
-- <Route path="reports/mom"       element={<Placeholder title="Month-on-Month Analysis" />} />
-+ <Route path="reports/financial" element={<FinancialDashboard />} />
-+ <Route path="reports/mom"       element={<MomReport />} />
+id uuid pk
+task_code text             -- e.g. 'EPF_ECR', 'GST_GSTR1', 'ESI_CHALLAN', 'PT_RETURN', 'TDS_24Q'
+task_name text             -- display name
+category text              -- 'EPF' | 'ESI' | 'GST' | 'PT' | 'TDS' | 'Other'
+frequency text             -- 'monthly' | 'quarterly' | 'annual' | 'one_time'
+due_date date              -- the actual deadline for this period
+period_label text          -- e.g. 'May 2026', 'Q1 FY26-27'
+status text                -- 'pending' | 'in_progress' | 'completed' | 'overdue'
+completed_date date
+completed_by uuid
+challan_number text        -- optional reference once filed
+amount_paid numeric        -- optional
+notes text
+assigned_to uuid           -- user_profiles.id
+reminder_days_before int default 7
+is_sandbox boolean default is_sandbox_env()
+is_deleted boolean default false
+created_by uuid, created_at, updated_at
 ```
 
+**RLS** (mirrors existing patterns)
+- SELECT: `is_active_user(auth.uid()) AND is_deleted=false`
+- Direct INSERT/UPDATE/DELETE denied for `anon,authenticated` (writes via RPC only)
+
+**Seed**: insert ~12 standard recurring task templates for the next 12 months on first load (server-side function `seed_compliance_tasks(_from date, _to date)` callable by CEO/COO).
+
+**RPCs**
+- `create_compliance_task(_payload jsonb)` — manual one-off task (CEO/COO/accountant)
+- `complete_compliance_task(_id uuid, _challan text, _amount numeric, _notes text)` — marks done, audit log
+- `update_compliance_task(_id uuid, _payload jsonb)` — edit pending tasks
+
+**Daily cron extension**: extend existing `daily-contract-checks` edge function to also:
+- Mark tasks `overdue` where `due_date < today AND status != 'completed'`
+- Notify `assigned_to` (or all CEO/COO/accountant if unassigned) when `due_date - today = reminder_days_before`
+
+**UI**
+- **Header**: month/year selector, category filter, status filter, "+ New Task" button
+- **Calendar grid**: month view with colored dots per task (red=overdue, amber=pending ≤7d, green=completed). Click a day → drawer with that day's tasks.
+- **Upcoming list** (sidebar/below): next 30 days of pending tasks, grouped by week
+- **Row actions**: Mark complete (opens dialog for challan #, amount), Edit, View history
+- **KPI tiles**: Overdue count, Due this week, Completed this month, Compliance rate %
+
+**Permissions** — uses existing `compliance` screen permission already seeded.
+
 ---
 
-### Technical notes
+### 3. App.tsx wiring
 
-- Both pages are pure SELECT — they inherit existing RLS (`is_active_user` + `is_deleted=false`) and the `reports` permission gate from the sidebar/route guards already in place.
-- Reuse `formatINR` from `src/lib/format.ts` and the shadcn `Card` / `Chart` primitives — no new design tokens.
-- FY math: a date `d` belongs to FY starting `Apr year(d)` if `month(d) >= 4`, else `Apr year(d)-1`.
-- Default ranges chosen to keep first paint fast (≤12 months of ledger rows ≈ small).
-- No new env vars, secrets, edge functions, or cron jobs.
-- After this gap fix, Phase 2 is fully complete and Phase 3B/3C work (Expenses, SoA/Aging, Compliance, Backup, Activity log, Annual CA export) can proceed cleanly.
+```text
+- <Route path="expenses"   element={<Placeholder title="Monthly Expenses" />} />
+- <Route path="compliance" element={<Placeholder title="Compliance Calendar" />} />
++ <Route path="expenses"   element={<ExpensesIndex />} />
++ <Route path="compliance" element={<ComplianceCalendar />} />
+```
+Plus 2 new imports.
 
 ---
 
 ### Files
 
-**New**
-- `src/pages/app/reports/FinancialDashboard.tsx`
-- `src/pages/app/reports/MomReport.tsx`
+**New components**
+- `src/pages/app/expenses/ExpensesIndex.tsx` (tabs container)
+- `src/pages/app/expenses/ExpenseForm.tsx`
+- `src/pages/app/expenses/ExpensesList.tsx`
+- `src/pages/app/expenses/ExpensesSummary.tsx`
+- `src/pages/app/compliance/ComplianceCalendar.tsx`
+- `src/pages/app/compliance/ComplianceTaskDialog.tsx` (create/edit)
+- `src/pages/app/compliance/CompleteTaskDialog.tsx`
+
+**New migration** (single file)
+- `compliance_tasks` table + RLS + RPCs + seed function + initial seed for next 12 months
 
 **Edited (minimal)**
 - `src/App.tsx` — swap 2 placeholders + 2 imports
+- `supabase/functions/daily-contract-checks/index.ts` — append compliance overdue/reminder logic (one extra block, existing flow preserved)
 
-Approve this and I'll implement both screens in one pass.
+---
+
+### Technical notes
+
+- All writes flow through SECURITY DEFINER RPCs (consistent with the security memory rule established when fixing scan findings).
+- Expense entries are pure ledger inserts — no new domain table needed; `financial_ledger` already has UPDATE/DELETE blocked at RLS, which is the desired immutable-ledger behavior.
+- Compliance task completion is a state change, not a financial entry; if the user paid a challan it should be entered separately under Expenses (linked via `challan_number` reference).
+- All new pages respect `useEnvironment()` sandbox/live filtering.
+- No new secrets, no new external services.
+
+After this gap fix, **Phase 2 is fully complete** and Phase 3B (SoA/Aging, ECR/ESI generation, payment follow-up) and 3C (backup, activity log, annual CA export) can proceed cleanly.
+
+Approve this and I'll implement both modules in one pass.

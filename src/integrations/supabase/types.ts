@@ -682,6 +682,78 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_tasks: {
+        Row: {
+          amount_paid: number | null
+          assigned_to: string | null
+          category: string
+          challan_number: string | null
+          completed_by: string | null
+          completed_date: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          due_date: string
+          frequency: string
+          id: string
+          is_deleted: boolean
+          is_sandbox: boolean
+          notes: string | null
+          period_label: string
+          reminder_days_before: number
+          status: string
+          task_code: string
+          task_name: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          assigned_to?: string | null
+          category: string
+          challan_number?: string | null
+          completed_by?: string | null
+          completed_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          due_date: string
+          frequency?: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          notes?: string | null
+          period_label: string
+          reminder_days_before?: number
+          status?: string
+          task_code: string
+          task_name: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number | null
+          assigned_to?: string | null
+          category?: string
+          challan_number?: string | null
+          completed_by?: string | null
+          completed_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          due_date?: string
+          frequency?: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          notes?: string | null
+          period_label?: string
+          reminder_days_before?: number
+          status?: string
+          task_code?: string
+          task_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contract_renewals: {
         Row: {
           created_at: string
@@ -1919,7 +1991,12 @@ export type Database = {
       approve_ffs: { Args: { _id: string; _payment: Json }; Returns: undefined }
       approve_paysheet: { Args: { _id: string }; Returns: undefined }
       cancel_advance: { Args: { _id: string }; Returns: undefined }
+      complete_compliance_task: {
+        Args: { _amount: number; _challan: string; _id: string; _notes: string }
+        Returns: undefined
+      }
       compute_ffs: { Args: { _payload: Json }; Returns: Json }
+      create_compliance_task: { Args: { _payload: Json }; Returns: string }
       create_contract: { Args: { _payload: Json }; Returns: string }
       create_deployment: { Args: { _payload: Json }; Returns: string }
       current_environment: { Args: never; Returns: string }
@@ -1978,6 +2055,7 @@ export type Database = {
       is_sandbox_env: { Args: never; Returns: boolean }
       mark_contract_status_and_notify: { Args: never; Returns: number }
       mark_overdue_invoices: { Args: never; Returns: number }
+      record_expense: { Args: { _payload: Json }; Returns: string }
       reject_advance: {
         Args: { _id: string; _reason: string }
         Returns: undefined
@@ -1992,8 +2070,17 @@ export type Database = {
       }
       renew_contract: { Args: { _payload: Json }; Returns: string }
       request_advance: { Args: { _payload: Json }; Returns: string }
+      run_compliance_daily_checks: { Args: never; Returns: Json }
       save_ffs: { Args: { _payload: Json }; Returns: string }
       save_paysheet: { Args: { _payload: Json }; Returns: string }
+      seed_compliance_tasks: {
+        Args: { _from: string; _to: string }
+        Returns: number
+      }
+      update_compliance_task: {
+        Args: { _id: string; _payload: Json }
+        Returns: undefined
+      }
       wipe_sandbox: { Args: never; Returns: undefined }
     }
     Enums: {

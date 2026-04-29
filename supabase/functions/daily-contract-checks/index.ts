@@ -31,8 +31,10 @@ Deno.serve(async (req) => {
     );
     const { data, error } = await supabase.rpc("mark_contract_status_and_notify");
     if (error) throw error;
+    const { data: comp, error: compErr } = await supabase.rpc("run_compliance_daily_checks");
+    if (compErr) console.error("compliance check failed:", compErr.message);
     return new Response(
-      JSON.stringify({ ok: true, notified: data, ranAt: new Date().toISOString() }),
+      JSON.stringify({ ok: true, notified: data, compliance: comp ?? null, ranAt: new Date().toISOString() }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
