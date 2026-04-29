@@ -60,6 +60,14 @@ import FollowupsList from "@/pages/app/finance/followups/FollowupsList";
 import EcrEsiGenerator from "@/pages/app/compliance/EcrEsiGenerator";
 import ExpenseCategoriesAdmin from "@/pages/app/masters/ExpenseCategoriesAdmin";
 import BackupAdmin from "@/pages/app/admin/BackupAdmin";
+import MomAnalysis from "@/pages/app/reports/MomAnalysis";
+import ComparativeAnalysis from "@/pages/app/reports/ComparativeAnalysis";
+import ClientBillingHistory from "@/pages/app/reports/ClientBillingHistory";
+import EmployeeHistory from "@/pages/app/reports/EmployeeHistory";
+import AnnualSummary from "@/pages/app/reports/AnnualSummary";
+import ActivityLog from "@/pages/app/admin/ActivityLog";
+import BranchSummary from "@/pages/app/admin/BranchSummary";
+import DashboardV3C from "@/pages/app/DashboardV3C";
 
 const queryClient = new QueryClient();
 
@@ -162,7 +170,17 @@ const App = () => (
                   <Route element={<ProtectedRoute requireRoles={["ceo_admin"]} />}>
                     <Route path="masters/expense-categories" element={<ExpenseCategoriesAdmin />} />
                     <Route path="admin/backup" element={<BackupAdmin />} />
+                    <Route path="admin/activity-log" element={<ActivityLog />} />
+                    <Route path="admin/branch-summary" element={<BranchSummary />} />
                   </Route>
+
+                  {/* Phase 3C — Reports */}
+                  <Route path="dashboard/v3c" element={<DashboardV3C />} />
+                  <Route path="reports/mom-analysis" element={<MomAnalysis />} />
+                  <Route path="reports/comparative" element={<ComparativeAnalysis />} />
+                  <Route path="reports/client-billing-history" element={<ClientBillingHistory />} />
+                  <Route path="reports/employee-history" element={<EmployeeHistory />} />
+                  <Route path="reports/annual-summary" element={<AnnualSummary />} />
                 </Route>
               </Route>
 

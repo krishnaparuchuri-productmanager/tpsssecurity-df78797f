@@ -43,7 +43,10 @@ interface NavGroup {
 const NAV: NavGroup[] = [
   {
     label: "Overview",
-    items: [{ to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard, screen: "dashboard" }],
+    items: [
+      { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard, screen: "dashboard" },
+      { to: "/app/dashboard/v3c", label: "Dashboard (3C)", icon: LayoutDashboard },
+    ],
   },
   {
     label: "Masters",
@@ -96,8 +99,18 @@ const NAV: NavGroup[] = [
   {
     label: "Reports",
     items: [
+      { to: "/app/reports/mom-analysis", label: "MoM Analysis", icon: BarChart3 },
+      { to: "/app/reports/comparative", label: "Comparative", icon: BarChart3 },
+      { to: "/app/reports/client-billing-history", label: "Client History", icon: FileText },
+      { to: "/app/reports/employee-history", label: "Employee History", icon: FileText },
+      { to: "/app/reports/annual-summary", label: "Annual Summary", icon: FileText },
+    ],
+  },
+  {
+    label: "Legacy Reports",
+    items: [
       { to: "/app/reports/financial", label: "Financial Dashboard", icon: BarChart3, screen: "reports" },
-      { to: "/app/reports/mom", label: "Month-on-Month", icon: BarChart3, screen: "reports" },
+      { to: "/app/reports/mom", label: "Month-on-Month (legacy)", icon: BarChart3, screen: "reports" },
     ],
   },
   {
@@ -121,6 +134,8 @@ const NAV: NavGroup[] = [
       { to: "/app/admin/users", label: "User Management", icon: UserCog, roles: ["ceo_admin"] },
       { to: "/app/admin/permissions", label: "Role Permissions", icon: Settings, roles: ["ceo_admin"] },
       { to: "/app/admin/audit-logs", label: "Audit Logs", icon: History, roles: ["ceo_admin"] },
+      { to: "/app/admin/activity-log", label: "Activity Log", icon: History, roles: ["ceo_admin"] },
+      { to: "/app/admin/branch-summary", label: "Branch Summary", icon: Building2, roles: ["ceo_admin"] },
       { to: "/app/admin/backup", label: "Backups", icon: History, roles: ["ceo_admin"] },
       { to: "/app/masters/expense-categories", label: "Expense Categories", icon: Settings, roles: ["ceo_admin"] },
     ],

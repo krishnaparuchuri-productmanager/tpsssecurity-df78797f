@@ -91,17 +91,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
-    // Update last_login + log audit
+    if (error) {
+      try {
+        const device = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 240) : null;
+        await supabase.rpc("log_failed_login", { _email: email, _ip: null, _device: device });
+      } catch { /* ignore */ }
+      return { error: error.message };
+    }
+    // Update last_login + log audit + activity
     const { data: { user: u } } = await supabase.auth.getUser();
     if (u) {
       await supabase.from("user_profiles").update({ last_login: new Date().toISOString() }).eq("id", u.id);
       await supabase.from("audit_logs").insert({ user_id: u.id, action: "LOGIN", table_name: null });
+      try {
+        const device = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 240) : null;
+        await supabase.rpc("log_activity", { _type: "login", _page_url: null, _ip: null, _device: device, _details: null as never });
+      } catch { /* ignore */ }
     }
     return { error: null };
   }
 
   async function signOut() {
+    try {
+      const device = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 240) : null;
+      await supabase.rpc("log_activity", { _type: "logout", _page_url: null, _ip: null, _device: device, _details: null as never });
+    } catch { /* ignore */ }
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
