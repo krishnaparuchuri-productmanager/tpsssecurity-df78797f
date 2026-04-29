@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { formatINR } from "@/lib/format";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-const EXPENSE_CATS = ["epf_payment","esi_payment","gst_payment","pt_payment","staff_salary","salary_advance","admin_expense","vehicle_expense","other_expense"];
+const EXPENSE_CATS = ["epf_payment","esi_payment","gst_payment","pt_payment","staff_salary","salary_advance","admin_expense","vehicle_expense","other_expense"] as const;
 const CAT_LABEL: Record<string, string> = {
   epf_payment: "EPF", esi_payment: "ESI", gst_payment: "GST", pt_payment: "PT",
   staff_salary: "Staff Sal", salary_advance: "Adv Payout",
