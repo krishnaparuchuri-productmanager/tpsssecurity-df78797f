@@ -3,8 +3,10 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Download } from "lucide-react";
 import { formatINR } from "@/lib/format";
+import { useAuth } from "@/contexts/AuthContext";
+import { downloadPaysheetExcel } from "@/lib/exportPaysheet";
 
 export default function PaysheetView() {
   const { id } = useParams();
