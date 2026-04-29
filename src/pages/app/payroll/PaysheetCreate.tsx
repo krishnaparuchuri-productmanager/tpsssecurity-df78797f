@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +35,8 @@ export default function PaysheetCreate() {
   const { isSandbox } = useEnvironment();
   const { user } = useAuth();
   const saveLabel = useSaveLabel("Save Draft");
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [clients, setClients] = useState<Array<{ id: string; client_name: string; pt_applicable: boolean }>>([]);
