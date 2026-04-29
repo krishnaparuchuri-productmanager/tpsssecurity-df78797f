@@ -1,102 +1,145 @@
-## Phase 2 Completion Plan — Sequential Build
+## Phase 3A — Advances, Contracts, Deployments, FFS
 
-I'll finish the remaining Phase 2 work across 4 milestones, in order. Each milestone leaves the app in a working, deployable state.
-
----
-
-### Milestone A — Finish Milestone 2 (Environment & Retrofits)
-
-**Company Profile screen** (`src/pages/app/masters/CompanyProfile.tsx`)
-- Add "Statutory & Bank" section: PF code, ESI code, bank account / IFSC / name, ISO certification, invoice location code, jurisdiction.
-- Add CEO-only "Environment" card:
-  - Current mode badge (sandbox / production).
-  - Toggle with two-step confirm dialogs (sandbox→prod, prod→sandbox) — calls `EnvironmentContext.setEnvironment()`.
-  - "Wipe Sandbox" button (sandbox + CEO only): two-step modal, second step requires typing `DELETE`, calls `wipe_sandbox()` RPC.
-
-**Client Form** (`src/pages/app/masters/ClientForm.tsx`)
-- Add fields: `client_type` (auto-sets `tds_rate` to 2% individual_huf / 1% company_firm with manual override), `gst_rcm` (only when `gst_applicable`), `invoice_prefix`, `pt_applicable`, `e_invoice_applicable`.
-- Replace MW Rates inline editor with **Wage Config** section writing to `client_wage_config` (versioning handled server-side by `version_wage_config` trigger).
-- Add **Billing Lines** section managing `client_billing_lines` rows (description, sac_code, rate_per_month, unit_label, sort_order, is_active).
-- Add **Deduction Template** section editing `invoice_deduction_templates.template_rows`.
-
-**Sidebar** (`src/components/app-shell/AppLayout.tsx`)
-- Add Payroll group items (Create Paysheet, Monthly Paysheets, Approval Queue with badge).
-- Add Invoices group (All Invoices, Create Invoice).
-- Add Finance group (Cash Book, Monthly Summary, Receipts).
+Adds four new modules on top of Phase 1/2 without touching existing UI, routes, or tables (only retrofit columns where required). Follows existing patterns: RLS, `is_sandbox`, `is_deleted`, soft deletes, server-side calculations via SECURITY DEFINER RPCs, audit logging, sandbox-aware filtering, notifications via existing `notifications` table.
 
 ---
 
-### Milestone B — Payroll module (Milestone 3)
+### 1. Database migrations
 
-**Migration**: `save_paysheet(payload jsonb)` and `approve_paysheet(id uuid)` SECURITY DEFINER RPCs that compute server-side wages, PF, ESI, PT, net salary; reject same-user approval; enforce role-based status transitions.
+**New tables** (all with RLS, `is_sandbox`, `is_deleted`, `set_updated_at` trigger where appropriate):
 
-**Pages**
-- `PaysheetCreate.tsx` — 3-step wizard:
-  - Step 1 Setup: client (env-filtered), month/year, working days, existing-paysheet warning.
-  - Step 2 Grid: virtualized editable table; auto-load active employees for client; auto-fill from current `client_wage_config` per designation; live PF/ESI preview; anomaly engine (`computeAnomalies` in `src/lib/calc.ts`) producing 🔴🟡🔵 flags; pinned totals row; add ad-hoc rows.
-  - Step 3 Summary: KPI cards + Save Draft / Revert / Submit for Approval.
-- `PaysheetList.tsx` — filters, status pills, action buttons (View, Edit if draft, PDF, Excel CEO/COO, Generate Invoice if approved).
-- `PaysheetApprovals.tsx` (CEO/COO) — submitted queue, read-only grid, Approve / Reject (rejection_reason 10–200 chars with live counter).
-- `PaysheetView.tsx` — read-only formatted view + Download PDF + Download Excel (CEO/COO) + Generate Invoice link.
+- `branches` — seed `{Nellore, NLR, head_office=true}`
+- `shifts` — seed Day (07:00–19:00, 8h) and Night (19:00–07:00, 8h) for Nellore
+- `client_posts`
+- `employee_deployments` — one current deployment per employee enforced via partial unique index `(employee_id) WHERE is_current AND NOT is_deleted`
+- `client_contracts` — server-generated `CNT-{client_code}-NNN`
+- `contract_renewals`
+- `employee_advances` — server-generated `ADV-MMMYYYY-NNN`
+- `advance_recovery_schedule`
+- `employee_ffs` — server-generated `FFS-MMMYYYY-NNN`
 
-**PDF / Excel** — install `@react-pdf/renderer` and `xlsx`. Client-side PDF; Excel download gated by role check before generation.
+**Retrofits** (additive only, all nullable/defaulted; existing rows untouched):
 
----
+- `clients.branch_id` → defaults to Nellore branch via post-migration update
+- `employees.branch_id` → same default
+- `employees.max_advance_limit numeric default 0`
+- `employees.current_advance_balance numeric default 0`
+- `invoices.po_number text`, `invoices.po_date date`
 
-### Milestone C — Invoices, payments, receipts (Milestone 4)
+**New sequences:** `advance_seq`, `ffs_seq`, `contract_seq` (per-client via subquery count).
 
-**Pages**
-- `InvoiceForm.tsx` — header / client / details / billing / GST / footer / deductions / summary blocks. Loads billing lines from `client_billing_lines`. Conditional GST / RCM display. Collapsible internal deductions section pre-filled from linked paysheet (net salary, PF employer, ESI employer); manual rows; "Save as default template for client" button. Internal summary panel (Receivable / Deductions / Net Margin / Received / Outstanding). Buttons: Save Draft, Preview PDF, Mark as Sent, Download PDF.
-  - Server-side calcs already exist (`calc_invoice_fields` trigger + `gen_invoice_number`).
-- `InvoiceView.tsx` — read-only invoice with internal margin section (CEO/COO) and Payment modal (server validates `amount ≤ outstanding`; `after_payment_insert` trigger handles ledger + status).
-- `InvoicesList.tsx` — filterable list, status pills.
-- `ReceiptsList.tsx` + `ReceiptView.tsx` — list with filters; receipt page with spec layout, Download / Print.
+**RLS pattern (per spec):**
 
-**PDF templates** — Two `@react-pdf/renderer` templates: client invoice + internal view with deductions/margin. Receipt PDF.
+- SELECT for `is_active_user(auth.uid())` filtered by `is_deleted=false`
+- INSERT advances → accountant only (`has_role(...,'accountant')`)
+- UPDATE advance status pending→approved/rejected → ceo/coo only, with check `approved_by <> requested_by` enforced in trigger
+- UPDATE advance amount_remaining → blocked except via SECURITY DEFINER function (RLS denies generic UPDATE on those columns; RPC bypasses)
+- Deployments / shifts / branches / posts / contracts CRUD → ceo/coo (view all)
+- FFS INSERT → accountant; APPROVE → ceo/coo
 
----
+**New SECURITY DEFINER functions:**
 
-### Milestone D — Cash Book, Summary, Dashboard polish, Notifications, Hardening (Milestones 5 + 6)
+- `gen_advance_number(_d date, _sandbox bool)` → `ADV-MMMYYYY-NNN`
+- `gen_ffs_number(_d date, _sandbox bool)` → `FFS-MMMYYYY-NNN`
+- `gen_contract_number(_client_id uuid)` → `CNT-{client_code}-NNN`
+- `request_advance(_payload jsonb)` → validates against `max_advance_limit`, inserts row, notifies CEO/COO, audit log
+- `approve_advance(_id uuid)` → role + non-self-approve check, sets status=`active`, calls `generate_recovery_schedule(_id)`, updates `employees.current_advance_balance`, notifies accountant
+- `reject_advance(_id uuid, _reason text)` → 10–200 char reason, notifies accountant
+- `generate_recovery_schedule(_advance_id uuid)` → inserts N rows; final row carries remainder
+- `apply_advance_deductions_on_approve(_paysheet_id uuid)` → wired into existing `approve_paysheet`: marks scheduled rows `deducted`, decrements `amount_remaining`, flips to `fully_recovered`, recomputes `current_advance_balance`
+- `compute_ffs(_payload jsonb) returns jsonb` — server-side total earnings/deductions/net, gratuity = `ROUND(basic*4.81/100*years,2)` only if years>=5; pulls live `advance_outstanding` from `employee_advances`
+- `save_ffs(_payload jsonb)` → upsert draft/submitted; recomputes server-side
+- `approve_ffs(_id uuid, _payment jsonb)` → ceo/coo, sets employee `status='relieved'`, ends current deployment, advances marked settled, notifies accountant
+- `renew_contract(_payload jsonb)` → creates new contract + optional new `client_wage_config`, links via `contract_renewals`, marks old `status='renewed'`
+- `mark_contract_status_and_notify()` → daily; sets `expired`, sends 30/15/7-day expiry notifications (dedupe by date)
 
-**Cash Book** (`CashBook.tsx`)
-- Summary cards (Credits / Debits / Net).
-- Filters: date range, entry_type, category, client.
-- Table sorted by date with running balance from a SQL view `v_cashbook_running_balance`.
-- Manual entry dialog (CEO/COO) → inserts ledger row + audit.
-- Excel export (CEO/COO).
+**Existing function update:** extend `approve_paysheet(_id)` to call `apply_advance_deductions_on_approve(_id)` after status flip.
 
-**Monthly Summary** (`MonthlySummary.tsx`)
-- Month picker; Income / Expense / Net P&L from aggregated ledger.
-- "CA-ready Excel" export.
-
-**Dashboard additions** (`src/pages/app/Dashboard.tsx`)
-- New KPI cards: Invoices This Month (count + ₹), Total Outstanding, Receipts This Month.
-- Outstanding-by-client list (red row if > ₹1,00,000).
-- 6-month "Invoiced vs Received" bar chart (recharts).
-- Pending Approvals card (CEO/COO) → links to `/app/payroll/approvals`.
-- All queries `is_sandbox`-filtered.
-
-**Notifications**
-- DB triggers / edge function emitting the 6 notification types from the spec (paysheet submitted/approved/rejected, payment received, invoice overdue, env switch — last one is already done).
-- Daily overdue check via scheduled edge function `check-overdue-invoices`.
-
-**Security hardening (S1–S12)**
-- Run `supabase--linter`; resolve any issues.
-- Add `<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">` to `index.html`.
-- Strip any financial data from `localStorage`.
-- Edge function for bulk export endpoints with server-side role check.
-
-**Final QA pass** — Smoke test each role (accountant / coo_ops / ceo_admin) end-to-end: env switch → create paysheet → submit → approve → generate invoice → record payment → receipt → cash book → audit logs.
+**Existing function update:** `save_paysheet` continues to accept `advance_deduction` per row (already supported); UI will pre-fill via new RPC `get_active_advance_deductions(_client_id, _month_date)` returning `[{employee_id, scheduled_amount, schedule_id}]`.
 
 ---
 
-### Sequencing & deliverable checkpoints
+### 2. Edge functions + cron
 
-```text
-A. Env + retrofits          → Company Profile + Client Form ready
-B. Payroll                  → Full paysheet lifecycle + PDFs
-C. Invoices/payments        → Invoice → payment → receipt → ledger
-D. Cash book + dashboard    → Reporting + notifications + hardening
-```
+- New edge function `daily-contract-checks` → calls `mark_contract_status_and_notify()`. Same auth pattern as existing `check-overdue-invoices` (uses `x-cron-secret`).
+- Add pg_cron job (via insert tool, not migration — contains URL/anon key per docs) to invoke daily at 06:00 IST.
 
-I will proceed straight through A → B → C → D unless you stop me. After each milestone I'll briefly summarize what shipped before moving to the next.
+---
+
+### 3. Frontend — new routes (added to existing `App.tsx` Routes block; existing routes untouched)
+
+**Advances**
+- `/app/employees/advances/list` — `AdvancesList.tsx` (filters: employee, client, status, month)
+- `/app/employees/advances/new` — `AdvanceForm.tsx`
+- `/app/employees/advances/approvals` — `AdvanceApprovals.tsx` (ceo/coo via `requireRoles`)
+- `/app/masters/employees/:id/advances` — tab on employee detail (history + running balance)
+
+**FFS**
+- `/app/employees/ffs/list` — `FfsList.tsx`
+- `/app/employees/ffs/new` — `FfsForm.tsx` (3-step wizard, server preview via `compute_ffs`)
+- `/app/employees/ffs/approvals` — `FfsApprovals.tsx` (ceo/coo)
+- `/app/employees/ffs/:id/view` — `FfsView.tsx` + PDF (jsPDF, mirrors existing `exportPaysheet` pattern)
+
+**Contracts**
+- `/app/masters/contracts/list` — `ContractsList.tsx` (ceo/coo, filters: status/branch/expiry month)
+- `/app/masters/clients/:id` — extend existing client detail with **Contracts** and **Deployments** tabs (additive — no rewrite of existing `ClientForm`; new `ClientDetail` route or tabbed extension)
+- `ContractRenewWizard.tsx` modal: 3 steps (details → wage revision → confirm)
+
+**Deployments / Shifts / Branches**
+- `/app/masters/branches` — `BranchesList.tsx` (ceo/coo CRUD)
+- `/app/masters/deployments` — `DeploymentsList.tsx` + `DeploymentForm.tsx` + Relieve dialog
+- `/app/masters/deployments/shifts` — `ShiftsList.tsx` (ceo/coo)
+
+**Employee master retrofit** (additive fields in existing `EmployeeForm.tsx`):
+- Append a "Limits" section: `max_advance_limit` input, read-only `current_advance_balance` display. No layout rewrite.
+
+**Paysheet integration** (minimal patch to existing `PaysheetCreate.tsx`):
+- After loading client + month, call `get_active_advance_deductions` and `employee_deployments` (current rows for client) → pre-fill rows with deployed employees and pre-fill `advance_deduction`. Each pre-filled employee badged "Deployed ✅" or "⚠️ Ad-hoc". All values remain editable; overrides logged via existing audit pattern.
+
+---
+
+### 4. Dashboard additions (additive cards in existing `Dashboard.tsx`)
+
+Insert new KPI tiles into existing grid (no removals):
+- Active Deployments (count)
+- Advances Outstanding (₹ total)
+
+New alert cards below existing approval banner:
+- Contracts expiring in 30 days (list)
+- Pending Advance Approvals (ceo/coo)
+- Pending FFS Approvals (ceo/coo)
+
+---
+
+### 5. Navigation additions in `AppLayout.tsx`
+
+Append (do not remove) under existing groups:
+
+- **Masters**: Branches, Shifts, Deployments, Contracts
+- **New group "Employee Lifecycle"** (so the existing Employees nav item stays untouched): Advances, Advance Approvals, Full & Final, FFS Approvals — approval items gated by `requireRoles=["ceo_admin","coo_ops"]` and show pending-count badge fetched in sidebar.
+
+---
+
+### 6. Notifications
+
+All seven notification types from spec inserted via existing `notifications` table inside the new RPCs / cron function. Reuses existing `Read own notifications` RLS.
+
+---
+
+### 7. Out of scope (Phase 3B/3C — not built)
+
+Expenses, payment follow-up, SoA/Aging, GST/ECR/ESI challans, compliance calendar, backup, MoM, user activity, annual CA export.
+
+---
+
+### Technical notes
+
+- Advance limit enforced both client-side (form validation) and server-side (`request_advance` raises exception → toast).
+- Recovery schedule uses `monthly_deduction` per row; final row computed as `total_amount - sum(prior)`.
+- Gratuity displayed only if `years_of_service >= 5`; toggle disabled otherwise; calculation done server-side in `compute_ffs`.
+- Contract expiry notifications dedupe by `(related_record_id, type, created_at::date)` — same pattern as `mark_overdue_invoices`.
+- Deployment uniqueness uses partial unique index, not a check constraint, so it is restore-safe.
+- All new tables include `is_sandbox` defaulted from `is_sandbox_env()`; client filters every query by current env (matches existing pattern).
+- `wipe_sandbox()` extended to also delete sandbox rows from the new tables.
+
+After approval, I'll run the migration, deploy the edge function, register the cron job, and add the new UI files.

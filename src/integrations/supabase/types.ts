@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      advance_recovery_schedule: {
+        Row: {
+          actual_amount: number
+          advance_id: string
+          created_at: string
+          deducted_at: string | null
+          employee_id: string
+          id: string
+          is_deleted: boolean
+          is_sandbox: boolean
+          paysheet_id: string | null
+          recovery_month: string
+          scheduled_amount: number
+          status: string
+        }
+        Insert: {
+          actual_amount?: number
+          advance_id: string
+          created_at?: string
+          deducted_at?: string | null
+          employee_id: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          paysheet_id?: string | null
+          recovery_month: string
+          scheduled_amount: number
+          status?: string
+        }
+        Update: {
+          actual_amount?: number
+          advance_id?: string
+          created_at?: string
+          deducted_at?: string | null
+          employee_id?: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          paysheet_id?: string | null
+          recovery_month?: string
+          scheduled_amount?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_recovery_schedule_advance_id_fkey"
+            columns: ["advance_id"]
+            isOneToOne: false
+            referencedRelation: "employee_advances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_recovery_schedule_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_recovery_schedule_paysheet_id_fkey"
+            columns: ["paysheet_id"]
+            isOneToOne: false
+            referencedRelation: "paysheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_config: {
         Row: {
           id: string
@@ -74,6 +141,42 @@ export type Database = {
         }
         Relationships: []
       }
+      branches: {
+        Row: {
+          branch_address: string | null
+          branch_code: string
+          branch_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          is_head_office: boolean
+          updated_at: string
+        }
+        Insert: {
+          branch_address?: string | null
+          branch_code: string
+          branch_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          is_head_office?: boolean
+          updated_at?: string
+        }
+        Update: {
+          branch_address?: string | null
+          branch_code?: string
+          branch_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          is_head_office?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_billing_lines: {
         Row: {
           client_id: string
@@ -119,6 +222,94 @@ export type Database = {
         }
         Relationships: []
       }
+      client_contracts: {
+        Row: {
+          branch_id: string | null
+          client_id: string
+          contract_document_url: string | null
+          contract_end_date: string | null
+          contract_number: string
+          contract_start_date: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          is_deleted: boolean
+          is_sandbox: boolean
+          notes: string | null
+          po_amount: number | null
+          po_date: string | null
+          po_number: string | null
+          renewal_of: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          client_id: string
+          contract_document_url?: string | null
+          contract_end_date?: string | null
+          contract_number: string
+          contract_start_date: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          notes?: string | null
+          po_amount?: number | null
+          po_date?: string | null
+          po_number?: string | null
+          renewal_of?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          client_id?: string
+          contract_document_url?: string | null
+          contract_end_date?: string | null
+          contract_number?: string
+          contract_start_date?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          notes?: string | null
+          po_amount?: number | null
+          po_date?: string | null
+          po_number?: string | null
+          renewal_of?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contracts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contracts_renewal_of_fkey"
+            columns: ["renewal_of"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_mw_rates: {
         Row: {
           basic: number
@@ -162,6 +353,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_mw_rates_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_posts: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          post_name: string
+          unit_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          post_name: string
+          unit_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          post_name?: string
+          unit_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_posts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
@@ -263,6 +495,7 @@ export type Database = {
         Row: {
           address: string | null
           billing_frequency: string
+          branch_id: string | null
           client_code: string
           client_name: string
           client_type: string
@@ -296,6 +529,7 @@ export type Database = {
         Insert: {
           address?: string | null
           billing_frequency?: string
+          branch_id?: string | null
           client_code: string
           client_name: string
           client_type?: string
@@ -329,6 +563,7 @@ export type Database = {
         Update: {
           address?: string | null
           billing_frequency?: string
+          branch_id?: string | null
           client_code?: string
           client_name?: string
           client_type?: string
@@ -359,7 +594,15 @@ export type Database = {
           tds_rate?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_profile: {
         Row: {
@@ -439,6 +682,60 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_renewals: {
+        Row: {
+          created_at: string
+          effective_month: string
+          id: string
+          new_contract_id: string
+          notes: string | null
+          original_contract_id: string
+          renewal_date: string
+          renewed_by: string | null
+          salary_revised: boolean
+          wage_config_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          effective_month: string
+          id?: string
+          new_contract_id: string
+          notes?: string | null
+          original_contract_id: string
+          renewal_date?: string
+          renewed_by?: string | null
+          salary_revised?: boolean
+          wage_config_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          effective_month?: string
+          id?: string
+          new_contract_id?: string
+          notes?: string | null
+          original_contract_id?: string
+          renewal_date?: string
+          renewed_by?: string | null
+          salary_revised?: boolean
+          wage_config_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_renewals_new_contract_id_fkey"
+            columns: ["new_contract_id"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_renewals_original_contract_id_fkey"
+            columns: ["original_contract_id"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cron_secrets: {
         Row: {
           name: string
@@ -457,6 +754,314 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_advances: {
+        Row: {
+          advance_date: string
+          advance_number: string
+          advance_type: string
+          amount_remaining: number
+          approved_at: string | null
+          approved_by: string | null
+          client_id: string | null
+          created_at: string
+          deleted_at: string | null
+          employee_id: string
+          id: string
+          is_deleted: boolean
+          is_sandbox: boolean
+          max_advance_limit: number
+          monthly_deduction: number
+          reason: string | null
+          recovery_start_month: string
+          rejection_reason: string | null
+          requested_by: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          advance_date?: string
+          advance_number: string
+          advance_type: string
+          amount_remaining?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          employee_id: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          max_advance_limit?: number
+          monthly_deduction: number
+          reason?: string | null
+          recovery_start_month: string
+          rejection_reason?: string | null
+          requested_by?: string | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          advance_date?: string
+          advance_number?: string
+          advance_type?: string
+          amount_remaining?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          employee_id?: string
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          max_advance_limit?: number
+          monthly_deduction?: number
+          reason?: string | null
+          recovery_start_month?: string
+          rejection_reason?: string | null
+          requested_by?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_advances_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_advances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_deployments: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deployment_end_date: string | null
+          deployment_start_date: string
+          employee_id: string
+          id: string
+          is_current: boolean
+          is_deleted: boolean
+          is_sandbox: boolean
+          notes: string | null
+          post_id: string | null
+          relieved_reason: string | null
+          shift_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deployment_end_date?: string | null
+          deployment_start_date: string
+          employee_id: string
+          id?: string
+          is_current?: boolean
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          notes?: string | null
+          post_id?: string | null
+          relieved_reason?: string | null
+          shift_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deployment_end_date?: string | null
+          deployment_start_date?: string
+          employee_id?: string
+          id?: string
+          is_current?: boolean
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          notes?: string | null
+          post_id?: string | null
+          relieved_reason?: string | null
+          shift_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_deployments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deployments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deployments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "client_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deployments_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_ffs: {
+        Row: {
+          advance_outstanding: number
+          approved_at: string | null
+          approved_by: string | null
+          bonus_amount: number
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          earned_wages_pending: number
+          employee_id: string
+          ffs_number: string
+          gratuity_amount: number | null
+          gratuity_applicable: boolean
+          gratuity_basic: number | null
+          gratuity_years_of_service: number | null
+          id: string
+          is_deleted: boolean
+          is_sandbox: boolean
+          last_working_day: string
+          leave_encashment_amount: number
+          leave_encashment_days: number
+          net_payable: number
+          notes: string | null
+          other_deductions: number
+          other_deductions_label: string | null
+          payment_date: string | null
+          payment_mode: string | null
+          payment_reference: string | null
+          reason_details: string | null
+          reason_for_leaving: string
+          relieving_date: string
+          status: string
+          submitted_by: string | null
+          total_deductions_ffs: number
+          total_earnings: number
+          updated_at: string
+        }
+        Insert: {
+          advance_outstanding?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          bonus_amount?: number
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          earned_wages_pending?: number
+          employee_id: string
+          ffs_number: string
+          gratuity_amount?: number | null
+          gratuity_applicable?: boolean
+          gratuity_basic?: number | null
+          gratuity_years_of_service?: number | null
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          last_working_day: string
+          leave_encashment_amount?: number
+          leave_encashment_days?: number
+          net_payable?: number
+          notes?: string | null
+          other_deductions?: number
+          other_deductions_label?: string | null
+          payment_date?: string | null
+          payment_mode?: string | null
+          payment_reference?: string | null
+          reason_details?: string | null
+          reason_for_leaving: string
+          relieving_date: string
+          status?: string
+          submitted_by?: string | null
+          total_deductions_ffs?: number
+          total_earnings?: number
+          updated_at?: string
+        }
+        Update: {
+          advance_outstanding?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          bonus_amount?: number
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          earned_wages_pending?: number
+          employee_id?: string
+          ffs_number?: string
+          gratuity_amount?: number | null
+          gratuity_applicable?: boolean
+          gratuity_basic?: number | null
+          gratuity_years_of_service?: number | null
+          id?: string
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          last_working_day?: string
+          leave_encashment_amount?: number
+          leave_encashment_days?: number
+          net_payable?: number
+          notes?: string | null
+          other_deductions?: number
+          other_deductions_label?: string | null
+          payment_date?: string | null
+          payment_mode?: string | null
+          payment_reference?: string | null
+          reason_details?: string | null
+          reason_for_leaving?: string
+          relieving_date?: string
+          status?: string
+          submitted_by?: string | null
+          total_deductions_ffs?: number
+          total_earnings?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_ffs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_ffs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           aadhaar_number: string | null
@@ -464,10 +1069,12 @@ export type Database = {
           bank_ifsc: string | null
           bank_name: string | null
           basic: number
+          branch_id: string | null
           client_id: string | null
           conveyance_allowance: number
           created_at: string
           created_by: string | null
+          current_advance_balance: number
           da: number
           date_of_joining: string
           date_of_leaving: string | null
@@ -482,6 +1089,7 @@ export type Database = {
           is_deleted: boolean
           is_new_joiner: boolean
           is_sandbox: boolean
+          max_advance_limit: number
           mobile: string | null
           notes: string | null
           payable_gross: number | null
@@ -499,10 +1107,12 @@ export type Database = {
           bank_ifsc?: string | null
           bank_name?: string | null
           basic?: number
+          branch_id?: string | null
           client_id?: string | null
           conveyance_allowance?: number
           created_at?: string
           created_by?: string | null
+          current_advance_balance?: number
           da?: number
           date_of_joining?: string
           date_of_leaving?: string | null
@@ -517,6 +1127,7 @@ export type Database = {
           is_deleted?: boolean
           is_new_joiner?: boolean
           is_sandbox?: boolean
+          max_advance_limit?: number
           mobile?: string | null
           notes?: string | null
           payable_gross?: number | null
@@ -534,10 +1145,12 @@ export type Database = {
           bank_ifsc?: string | null
           bank_name?: string | null
           basic?: number
+          branch_id?: string | null
           client_id?: string | null
           conveyance_allowance?: number
           created_at?: string
           created_by?: string | null
+          current_advance_balance?: number
           da?: number
           date_of_joining?: string
           date_of_leaving?: string | null
@@ -552,6 +1165,7 @@ export type Database = {
           is_deleted?: boolean
           is_new_joiner?: boolean
           is_sandbox?: boolean
+          max_advance_limit?: number
           mobile?: string | null
           notes?: string | null
           payable_gross?: number | null
@@ -564,6 +1178,13 @@ export type Database = {
           weekly_off_allowance?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "employees_client_id_fkey"
             columns: ["client_id"]
@@ -707,6 +1328,8 @@ export type Database = {
           net_margin: number
           outstanding_amount: number
           paysheet_id: string | null
+          po_date: string | null
+          po_number: string | null
           qr_code_data: string | null
           service_period_from: string | null
           service_period_to: string | null
@@ -747,6 +1370,8 @@ export type Database = {
           net_margin?: number
           outstanding_amount?: number
           paysheet_id?: string | null
+          po_date?: string | null
+          po_number?: string | null
           qr_code_data?: string | null
           service_period_from?: string | null
           service_period_to?: string | null
@@ -787,6 +1412,8 @@ export type Database = {
           net_margin?: number
           outstanding_amount?: number
           paysheet_id?: string | null
+          po_date?: string | null
+          po_number?: string | null
           qr_code_data?: string | null
           service_period_from?: string | null
           service_period_to?: string | null
@@ -1176,6 +1803,56 @@ export type Database = {
         }
         Relationships: []
       }
+      shifts: {
+        Row: {
+          branch_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          shift_code: string
+          shift_end_time: string
+          shift_hours: number
+          shift_name: string
+          shift_start_time: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          shift_code: string
+          shift_end_time: string
+          shift_hours?: number
+          shift_name: string
+          shift_start_time: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          shift_code?: string
+          shift_end_time?: string
+          shift_hours?: number
+          shift_name?: string
+          shift_start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -1234,9 +1911,28 @@ export type Database = {
     Functions: {
       _iw_under_hundred: { Args: { n: number }; Returns: string }
       amount_in_words_inr: { Args: { amt: number }; Returns: string }
+      apply_advance_deductions_on_approve: {
+        Args: { _paysheet_id: string }
+        Returns: undefined
+      }
+      approve_advance: { Args: { _id: string }; Returns: undefined }
+      approve_ffs: { Args: { _id: string; _payment: Json }; Returns: undefined }
       approve_paysheet: { Args: { _id: string }; Returns: undefined }
+      cancel_advance: { Args: { _id: string }; Returns: undefined }
+      compute_ffs: { Args: { _payload: Json }; Returns: Json }
+      create_contract: { Args: { _payload: Json }; Returns: string }
+      create_deployment: { Args: { _payload: Json }; Returns: string }
       current_environment: { Args: never; Returns: string }
       fy_string: { Args: { _d: string }; Returns: string }
+      gen_advance_number: {
+        Args: { _d: string; _sandbox: boolean }
+        Returns: string
+      }
+      gen_contract_number: { Args: { _client_id: string }; Returns: string }
+      gen_ffs_number: {
+        Args: { _d: string; _sandbox: boolean }
+        Returns: string
+      }
       gen_invoice_number: {
         Args: { _client_id: string; _invoice_date: string; _sandbox: boolean }
         Returns: string
@@ -1250,6 +1946,19 @@ export type Database = {
         Returns: string
       }
       gen_voucher_number: { Args: { _d: string }; Returns: string }
+      generate_recovery_schedule: {
+        Args: { _advance_id: string }
+        Returns: undefined
+      }
+      get_active_advance_deductions: {
+        Args: { _client_id: string; _month_date: string }
+        Returns: {
+          advance_id: string
+          employee_id: string
+          schedule_id: string
+          scheduled_amount: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1267,11 +1976,23 @@ export type Database = {
       }
       is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_sandbox_env: { Args: never; Returns: boolean }
+      mark_contract_status_and_notify: { Args: never; Returns: number }
       mark_overdue_invoices: { Args: never; Returns: number }
+      reject_advance: {
+        Args: { _id: string; _reason: string }
+        Returns: undefined
+      }
       reject_paysheet: {
         Args: { _id: string; _reason: string }
         Returns: undefined
       }
+      relieve_deployment: {
+        Args: { _end: string; _id: string; _reason: string }
+        Returns: undefined
+      }
+      renew_contract: { Args: { _payload: Json }; Returns: string }
+      request_advance: { Args: { _payload: Json }; Returns: string }
+      save_ffs: { Args: { _payload: Json }; Returns: string }
       save_paysheet: { Args: { _payload: Json }; Returns: string }
       wipe_sandbox: { Args: never; Returns: undefined }
     }
