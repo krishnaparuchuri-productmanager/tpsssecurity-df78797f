@@ -45,6 +45,8 @@ import BranchesList from "@/pages/app/masters/BranchesList";
 import ShiftsList from "@/pages/app/masters/ShiftsList";
 import DeploymentsList from "@/pages/app/masters/DeploymentsList";
 import ContractsList from "@/pages/app/masters/ContractsList";
+import FinancialDashboard from "@/pages/app/reports/FinancialDashboard";
+import MomReport from "@/pages/app/reports/MomReport";
 
 const queryClient = new QueryClient();
 
@@ -129,8 +131,8 @@ const App = () => (
                   <Route path="masters/contracts/list" element={<ContractsList />} />
 
                   {/* Other Phase 1 placeholders */}
-                  <Route path="reports/financial" element={<Placeholder title="Financial Dashboard" />} />
-                  <Route path="reports/mom" element={<Placeholder title="Month-on-Month Analysis" />} />
+                  <Route path="reports/financial" element={<FinancialDashboard />} />
+                  <Route path="reports/mom" element={<MomReport />} />
                   <Route path="expenses" element={<Placeholder title="Monthly Expenses" />} />
                   <Route path="compliance" element={<Placeholder title="Compliance Calendar" />} />
                 </Route>
