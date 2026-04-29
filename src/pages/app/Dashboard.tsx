@@ -112,13 +112,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      <Card className="border-app-border bg-app-saffron/5">
-        <CardContent className="p-4 text-sm text-app-muted">
-          <strong className="text-app-navy">Phase 2 coming soon:</strong> Payroll upload &amp; calculation engine,
-          financial reports, expenses, compliance calendar, and ECR/challan generation.
-        </CardContent>
-      </Card>
     </div>
+  );
+}
   );
 }
