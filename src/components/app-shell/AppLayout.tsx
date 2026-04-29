@@ -21,6 +21,8 @@ import {
   Settings, FileText, UserCog, History, Briefcase,
 } from "lucide-react";
 import TopBar from "./TopBar";
+import SandboxBanner from "./SandboxBanner";
+import EnvBadge from "./EnvBadge";
 
 const SESSION_TIMEOUT = 30 * 60 * 1000;
 const SESSION_WARNING = 5 * 60 * 1000; // warn 5 mins before
@@ -54,9 +56,24 @@ const NAV: NavGroup[] = [
   {
     label: "Payroll",
     items: [
-      { to: "/app/payroll/upload", label: "Upload Paysheet", icon: Wallet, screen: "payroll" },
-      { to: "/app/payroll/monthly", label: "Monthly Payroll", icon: FileText, screen: "payroll" },
-      { to: "/app/payroll/approvals", label: "Approval Queue", icon: ShieldCheck, screen: "payroll" },
+      { to: "/app/payroll/create", label: "Create Paysheet", icon: Wallet, screen: "payroll" },
+      { to: "/app/payroll/list", label: "Monthly Paysheets", icon: FileText, screen: "payroll" },
+      { to: "/app/payroll/approvals", label: "Approval Queue", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
+    ],
+  },
+  {
+    label: "Invoices",
+    items: [
+      { to: "/app/invoices/list", label: "All Invoices", icon: FileText },
+      { to: "/app/invoices/new", label: "Create Invoice", icon: FileText },
+    ],
+  },
+  {
+    label: "Finance",
+    items: [
+      { to: "/app/finance/cashbook", label: "Cash Book", icon: BarChart3 },
+      { to: "/app/finance/summary", label: "Monthly Summary", icon: BarChart3 },
+      { to: "/app/finance/receipts", label: "Receipts", icon: Receipt },
     ],
   },
   {
