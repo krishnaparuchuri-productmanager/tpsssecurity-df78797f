@@ -74,11 +74,11 @@ export default function AnnualSummary() {
 
       // 2. Payment register (receipts table)
       const { data: rcpt } = await supabase
-        .from("payments").select("payment_number, payment_date, amount_received, payment_mode, reference_number, invoice_id, invoices(invoice_number, client_id, clients(client_name))")
+        .from("payments").select("receipt_number, payment_date, amount, payment_mode, reference_number, invoices(invoice_number, clients(client_name))")
         .gte("payment_date", period.from).lte("payment_date", period.to).eq("is_deleted", false);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(((rcpt ?? []) as Array<{ payment_number: string; payment_date: string; amount_received: number; payment_mode: string; reference_number: string | null; invoices?: { invoice_number?: string; clients?: { client_name?: string } } }>).map((r) => ({
-        Receipt: r.payment_number, Date: r.payment_date, Invoice: r.invoices?.invoice_number ?? "",
-        Client: r.invoices?.clients?.client_name ?? "", Amount: Number(r.amount_received),
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(((rcpt ?? []) as Array<{ receipt_number: string; payment_date: string; amount: number; payment_mode: string; reference_number: string | null; invoices?: { invoice_number?: string; clients?: { client_name?: string } } }>).map((r) => ({
+        Receipt: r.receipt_number, Date: r.payment_date, Invoice: r.invoices?.invoice_number ?? "",
+        Client: r.invoices?.clients?.client_name ?? "", Amount: Number(r.amount),
         Mode: r.payment_mode, Reference: r.reference_number ?? "",
       }))), "2. Payment Register");
 
