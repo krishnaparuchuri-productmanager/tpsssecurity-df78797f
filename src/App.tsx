@@ -94,6 +94,28 @@ const App = () => (
                   <Route path="finance/receipts" element={<ReceiptsList />} />
                   <Route path="finance/receipts/:id" element={<ReceiptView />} />
 
+                  {/* Phase 3A — Advances */}
+                  <Route path="employees/advances/list" element={<AdvancesList />} />
+                  <Route path="employees/advances/new" element={<AdvanceForm />} />
+                  <Route path="masters/employees/:id/advances" element={<EmployeeAdvances />} />
+                  <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops"]} />}>
+                    <Route path="employees/advances/approvals" element={<AdvanceApprovals />} />
+                    <Route path="employees/ffs/approvals" element={<FfsApprovals />} />
+                  </Route>
+
+                  {/* Phase 3A — FFS */}
+                  <Route path="employees/ffs/list" element={<FfsList />} />
+                  <Route path="employees/ffs/new" element={<FfsForm />} />
+                  <Route path="employees/ffs/:id/view" element={<FfsView />} />
+
+                  {/* Phase 3A — Masters additions */}
+                  <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops"]} />}>
+                    <Route path="masters/branches" element={<BranchesList />} />
+                    <Route path="masters/deployments/shifts" element={<ShiftsList />} />
+                  </Route>
+                  <Route path="masters/deployments" element={<DeploymentsList />} />
+                  <Route path="masters/contracts/list" element={<ContractsList />} />
+
                   {/* Other Phase 1 placeholders */}
                   <Route path="reports/financial" element={<Placeholder title="Financial Dashboard" />} />
                   <Route path="reports/mom" element={<Placeholder title="Month-on-Month Analysis" />} />
