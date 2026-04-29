@@ -36,23 +36,8 @@ export default function PaysheetApprovals() {
       toast.error("Cannot approve your own submission");
       return;
     }
-    const { error } = await supabase.from("paysheets").update({
-      status: "approved", approved_by: user?.id, approved_at: new Date().toISOString(),
-    }).eq("id", id);
+    const { error } = await supabase.rpc("approve_paysheet", { _id: id });
     if (error) return toast.error(error.message);
-    await logAudit({ action: "APPROVE", table: "paysheets", recordId: id });
-    // notify submitter
-    if (submittedBy) {
-      const { data: ps } = await supabase.from("paysheets")
-        .select("paysheet_number, month, clients(client_name)").eq("id", id).maybeSingle();
-      const cn = (ps as unknown as { clients: { client_name: string } | null })?.clients?.client_name ?? "";
-      await supabase.from("notifications").insert({
-        user_id: submittedBy,
-        title: "Paysheet approved",
-        message: `✅ Approved: ${cn} - ${ps?.month ?? ""}`,
-        type: "paysheet_approved", is_sandbox: isSandbox,
-      });
-    }
     toast.success("Approved");
     load();
   }
@@ -63,23 +48,10 @@ export default function PaysheetApprovals() {
       toast.error("Reason must be 10–200 characters");
       return;
     }
-    const { data: ps } = await supabase.from("paysheets")
-      .select("submitted_by, paysheet_number, month, clients(client_name)").eq("id", reject.id).maybeSingle();
-    const { error } = await supabase.from("paysheets").update({
-      status: "rejected", rejection_reason: reject.reason.trim(),
-      approved_by: user?.id, approved_at: new Date().toISOString(),
-    }).eq("id", reject.id);
+    const { error } = await supabase.rpc("reject_paysheet", {
+      _id: reject.id, _reason: reject.reason.trim(),
+    });
     if (error) return toast.error(error.message);
-    await logAudit({ action: "REJECT", table: "paysheets", recordId: reject.id, newValues: { reason: reject.reason } });
-    if (ps?.submitted_by) {
-      const cn = (ps as unknown as { clients: { client_name: string } | null })?.clients?.client_name ?? "";
-      await supabase.from("notifications").insert({
-        user_id: ps.submitted_by,
-        title: "Paysheet rejected",
-        message: `❌ Rejected: ${cn} - ${ps.month} | ${reject.reason}`,
-        type: "paysheet_rejected", is_sandbox: isSandbox,
-      });
-    }
     toast.success("Rejected");
     setReject(null);
     load();
