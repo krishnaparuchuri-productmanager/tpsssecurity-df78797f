@@ -11,7 +11,8 @@ import { downloadPaysheetExcel } from "@/lib/exportPaysheet";
 export default function PaysheetView() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [head, setHead] = useState<{
+  const { role } = useAuth();
+  const canExportExcel = role === "ceo_admin" || role === "coo_ops";
     paysheet_number: string; month: string; status: string; rejection_reason: string | null;
     total_employees: number; total_net_salary: number;
     clients: { client_name: string } | null;
