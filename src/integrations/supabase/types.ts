@@ -1249,6 +1249,7 @@ export type Database = {
       }
       is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_sandbox_env: { Args: never; Returns: boolean }
+      mark_overdue_invoices: { Args: never; Returns: number }
       reject_paysheet: {
         Args: { _id: string; _reason: string }
         Returns: undefined

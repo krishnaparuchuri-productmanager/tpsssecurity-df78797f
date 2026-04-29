@@ -281,7 +281,36 @@ export default function InvoiceForm() {
 
       {/* Deductions (internal) */}
       <div className="bg-white border border-app-border rounded-lg p-4 space-y-2">
-        <h2 className="font-semibold text-app-navy">Internal Deductions (not on client PDF)</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-app-navy">Internal Deductions (not on client PDF)</h2>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!clientId}
+            onClick={async () => {
+              if (!clientId) return;
+              const tpl = deductionRows.map((d) => ({
+                label: d.label, source: d.source,
+                default_value: d.value, is_enabled: d.is_enabled,
+              }));
+              const { data: existing } = await supabase
+                .from("invoice_deduction_templates")
+                .select("id").eq("client_id", clientId).maybeSingle();
+              const payload = {
+                client_id: clientId,
+                template_rows: tpl as unknown as never,
+                updated_by: user?.id ?? null,
+              };
+              const { error } = existing
+                ? await supabase.from("invoice_deduction_templates").update(payload).eq("id", existing.id)
+                : await supabase.from("invoice_deduction_templates").insert(payload as never);
+              if (error) toast.error(error.message);
+              else toast.success("Saved as client default template");
+            }}
+          >
+            Save as default template for client
+          </Button>
+        </div>
         <table className="w-full text-sm">
           <tbody>
             {deductionRows.map((d, i) => (

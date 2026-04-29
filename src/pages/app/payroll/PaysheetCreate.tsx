@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +35,8 @@ export default function PaysheetCreate() {
   const { isSandbox } = useEnvironment();
   const { user } = useAuth();
   const saveLabel = useSaveLabel("Save Draft");
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [clients, setClients] = useState<Array<{ id: string; client_name: string; pt_applicable: boolean }>>([]);
@@ -61,6 +63,63 @@ export default function PaysheetCreate() {
     // working days = days in month
     setWorkingDays(new Date(year, monthIdx + 1, 0).getDate());
   }, [year, monthIdx]);
+
+  // Edit mode: load existing draft/rejected paysheet
+  useEffect(() => {
+    if (!editId) return;
+    (async () => {
+      const { data: ps } = await supabase.from("paysheets").select("*").eq("id", editId).maybeSingle();
+      if (!ps) { toast.error("Paysheet not found"); return; }
+      if (!["draft", "rejected"].includes(ps.status)) {
+        toast.error(`Cannot edit ${ps.status} paysheets`);
+        navigate(`/app/payroll/${editId}/view`);
+        return;
+      }
+      setPaysheetId(ps.id);
+      setClientId(ps.client_id);
+      const d = new Date(ps.month_date);
+      setYear(d.getFullYear());
+      setMonthIdx(d.getMonth());
+      setWorkingDays(ps.total_days_in_month);
+      const { data: emps } = await supabase.from("paysheet_employees").select("*").eq("paysheet_id", editId);
+      const loaded: PaysheetEmpRow[] = (emps ?? []).map((e) => ({
+        employee_id: e.employee_id ?? undefined,
+        uan_number: e.uan_number ?? undefined,
+        esi_number: e.esi_number ?? undefined,
+        employee_name: e.employee_name,
+        designation: e.designation,
+        basic: Number(e.basic), da: Number(e.da), ta: Number(e.ta),
+        four_hour_ot: Number(e.four_hour_ot), weekly_off: Number(e.weekly_off),
+        bonus: Number(e.bonus), relieving_charges: Number(e.relieving_charges),
+        leave_wages: Number(e.leave_wages),
+        conveyance_allowance: Number(e.conveyance_allowance),
+        washing_allowance: Number(e.washing_allowance),
+        spl_allowance: Number(e.spl_allowance),
+        payable_gross: Number(e.payable_gross),
+        working_days: e.working_days,
+        no_of_duties: Number(e.no_of_duties),
+        earned_wages: Number(e.earned_wages),
+        epf_mw_wages: Number(e.epf_mw_wages),
+        epf_wages: Number(e.epf_wages),
+        epf_employee_deduction: Number(e.epf_employee_deduction),
+        epf_employer_contribution: Number(e.epf_employer_contribution),
+        esi_wages: Number(e.esi_wages),
+        esi_employee_deduction: Number(e.esi_employee_deduction),
+        esi_employer_contribution: Number(e.esi_employer_contribution),
+        pt_deduction: Number(e.pt_deduction),
+        net_salary: Number(e.net_salary),
+        advance_deduction: Number(e.advance_deduction),
+        final_net_salary: Number(e.final_net_salary),
+        is_new_joiner: !!e.is_new_joiner,
+        ad_hoc: !e.employee_id,
+      }));
+      setRows(loaded);
+      setStep(2);
+      if (ps.status === "rejected" && ps.rejection_reason) {
+        toast.warning(`Previous rejection: ${ps.rejection_reason}`);
+      }
+    })();
+  }, [editId, navigate]);
 
   async function loadEmployeesForClient() {
     if (!clientId) {
