@@ -5,7 +5,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Send, Pencil } from "lucide-react";
+import { Plus, Eye, Send } from "lucide-react";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
 
@@ -83,12 +83,9 @@ export default function PaysheetList() {
                 <td className="p-2 text-right whitespace-nowrap">
                   <Link to={`/app/payroll/${r.id}/view`}><Button size="sm" variant="ghost" title="View"><Eye className="h-4 w-4" /></Button></Link>
                   {(r.status === "draft" || r.status === "rejected") && (
-                    <>
-                      <Link to={`/app/payroll/create?id=${r.id}`}><Button size="sm" variant="ghost" title="Edit"><Pencil className="h-4 w-4" /></Button></Link>
-                      <Button size="sm" variant="ghost" className="text-blue-700" title="Submit for approval" onClick={() => submitForApproval(r)}>
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </>
+                    <Button size="sm" variant="ghost" className="text-blue-700" title="Submit for approval" onClick={() => submitForApproval(r)}>
+                      <Send className="h-4 w-4" />
+                    </Button>
                   )}
                 </td>
               </tr>
