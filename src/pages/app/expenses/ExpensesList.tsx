@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download } from "lucide-react";
 import { formatINR } from "@/lib/format";
 
-const EXPENSE_CATS = ["epf_payment","esi_payment","gst_payment","pt_payment","staff_salary","salary_advance","admin_expense","vehicle_expense","other_expense"];
+const EXPENSE_CATS = ["epf_payment","esi_payment","gst_payment","pt_payment","staff_salary","salary_advance","admin_expense","vehicle_expense","other_expense"] as const;
 const CAT_LABEL: Record<string, string> = {
   epf_payment: "EPF", esi_payment: "ESI", gst_payment: "GST", pt_payment: "PT",
   staff_salary: "Staff Salary", salary_advance: "Salary Advance",
