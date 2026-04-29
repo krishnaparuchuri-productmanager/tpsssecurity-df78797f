@@ -138,9 +138,10 @@ function AppSidebar() {
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>
-            </SidebarGroup>
+          </SidebarGroup>
           );
         })}
+        <EnvBadge />
       </SidebarContent>
     </Sidebar>
   );
@@ -187,6 +188,7 @@ export default function AppLayout() {
             </div>
             <TopBar remainingMs={remainingMs} />
           </header>
+          <SandboxBanner />
           <main className="flex-1 p-4 md:p-6 bg-app-surface overflow-x-hidden">
             <Outlet />
           </main>
