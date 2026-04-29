@@ -66,7 +66,7 @@ export default function AnnualSummary() {
 
       // 1. Invoice register
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d.invoices.map((i) => ({
-        "Invoice #": i.invoice_number, Month: i.month, Date: i.invoice_date, Client: i.clients?.client_name ?? "",
+        "Invoice #": i.invoice_number, Month: i.month_date?.slice(0, 7) ?? "", Date: i.invoice_date, Client: i.clients?.client_name ?? "",
         Billing: Number(i.billing_amount), GST: Number(i.gst_amount), TDS: Number(i.tds_amount),
         "Invoice Value": Number(i.total_invoice_value), Received: Number(i.amount_received),
         Outstanding: Number(i.outstanding_amount), Status: i.status,
