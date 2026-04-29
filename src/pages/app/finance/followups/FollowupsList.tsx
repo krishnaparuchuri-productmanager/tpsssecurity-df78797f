@@ -16,6 +16,7 @@ import FollowupDialog from "./FollowupDialog";
 interface Row {
   id: string; followup_date: string; status: string; contact_mode: string | null;
   response: string | null; promise_date: string | null; next_followup_date: string | null;
+  closed_reason: string | null;
   invoice_id: string; client_id: string;
   invoices: { invoice_number: string; due_date: string | null; outstanding_amount: number } | null;
   clients: { client_name: string } | null;
@@ -39,7 +40,7 @@ export default function FollowupsList() {
 
   useEffect(() => {
     let q = supabase.from("invoice_followups")
-      .select("id, followup_date, status, contact_mode, response, promise_date, next_followup_date, invoice_id, client_id, invoices(invoice_number, due_date, outstanding_amount), clients(client_name)")
+      .select("id, followup_date, status, contact_mode, response, promise_date, next_followup_date, closed_reason, invoice_id, client_id, invoices(invoice_number, due_date, outstanding_amount), clients(client_name)")
       .eq("is_sandbox", isSandbox).eq("is_deleted", false)
       .order("followup_date", { ascending: false });
     if (statusFilter !== "all") q = q.eq("status", statusFilter);
