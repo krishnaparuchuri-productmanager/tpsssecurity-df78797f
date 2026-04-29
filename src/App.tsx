@@ -68,6 +68,7 @@ import AnnualSummary from "@/pages/app/reports/AnnualSummary";
 import ActivityLog from "@/pages/app/admin/ActivityLog";
 import BranchSummary from "@/pages/app/admin/BranchSummary";
 import DashboardV3C from "@/pages/app/DashboardV3C";
+import BranchesAdmin from "@/pages/app/masters/BranchesAdmin";
 
 const queryClient = new QueryClient();
 
@@ -169,6 +170,7 @@ const App = () => (
                   <Route path="finance/followups" element={<FollowupsList />} />
                   <Route element={<ProtectedRoute requireRoles={["ceo_admin"]} />}>
                     <Route path="masters/expense-categories" element={<ExpenseCategoriesAdmin />} />
+                    <Route path="masters/branches/manage" element={<BranchesAdmin />} />
                     <Route path="admin/backup" element={<BackupAdmin />} />
                     <Route path="admin/activity-log" element={<ActivityLog />} />
                     <Route path="admin/branch-summary" element={<BranchSummary />} />
