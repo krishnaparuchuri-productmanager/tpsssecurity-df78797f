@@ -1653,6 +1653,7 @@ export type Database = {
           amount_received: number
           billing_amount: number
           billing_lines: Json
+          branch_id: string | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -1695,6 +1696,7 @@ export type Database = {
           amount_received?: number
           billing_amount?: number
           billing_lines?: Json
+          branch_id?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -1737,6 +1739,7 @@ export type Database = {
           amount_received?: number
           billing_amount?: number
           billing_lines?: Json
+          branch_id?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -2200,6 +2203,39 @@ export type Database = {
           },
         ]
       }
+      user_activity_log: {
+        Row: {
+          activity_type: string
+          created_at: string
+          details: Json | null
+          device_info: string | null
+          id: string
+          ip_address: string | null
+          page_url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          details?: Json | null
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          page_url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          details?: Json | null
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          page_url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -2319,6 +2355,20 @@ export type Database = {
           scheduled_amount: number
         }[]
       }
+      get_branch_summary: {
+        Args: never
+        Returns: {
+          active_deployment_count: number
+          branch_code: string
+          branch_id: string
+          branch_name: string
+          client_count: number
+          employee_count: number
+          is_head_office: boolean
+          month_billing: number
+          month_outstanding: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -2336,9 +2386,36 @@ export type Database = {
       }
       is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_sandbox_env: { Args: never; Returns: boolean }
+      log_activity: {
+        Args: {
+          _details?: Json
+          _device?: string
+          _ip?: string
+          _page_url?: string
+          _type: string
+        }
+        Returns: string
+      }
+      log_failed_login: {
+        Args: { _device?: string; _email: string; _ip?: string }
+        Returns: number
+      }
       manage_expense_category: { Args: { _payload: Json }; Returns: string }
       mark_contract_status_and_notify: { Args: never; Returns: number }
       mark_overdue_invoices: { Args: never; Returns: number }
+      mom_metric_series: {
+        Args: {
+          _branch_id?: string
+          _client_id?: string
+          _metric: string
+          _months?: number
+        }
+        Returns: {
+          month_label: string
+          month_start: string
+          value: number
+        }[]
+      }
       record_backup_log: { Args: { _payload: Json }; Returns: string }
       record_compliance_payment: { Args: { _payload: Json }; Returns: string }
       record_expense: { Args: { _payload: Json }; Returns: string }
