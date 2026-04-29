@@ -87,6 +87,10 @@ const NAV: NavGroup[] = [
       { to: "/app/finance/cashbook", label: "Cash Book", icon: BarChart3 },
       { to: "/app/finance/summary", label: "Monthly Summary", icon: BarChart3 },
       { to: "/app/finance/receipts", label: "Receipts", icon: Receipt },
+      { to: "/app/finance/statement", label: "Statement of Account", icon: FileText },
+      { to: "/app/finance/aging", label: "Aging Report", icon: BarChart3 },
+      { to: "/app/finance/gst", label: "GST Report", icon: FileText },
+      { to: "/app/finance/followups", label: "Invoice Followups", icon: ShieldCheck },
     ],
   },
   {
@@ -98,11 +102,18 @@ const NAV: NavGroup[] = [
   },
   {
     label: "Expenses",
-    items: [{ to: "/app/expenses", label: "Monthly Expenses", icon: Receipt, screen: "expenses" }],
+    items: [
+      { to: "/app/expenses/v2", label: "Expenses", icon: Receipt },
+      { to: "/app/expenses", label: "Monthly Expenses (legacy)", icon: Receipt, screen: "expenses" },
+    ],
   },
   {
     label: "Compliance",
-    items: [{ to: "/app/compliance", label: "Compliance Calendar", icon: ShieldCheck, screen: "compliance" }],
+    items: [
+      { to: "/app/compliance", label: "Compliance Calendar", icon: ShieldCheck, screen: "compliance" },
+      { to: "/app/compliance/payments", label: "Payments", icon: Wallet },
+      { to: "/app/compliance/ecr", label: "ECR / ESI Challan", icon: FileText },
+    ],
   },
   {
     label: "Administration",
@@ -110,6 +121,8 @@ const NAV: NavGroup[] = [
       { to: "/app/admin/users", label: "User Management", icon: UserCog, roles: ["ceo_admin"] },
       { to: "/app/admin/permissions", label: "Role Permissions", icon: Settings, roles: ["ceo_admin"] },
       { to: "/app/admin/audit-logs", label: "Audit Logs", icon: History, roles: ["ceo_admin"] },
+      { to: "/app/admin/backup", label: "Backups", icon: History, roles: ["ceo_admin"] },
+      { to: "/app/masters/expense-categories", label: "Expense Categories", icon: Settings, roles: ["ceo_admin"] },
     ],
   },
 ];

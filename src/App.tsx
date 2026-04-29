@@ -49,6 +49,17 @@ import FinancialDashboard from "@/pages/app/reports/FinancialDashboard";
 import MomReport from "@/pages/app/reports/MomReport";
 import ExpensesIndex from "@/pages/app/expenses/ExpensesIndex";
 import ComplianceCalendar from "@/pages/app/compliance/ComplianceCalendar";
+import ExpensesV2List from "@/pages/app/expenses/v2/ExpensesV2List";
+import ExpenseV2Form from "@/pages/app/expenses/v2/ExpenseV2Form";
+import CompliancePaymentsList from "@/pages/app/compliance/payments/CompliancePaymentsList";
+import CompliancePaymentForm from "@/pages/app/compliance/payments/CompliancePaymentForm";
+import StatementOfAccount from "@/pages/app/finance/StatementOfAccount";
+import AgingReport from "@/pages/app/finance/AgingReport";
+import GstReport from "@/pages/app/finance/GstReport";
+import FollowupsList from "@/pages/app/finance/followups/FollowupsList";
+import EcrEsiGenerator from "@/pages/app/compliance/EcrEsiGenerator";
+import ExpenseCategoriesAdmin from "@/pages/app/masters/ExpenseCategoriesAdmin";
+import BackupAdmin from "@/pages/app/admin/BackupAdmin";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +148,21 @@ const App = () => (
                   <Route path="reports/mom" element={<MomReport />} />
                   <Route path="expenses" element={<ExpensesIndex />} />
                   <Route path="compliance" element={<ComplianceCalendar />} />
+
+                  {/* Phase 3B */}
+                  <Route path="expenses/v2" element={<ExpensesV2List />} />
+                  <Route path="expenses/v2/new" element={<ExpenseV2Form />} />
+                  <Route path="compliance/payments" element={<CompliancePaymentsList />} />
+                  <Route path="compliance/payments/new" element={<CompliancePaymentForm />} />
+                  <Route path="compliance/ecr" element={<EcrEsiGenerator />} />
+                  <Route path="finance/statement" element={<StatementOfAccount />} />
+                  <Route path="finance/aging" element={<AgingReport />} />
+                  <Route path="finance/gst" element={<GstReport />} />
+                  <Route path="finance/followups" element={<FollowupsList />} />
+                  <Route element={<ProtectedRoute requireRoles={["ceo_admin"]} />}>
+                    <Route path="masters/expense-categories" element={<ExpenseCategoriesAdmin />} />
+                    <Route path="admin/backup" element={<BackupAdmin />} />
+                  </Route>
                 </Route>
               </Route>
 
