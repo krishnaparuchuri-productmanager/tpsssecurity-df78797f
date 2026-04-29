@@ -37,4 +37,6 @@ export const activity = {
     logRaw("create", { table, record_id, ...(extra ?? {}) }),
   update: (table: string, record_id: string, extra?: Record<string, unknown>) =>
     logRaw("update", { table, record_id, ...(extra ?? {}) }),
+  delete: (table: string, record_id: string, extra?: Record<string, unknown>) =>
+    logRaw("delete", { table, record_id, ...(extra ?? {}) }),
 };
