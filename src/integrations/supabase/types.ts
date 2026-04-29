@@ -2070,6 +2070,7 @@ export type Database = {
       }
       renew_contract: { Args: { _payload: Json }; Returns: string }
       request_advance: { Args: { _payload: Json }; Returns: string }
+      run_compliance_daily_checks: { Args: never; Returns: Json }
       save_ffs: { Args: { _payload: Json }; Returns: string }
       save_paysheet: { Args: { _payload: Json }; Returns: string }
       seed_compliance_tasks: {
