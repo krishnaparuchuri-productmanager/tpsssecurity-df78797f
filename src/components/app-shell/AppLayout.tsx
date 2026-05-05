@@ -46,7 +46,6 @@ const NAV: NavGroup[] = [
     label: "Overview",
     items: [
       { to: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard, screen: "dashboard" },
-      { to: "/app/dashboard/v3c", label: "Dashboard (3C)", icon: LayoutDashboard },
     ],
   },
   {

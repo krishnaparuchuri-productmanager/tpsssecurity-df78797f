@@ -67,7 +67,6 @@ import EmployeeHistory from "@/pages/app/reports/EmployeeHistory";
 import AnnualSummary from "@/pages/app/reports/AnnualSummary";
 import ActivityLog from "@/pages/app/admin/ActivityLog";
 import BranchSummary from "@/pages/app/admin/BranchSummary";
-import DashboardV3C from "@/pages/app/DashboardV3C";
 import BranchesAdmin from "@/pages/app/masters/BranchesAdmin";
 
 const queryClient = new QueryClient();
@@ -177,7 +176,7 @@ const App = () => (
                   </Route>
 
                   {/* Phase 3C — Reports */}
-                  <Route path="dashboard/v3c" element={<DashboardV3C />} />
+                  <Route path="dashboard/v3c" element={<Navigate to="/app/dashboard" replace />} />
                   <Route path="reports/mom-analysis" element={<MomAnalysis />} />
                   <Route path="reports/comparative" element={<ComparativeAnalysis />} />
                   <Route path="reports/client-billing-history" element={<ClientBillingHistory />} />
