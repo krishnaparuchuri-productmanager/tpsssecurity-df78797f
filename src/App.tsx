@@ -176,7 +176,7 @@ const App = () => (
                   </Route>
 
                   {/* Phase 3C — Reports */}
-                  <Route path="dashboard/v3c" element={<DashboardV3C />} />
+                  <Route path="dashboard/v3c" element={<Navigate to="/app/dashboard" replace />} />
                   <Route path="reports/mom-analysis" element={<MomAnalysis />} />
                   <Route path="reports/comparative" element={<ComparativeAnalysis />} />
                   <Route path="reports/client-billing-history" element={<ClientBillingHistory />} />

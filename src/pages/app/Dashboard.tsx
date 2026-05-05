@@ -74,10 +74,6 @@ export default function Dashboard() {
       if (branchEq) {
         cQ = cQ.eq("branch_id", branchEq);
         eQ = eQ.eq("branch_id", branchEq);
-        invQ = invQ.eq("branch_id", branchEq);
-        inv6Q = inv6Q.eq("branch_id", branchEq);
-        psQ = psQ.eq("branch_id", branchEq);
-        pendQ = pendQ.eq("branch_id", branchEq);
       }
 
       const [{ count: c }, { count: e }, { count: dep }, { data: logs }, { data: invs }, { data: psheets }, { data: invs6 }, { count: pending }] = await Promise.all([
