@@ -67,7 +67,6 @@ import EmployeeHistory from "@/pages/app/reports/EmployeeHistory";
 import AnnualSummary from "@/pages/app/reports/AnnualSummary";
 import ActivityLog from "@/pages/app/admin/ActivityLog";
 import BranchSummary from "@/pages/app/admin/BranchSummary";
-import DashboardV3C from "@/pages/app/DashboardV3C";
 import BranchesAdmin from "@/pages/app/masters/BranchesAdmin";
 
 const queryClient = new QueryClient();
