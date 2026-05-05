@@ -23,6 +23,7 @@ import {
 import TopBar from "./TopBar";
 import SandboxBanner from "./SandboxBanner";
 import EnvBadge from "./EnvBadge";
+import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 
 const SESSION_TIMEOUT = 30 * 60 * 1000;
 const SESSION_WARNING = 5 * 60 * 1000; // warn 5 mins before
@@ -148,9 +149,12 @@ function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-app-border">
       <SidebarContent className="bg-app-navy text-white">
-        <div className="px-4 py-5 border-b border-white/10">
-          <div className="font-bold text-lg leading-tight">Trinetra</div>
-          <div className="text-xs text-white/70">Internal Portal</div>
+        <div className="px-4 py-5 border-b border-white/10 flex items-center gap-3">
+          <img src={tpssLogo} alt="TPSS Logo" className="h-10 w-10 rounded-full object-contain bg-white shrink-0" />
+          <div className="min-w-0">
+            <div className="font-bold text-lg leading-tight">Trinetra</div>
+            <div className="text-xs text-white/70">Internal Portal</div>
+          </div>
         </div>
         {NAV.map((group) => {
           const visible = group.items.filter((i) => {
@@ -224,6 +228,7 @@ export default function AppLayout() {
           <header className="h-14 border-b border-app-border bg-white flex items-center justify-between px-3 sticky top-0 z-30">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
+              <img src={tpssLogo} alt="TPSS" className="h-8 w-8 rounded-full object-contain bg-white border border-app-border" />
               <span className="hidden md:inline text-sm font-semibold text-app-navy">
                 Trinetra Professional Security Services
               </span>

@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 
 export default function Login() {
   const { signIn, user, loading } = useAuth();
@@ -36,9 +37,11 @@ export default function Login() {
     <div className="app-shell min-h-screen flex items-center justify-center bg-app-bg p-4">
       <Card className="w-full max-w-md border-app-border shadow-lg">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto h-12 w-12 rounded-full bg-app-navy/10 flex items-center justify-center">
-            <ShieldCheck className="h-6 w-6 text-app-navy" />
-          </div>
+          <img
+            src={tpssLogo}
+            alt="TPSS – Trinetra Professional Security Services"
+            className="mx-auto h-20 w-20 rounded-full object-contain bg-white"
+          />
           <CardTitle className="text-2xl text-app-navy">Trinetra Internal Portal</CardTitle>
           <CardDescription>Trinetra Professional Security Services</CardDescription>
         </CardHeader>
