@@ -103,8 +103,7 @@
    Internal admin app (.app-shell scope) — does NOT affect the
    public marketing site.
    ============================================================ */
-.app-shell {
-  font-family: 'Inter', system-ui, sans-serif;
+:root {
   --app-navy: 217 47% 18%;        /* #1a2744 */
   --app-saffron: 24 95% 53%;      /* #f97316 */
   --app-bg: 0 0% 100%;
@@ -113,12 +112,21 @@
   --app-text: 220 30% 14%;
   --app-text-muted: 220 10% 45%;
 }
-.app-shell .bg-app-navy { background-color: hsl(var(--app-navy)); }
-.app-shell .text-app-navy { color: hsl(var(--app-navy)); }
-.app-shell .border-app-navy { border-color: hsl(var(--app-navy)); }
-.app-shell .bg-app-saffron { background-color: hsl(var(--app-saffron)); }
-.app-shell .text-app-saffron { color: hsl(var(--app-saffron)); }
-.app-shell .bg-app-bg { background-color: hsl(var(--app-bg)); }
-.app-shell .bg-app-surface { background-color: hsl(var(--app-surface)); }
-.app-shell .border-app-border { border-color: hsl(var(--app-border)); }
-.app-shell .text-app-muted { color: hsl(var(--app-text-muted)); }
+.app-shell {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.bg-app-navy { background-color: hsl(var(--app-navy)); }
+.text-app-navy { color: hsl(var(--app-navy)); }
+.border-app-navy { border-color: hsl(var(--app-navy)); }
+.bg-app-saffron { background-color: hsl(var(--app-saffron)); }
+.text-app-saffron { color: hsl(var(--app-saffron)); }
+.bg-app-bg { background-color: hsl(var(--app-bg)); }
+.bg-app-surface { background-color: hsl(var(--app-surface)); }
+.border-app-border { border-color: hsl(var(--app-border)); }
+.text-app-muted { color: hsl(var(--app-text-muted)); }
+
+/* Ensure mobile sidebar (rendered via Radix portal outside .app-shell) keeps navy/white scheme */
+[data-sidebar="sidebar"][data-mobile="true"] {
+  background-color: hsl(var(--app-navy)) !important;
+  color: #fff;
+}

@@ -1,48 +1,22 @@
-## Phase 3C — Post-scan hardening
+## Problem
+On mobile, the admin sidebar opens in a Radix `Sheet` rendered through a portal at `document.body`. The portal escapes the `.app-shell` wrapper, so the scoped utilities (`.app-shell .bg-app-navy`, `.bg-app-saffron`, etc.) defined in `src/index.css` never apply. The sheet background defaults to near-white while `text-white` still applies, making every menu label invisible.
 
-Two small defense-in-depth fixes flagged by the security scan. No app-code changes; one SQL migration only.
+## Fix (single small CSS change, no component edits)
 
-### 1. Revoke EXECUTE on trigger function
+Edit `src/index.css` only — promote the app-shell color tokens and utilities so they work in portaled DOM as well:
 
-`public.set_invoice_branch_from_client()` is a trigger function (fires inside the DB on insert/update of `invoices`). PostgreSQL grants EXECUTE to PUBLIC by default, which makes it appear as an anon-callable SECURITY DEFINER function in the scanner.
+1. Move the `--app-navy`, `--app-saffron`, `--app-bg`, `--app-surface`, `--app-border`, `--app-text`, `--app-text-muted` CSS variable definitions from `.app-shell { … }` to `:root { … }` (keep them additive — do not touch the existing public-site tokens).
+2. Drop the `.app-shell` prefix from the utility class declarations so `.bg-app-navy`, `.text-app-navy`, `.bg-app-saffron`, `.bg-app-bg`, `.bg-app-surface`, `.border-app-border`, `.text-app-muted`, etc. become global utilities (still namespaced by the `app-` prefix, so no collision risk with the marketing site).
+3. Additionally, on the mobile sheet variant of the sidebar specifically (`[data-mobile="true"]`), ensure the navy background is enforced even if a future class fights it — add a one-line rule:
+   ```css
+   [data-sidebar="sidebar"][data-mobile="true"] { background-color: hsl(var(--app-navy)); color: #fff; }
+   ```
+   This guarantees the mobile drawer always reads navy/white regardless of where it is portaled.
 
-Migration:
-```sql
-REVOKE EXECUTE ON FUNCTION public.set_invoice_branch_from_client() FROM PUBLIC, anon, authenticated;
--- Trigger execution is unaffected; triggers run as table owner regardless of EXECUTE grants.
-```
+## Verification
+- Open `/app/dashboard` on a mobile viewport (390px), tap the sidebar trigger → drawer opens with navy background and white menu items, matching the desktop sidebar.
+- Confirm the public marketing site (`/`) is unchanged (it uses `text-navy`, `bg-navy`, `text-gold`, `bg-gold` — different utility names, untouched).
+- Confirm desktop admin sidebar still renders correctly (rules become more permissive, never more restrictive).
 
-### 2. Explicit deny policies on `backups` storage bucket
-
-The bucket already only has a CEO SELECT policy. Supabase denies writes by default, but the scanner recommends explicit deny policies for parity with our hardened tables (`audit_logs`, `cron_secrets`).
-
-Migration:
-```sql
-CREATE POLICY "Deny insert backups bucket" ON storage.objects
-  FOR INSERT TO anon, authenticated
-  WITH CHECK (bucket_id <> 'backups');
-
-CREATE POLICY "Deny update backups bucket" ON storage.objects
-  FOR UPDATE TO anon, authenticated
-  USING (bucket_id <> 'backups');
-
-CREATE POLICY "Deny delete backups bucket" ON storage.objects
-  FOR DELETE TO anon, authenticated
-  USING (bucket_id <> 'backups');
-```
-
-These policies coexist additively with any existing storage policies (PostgreSQL OR-combines permissive policies). They scope to the `backups` bucket only — uploads to other buckets are unaffected. Service role + the `monthly-backup` edge function (which uses service role) bypass RLS and continue to work.
-
-### Files changed
-
-```
-supabase/migrations/<ts>_phase3c_hardening.sql   (new)
-```
-
-No frontend changes. No risk to existing functionality.
-
-### Verification
-
-After applying, re-run the security scan. Expected: 55 → 52 warnings (the 2 anon-executable + 1 storage finding gone).
-
-Approve to apply.
+## Files touched
+- `src/index.css` — only file modified.
