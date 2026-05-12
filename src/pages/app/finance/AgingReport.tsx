@@ -52,7 +52,7 @@ export default function AgingReport() {
   useEffect(() => {
     supabase.from("invoices")
       .select("id, invoice_number, invoice_date, due_date, outstanding_amount, client_id, clients(client_name)")
-      .eq("is_sandbox", isSandbox).eq("is_deleted", false).gt("outstanding_amount", 0)
+      .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled").gt("outstanding_amount", 0)
       .lte("invoice_date", asOf)
       .then(({ data }) => setInvs((data ?? []) as unknown as Inv[]));
   }, [isSandbox, asOf]);

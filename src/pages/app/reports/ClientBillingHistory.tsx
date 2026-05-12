@@ -33,7 +33,7 @@ export default function ClientBillingHistory() {
   const [rows, setRows] = useState<InvoiceRow[]>([]);
 
   useEffect(() => {
-    supabase.from("clients").select("id, client_name").eq("is_deleted", false).order("client_name")
+    supabase.from("clients").select("id, client_name").eq("is_deleted", false).neq("status", "cancelled").order("client_name")
       .then(({ data }) => setClients((data ?? []) as never));
   }, []);
 

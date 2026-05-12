@@ -40,7 +40,7 @@ export default function FollowupDialog({
     if (followup) return;
     supabase.from("invoices")
       .select("id, invoice_number, client_id, outstanding_amount, clients(client_name)")
-      .eq("is_sandbox", isSandbox).eq("is_deleted", false).gt("outstanding_amount", 0)
+      .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled").gt("outstanding_amount", 0)
       .order("invoice_date", { ascending: false }).limit(200)
       .then(({ data }) => setInvs((data ?? []) as unknown as InvOpt[]));
   }, [isSandbox, followup]);
