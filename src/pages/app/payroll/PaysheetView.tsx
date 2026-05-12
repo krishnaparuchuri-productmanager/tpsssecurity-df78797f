@@ -3,10 +3,12 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, Download, Printer } from "lucide-react";
-import { formatINR } from "@/lib/format";
+import { ArrowLeft, FileText, Download, Printer, Ban, RefreshCw } from "lucide-react";
+import { formatINR, formatDate } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { downloadPaysheetExcel } from "@/lib/exportPaysheet";
+import { CancelDialog } from "@/components/CancelDialog";
+import { toast } from "sonner";
 
 export default function PaysheetView() {
   const { id } = useParams();
