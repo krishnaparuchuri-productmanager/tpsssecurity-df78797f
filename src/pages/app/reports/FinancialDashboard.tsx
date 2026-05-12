@@ -75,7 +75,7 @@ export default function FinancialDashboard() {
   useEffect(() => {
     supabase.from("clients")
       .select("id, client_name")
-      .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled").eq("is_active", true)
+      .eq("is_sandbox", isSandbox).eq("is_deleted", false).eq("is_active", true)
       .order("client_name")
       .then(({ data }) => setClients((data ?? []) as Client[]));
   }, [isSandbox]);

@@ -34,7 +34,7 @@ export default function StatementOfAccount() {
 
   useEffect(() => {
     supabase.from("clients").select("id, client_name, client_code, gst_number, address")
-      .eq("is_deleted", false).neq("status", "cancelled").order("client_name")
+      .eq("is_deleted", false).order("client_name")
       .then(({ data }) => setClients((data ?? []) as Client[]));
   }, []);
 
