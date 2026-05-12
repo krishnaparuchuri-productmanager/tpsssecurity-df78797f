@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, CreditCard, Printer } from "lucide-react";
+import { ArrowLeft, CreditCard, Printer, Ban, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 import { formatINR, formatDate } from "@/lib/format";
+import { CancelDialog } from "@/components/CancelDialog";
 
 interface Invoice {
   id: string; invoice_number: string; invoice_date: string; due_date: string;
@@ -24,6 +25,8 @@ interface Invoice {
   amount_received: number; outstanding_amount: number; amount_in_words: string | null;
   deduction_rows: unknown; total_deductions: number; status: string;
   service_period_from: string; service_period_to: string;
+  cancelled_at: string | null; cancelled_by: string | null; cancellation_reason: string | null;
+  replaced_by_id: string | null; replaces_id: string | null;
   clients: { client_name: string; client_code: string; address: string | null; gst_number: string | null } | null;
 }
 
