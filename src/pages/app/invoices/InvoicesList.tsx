@@ -13,6 +13,7 @@ const STATUS_BADGE: Record<string, string> = {
   partially_paid: "bg-yellow-100 text-yellow-800",
   paid: "bg-green-100 text-green-700",
   overdue: "bg-red-100 text-red-700",
+  cancelled: "bg-gray-200 text-gray-500 line-through",
 };
 
 interface Row {
