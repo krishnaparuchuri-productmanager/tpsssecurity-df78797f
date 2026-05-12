@@ -15,9 +15,14 @@ export default function PaysheetView() {
   const navigate = useNavigate();
   const { role } = useAuth();
   const canExportExcel = role === "ceo_admin" || role === "coo_ops";
+  const isCEO = role === "ceo_admin";
+  const [showCancel, setShowCancel] = useState(false);
+  const [linkedInvoice, setLinkedInvoice] = useState<{ id: string; invoice_number: string; status: string } | null>(null);
   const [head, setHead] = useState<{
-    paysheet_number: string; month: string; status: string; rejection_reason: string | null;
+    id?: string; paysheet_number: string; month: string; status: string; rejection_reason: string | null;
     total_employees: number; total_net_salary: number;
+    cancelled_at?: string | null; cancellation_reason?: string | null;
+    replaced_by_id?: string | null; replaces_id?: string | null;
     clients: { client_name: string } | null;
   } | null>(null);
   const [emps, setEmps] = useState<Array<{
