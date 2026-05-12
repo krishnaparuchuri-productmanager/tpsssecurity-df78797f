@@ -31,30 +31,58 @@ export default function PaysheetView() {
     pt_deduction: number; final_net_salary: number; no_of_duties: number; advance_deduction: number;
   }>>([]);
 
-  useEffect(() => {
+  async function load() {
     if (!id) return;
-    (async () => {
-      const [{ data: h }, { data: e }] = await Promise.all([
-        supabase.from("paysheets").select("paysheet_number, month, status, rejection_reason, total_employees, total_net_salary, clients(client_name)").eq("id", id).maybeSingle(),
-        supabase.from("paysheet_employees").select("*").eq("paysheet_id", id).order("employee_name"),
-      ]);
-      setHead(h as unknown as typeof head);
-      setEmps((e ?? []) as unknown as typeof emps);
-    })();
-  }, [id]);
+    const [{ data: h }, { data: e }, { data: linked }] = await Promise.all([
+      supabase.from("paysheets").select("id, paysheet_number, month, status, rejection_reason, total_employees, total_net_salary, cancelled_at, cancellation_reason, replaced_by_id, replaces_id, clients(client_name)").eq("id", id).maybeSingle(),
+      supabase.from("paysheet_employees").select("*").eq("paysheet_id", id).order("employee_name"),
+      supabase.from("invoices").select("id, invoice_number, status").eq("paysheet_id", id).eq("is_deleted", false).neq("status", "cancelled").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    setHead(h as unknown as typeof head);
+    setEmps((e ?? []) as unknown as typeof emps);
+    setLinkedInvoice(linked as typeof linkedInvoice);
+  }
+  useEffect(() => { load(); }, [id]);
+
+  async function cancelPaysheet(reason: string, cascade: boolean) {
+    if (!id) return;
+    const { error } = await supabase.rpc("cancel_paysheet", { _id: id, _reason: reason, _cascade_invoice: cascade });
+    if (error) {
+      if (error.message.includes("LINKED_INVOICE_EXISTS")) {
+        toast.error("Linked invoice exists. Tick the cascade option to cancel both.");
+      } else if (error.message.includes("RECEIPTS_EXIST")) {
+        toast.error("Linked invoice has receipts. Reverse them first.");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+    toast.success("Paysheet cancelled");
+    setShowCancel(false);
+    load();
+  }
+
+  async function recreatePaysheet() {
+    if (!id) return;
+    const { data, error } = await supabase.rpc("recreate_paysheet", { _old_id: id });
+    if (error) return toast.error(error.message);
+    toast.success("New draft created");
+    navigate(`/app/payroll/create?id=${data as string}`);
+  }
 
   if (!head) return <div className="text-muted-foreground">Loading…</div>;
+  const isCancelled = head.status === "cancelled";
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
         <div>
           <h1 className="text-2xl font-bold text-app-navy">{head.paysheet_number}</h1>
-          <div className="text-sm text-app-muted">{head.clients?.client_name} • {head.month} • <Badge>{head.status}</Badge></div>
+          <div className="text-sm text-app-muted">{head.clients?.client_name} • {head.month} • <Badge className={isCancelled ? "bg-gray-200 text-gray-600 line-through" : ""}>{head.status}</Badge></div>
           {head.rejection_reason && <div className="text-sm text-red-600 mt-1">Reason: {head.rejection_reason}</div>}
         </div>
-        <div className="ml-auto flex gap-2 print:hidden">
+        <div className="ml-auto flex gap-2 print:hidden flex-wrap">
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-1" /> Print / PDF
           </Button>
@@ -63,13 +91,41 @@ export default function PaysheetView() {
               <Download className="h-4 w-4 mr-1" /> Excel
             </Button>
           )}
-          {head.status === "approved" && (
+          {!isCancelled && head.status === "approved" && (
             <Link to={`/app/invoices/new?paysheet=${id}`}>
               <Button className="bg-app-navy text-white"><FileText className="h-4 w-4 mr-1" /> Generate Invoice</Button>
             </Link>
           )}
+          {!isCancelled && isCEO && head.status !== "draft" && (
+            <Button variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => setShowCancel(true)}>
+              <Ban className="h-4 w-4 mr-1" /> Cancel Paysheet
+            </Button>
+          )}
+          {isCancelled && isCEO && !head.replaced_by_id && (
+            <Button onClick={recreatePaysheet} className="bg-app-navy text-white">
+              <RefreshCw className="h-4 w-4 mr-1" /> Re-create Paysheet
+            </Button>
+          )}
         </div>
       </div>
+
+      {isCancelled && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm">
+          <div className="font-semibold text-destructive">CANCELLED{head.cancelled_at ? ` on ${formatDate(head.cancelled_at)}` : ""}</div>
+          <div className="mt-1">Reason: {head.cancellation_reason ?? "—"}</div>
+          {head.replaced_by_id && (
+            <Link to={`/app/payroll/${head.replaced_by_id}/view`} className="text-app-navy underline mt-1 inline-block">
+              View replacement paysheet →
+            </Link>
+          )}
+        </div>
+      )}
+
+      {head.replaces_id && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs">
+          This paysheet replaces <Link to={`/app/payroll/${head.replaces_id}/view`} className="underline">a cancelled paysheet</Link>.
+        </div>
+      )}
 
       <div className="bg-white border border-app-border rounded-lg overflow-x-auto">
         <table className="w-full text-xs">
