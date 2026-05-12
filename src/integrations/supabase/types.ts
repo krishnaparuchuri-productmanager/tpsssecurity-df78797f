@@ -1654,6 +1654,9 @@ export type Database = {
           billing_amount: number
           billing_lines: Json
           branch_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -1679,6 +1682,8 @@ export type Database = {
           po_date: string | null
           po_number: string | null
           qr_code_data: string | null
+          replaced_by_id: string | null
+          replaces_id: string | null
           service_period_from: string | null
           service_period_to: string | null
           status: Database["public"]["Enums"]["invoice_status"]
@@ -1697,6 +1702,9 @@ export type Database = {
           billing_amount?: number
           billing_lines?: Json
           branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -1722,6 +1730,8 @@ export type Database = {
           po_date?: string | null
           po_number?: string | null
           qr_code_data?: string | null
+          replaced_by_id?: string | null
+          replaces_id?: string | null
           service_period_from?: string | null
           service_period_to?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
@@ -1740,6 +1750,9 @@ export type Database = {
           billing_amount?: number
           billing_lines?: Json
           branch_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -1765,6 +1778,8 @@ export type Database = {
           po_date?: string | null
           po_number?: string | null
           qr_code_data?: string | null
+          replaced_by_id?: string | null
+          replaces_id?: string | null
           service_period_from?: string | null
           service_period_to?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
@@ -2023,6 +2038,9 @@ export type Database = {
           anomaly_count: number
           approved_at: string | null
           approved_by: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -2034,6 +2052,8 @@ export type Database = {
           month_date: string
           paysheet_number: string
           rejection_reason: string | null
+          replaced_by_id: string | null
+          replaces_id: string | null
           status: Database["public"]["Enums"]["paysheet_status"]
           submitted_at: string | null
           submitted_by: string | null
@@ -2053,6 +2073,9 @@ export type Database = {
           anomaly_count?: number
           approved_at?: string | null
           approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -2064,6 +2087,8 @@ export type Database = {
           month_date: string
           paysheet_number: string
           rejection_reason?: string | null
+          replaced_by_id?: string | null
+          replaces_id?: string | null
           status?: Database["public"]["Enums"]["paysheet_status"]
           submitted_at?: string | null
           submitted_by?: string | null
@@ -2083,6 +2108,9 @@ export type Database = {
           anomaly_count?: number
           approved_at?: string | null
           approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -2094,6 +2122,8 @@ export type Database = {
           month_date?: string
           paysheet_number?: string
           rejection_reason?: string | null
+          replaced_by_id?: string | null
+          replaces_id?: string | null
           status?: Database["public"]["Enums"]["paysheet_status"]
           submitted_at?: string | null
           submitted_by?: string | null
@@ -2308,6 +2338,14 @@ export type Database = {
       }
       auto_open_followups: { Args: never; Returns: number }
       cancel_advance: { Args: { _id: string }; Returns: undefined }
+      cancel_invoice: {
+        Args: { _id: string; _reason: string }
+        Returns: undefined
+      }
+      cancel_paysheet: {
+        Args: { _cascade_invoice?: boolean; _id: string; _reason: string }
+        Returns: undefined
+      }
       complete_compliance_task: {
         Args: { _amount: number; _challan: string; _id: string; _notes: string }
         Returns: undefined
@@ -2420,6 +2458,8 @@ export type Database = {
       record_compliance_payment: { Args: { _payload: Json }; Returns: string }
       record_expense: { Args: { _payload: Json }; Returns: string }
       record_expense_v2: { Args: { _payload: Json }; Returns: string }
+      recreate_invoice: { Args: { _old_id: string }; Returns: string }
+      recreate_paysheet: { Args: { _old_id: string }; Returns: string }
       reject_advance: {
         Args: { _id: string; _reason: string }
         Returns: undefined
@@ -2458,7 +2498,13 @@ export type Database = {
     Enums: {
       app_role: "ceo_admin" | "coo_ops" | "accountant"
       client_type_enum: "individual_huf" | "company_firm"
-      invoice_status: "draft" | "sent" | "partially_paid" | "paid" | "overdue"
+      invoice_status:
+        | "draft"
+        | "sent"
+        | "partially_paid"
+        | "paid"
+        | "overdue"
+        | "cancelled"
       ledger_category:
         | "client_billing"
         | "payment_received"
@@ -2474,7 +2520,12 @@ export type Database = {
         | "other_income"
         | "other_expense"
       ledger_entry_type: "receipt" | "payment" | "journal" | "contra"
-      paysheet_status: "draft" | "submitted" | "approved" | "rejected"
+      paysheet_status:
+        | "draft"
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2604,7 +2655,14 @@ export const Constants = {
     Enums: {
       app_role: ["ceo_admin", "coo_ops", "accountant"],
       client_type_enum: ["individual_huf", "company_firm"],
-      invoice_status: ["draft", "sent", "partially_paid", "paid", "overdue"],
+      invoice_status: [
+        "draft",
+        "sent",
+        "partially_paid",
+        "paid",
+        "overdue",
+        "cancelled",
+      ],
       ledger_category: [
         "client_billing",
         "payment_received",
@@ -2621,7 +2679,13 @@ export const Constants = {
         "other_expense",
       ],
       ledger_entry_type: ["receipt", "payment", "journal", "contra"],
-      paysheet_status: ["draft", "submitted", "approved", "rejected"],
+      paysheet_status: [
+        "draft",
+        "submitted",
+        "approved",
+        "rejected",
+        "cancelled",
+      ],
     },
   },
 } as const
