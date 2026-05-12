@@ -39,10 +39,10 @@ export default function AnnualSummary() {
     const filterBranch = branchId === "all" ? null : branchId;
     const [invQ, payQ, expQ, compQ] = await Promise.all([
       supabase.from("invoices").select("invoice_number, month_date, invoice_date, billing_amount, gst_amount, tds_amount, total_invoice_value, amount_received, outstanding_amount, status, branch_id, client_id, clients(client_name)")
-        .gte("month_date", period.from).lte("month_date", period.to).eq("is_deleted", false)
+        .gte("month_date", period.from).lte("month_date", period.to).eq("is_deleted", false).neq("status", "cancelled")
         .then((r) => filterBranch ? { ...r, data: (r.data ?? []).filter((x: { branch_id: string | null }) => x.branch_id === filterBranch) } : r),
       supabase.from("paysheets").select("paysheet_number, month, month_date, total_employees, total_earned_wages, total_epf_employee, total_epf_employer, total_esi_employee, total_esi_employer, total_pt_deduction, total_net_salary, client_id, clients(client_name)")
-        .gte("month_date", period.from).lte("month_date", period.to).eq("is_deleted", false),
+        .gte("month_date", period.from).lte("month_date", period.to).eq("is_deleted", false).neq("status", "cancelled"),
       supabase.from("expenses").select("expense_number, expense_date, amount, status, description, branch_id, expense_categories(category_name)")
         .gte("expense_date", period.from).lte("expense_date", period.to).eq("is_deleted", false).eq("status", "approved")
         .then((r) => filterBranch ? { ...r, data: (r.data ?? []).filter((x: { branch_id: string | null }) => x.branch_id === filterBranch) } : r),

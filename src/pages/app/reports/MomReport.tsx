@@ -109,7 +109,7 @@ export default function MomReport() {
     const iq = supabase.from("invoices")
       .select("total_invoice_value, invoice_date, client_id")
       .gte("invoice_date", start).lte("invoice_date", end)
-      .eq("is_sandbox", isSandbox).eq("is_deleted", false);
+      .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled");
     Promise.all([lq, psq, pq, iq]).then(([l, ps, p, i]) => {
       const filt = (rows: Array<Record<string, unknown>>) =>
         clientId === "all" ? rows : rows.filter((r) => r.client_id === clientId);

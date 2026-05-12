@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, CreditCard, Printer } from "lucide-react";
+import { ArrowLeft, CreditCard, Printer, Ban, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 import { formatINR, formatDate } from "@/lib/format";
+import { CancelDialog } from "@/components/CancelDialog";
 
 interface Invoice {
   id: string; invoice_number: string; invoice_date: string; due_date: string;
@@ -24,6 +25,8 @@ interface Invoice {
   amount_received: number; outstanding_amount: number; amount_in_words: string | null;
   deduction_rows: unknown; total_deductions: number; status: string;
   service_period_from: string; service_period_to: string;
+  cancelled_at: string | null; cancelled_by: string | null; cancellation_reason: string | null;
+  replaced_by_id: string | null; replaces_id: string | null;
   clients: { client_name: string; client_code: string; address: string | null; gst_number: string | null } | null;
 }
 
@@ -31,7 +34,8 @@ export default function InvoiceView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isSandbox } = useEnvironment();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const isCEO = role === "ceo_admin";
   const [inv, setInv] = useState<Invoice | null>(null);
   const [company, setCompany] = useState<{
     company_name: string; pan_number: string | null; gst_number: string | null;
@@ -41,6 +45,7 @@ export default function InvoiceView() {
     registered_address: string | null; phone: string | null; email: string | null;
   } | null>(null);
   const [showPay, setShowPay] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
   const [pay, setPay] = useState({ amount: 0, payment_date: new Date().toISOString().slice(0,10), mode: "NEFT", reference: "", bank: "", notes: "" });
 
   async function load() {
@@ -76,23 +81,78 @@ export default function InvoiceView() {
     load();
   }
 
+  async function cancelInvoice(reason: string) {
+    if (!inv) return;
+    const { error } = await supabase.rpc("cancel_invoice", { _id: inv.id, _reason: reason });
+    if (error) {
+      if (error.message.includes("RECEIPTS_EXIST")) {
+        toast.error("Reverse all receipts first, then cancel.", {
+          action: { label: "Open Receipts", onClick: () => navigate(`/app/finance/receipts?invoice=${inv.id}`) },
+        });
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+    toast.success("Invoice cancelled");
+    setShowCancel(false);
+    load();
+  }
+
+  async function recreateInvoice() {
+    if (!inv) return;
+    const { data, error } = await supabase.rpc("recreate_invoice", { _old_id: inv.id });
+    if (error) return toast.error(error.message);
+    toast.success("New draft created");
+    navigate(`/app/invoices/${data as string}/edit`);
+  }
+
   if (!inv || !company) return <div className="text-muted-foreground">Loading…</div>;
 
   const lines = (inv.billing_lines as Array<{ qty: number; description: string; sac_code: string; rate_per_month: number; working_days: number; no_of_duties: number; amount: number }>) ?? [];
+  const isCancelled = inv.status === "cancelled";
 
   return (
     <div className="space-y-4 max-w-5xl">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="text-xl font-bold text-app-navy">{inv.invoice_number}</h1>
-        <Badge>{inv.status}</Badge>
-        <div className="ml-auto flex gap-2">
+        <Badge className={isCancelled ? "bg-gray-200 text-gray-600 line-through" : ""}>{inv.status}</Badge>
+        <div className="ml-auto flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" /> Print</Button>
-          {Number(inv.outstanding_amount) > 0 && (
+          {!isCancelled && Number(inv.outstanding_amount) > 0 && (
             <Button onClick={() => setShowPay(true)} className="bg-app-navy text-white"><CreditCard className="h-4 w-4 mr-1" /> Record Payment</Button>
+          )}
+          {!isCancelled && isCEO && (
+            <Button variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => setShowCancel(true)}>
+              <Ban className="h-4 w-4 mr-1" /> Cancel Bill
+            </Button>
+          )}
+          {isCancelled && isCEO && !inv.replaced_by_id && (
+            <Button onClick={recreateInvoice} className="bg-app-navy text-white">
+              <RefreshCw className="h-4 w-4 mr-1" /> Re-create Invoice
+            </Button>
           )}
         </div>
       </div>
+
+      {isCancelled && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm">
+          <div className="font-semibold text-destructive">CANCELLED on {formatDate(inv.cancelled_at!)}</div>
+          <div className="mt-1">Reason: {inv.cancellation_reason ?? "—"}</div>
+          {inv.replaced_by_id && (
+            <Link to={`/app/invoices/${inv.replaced_by_id}/view`} className="text-app-navy underline mt-1 inline-block">
+              View replacement invoice →
+            </Link>
+          )}
+        </div>
+      )}
+
+      {inv.replaces_id && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs">
+          This invoice replaces <Link to={`/app/invoices/${inv.replaces_id}/view`} className="underline">a cancelled invoice</Link>.
+        </div>
+      )}
 
       {/* Invoice card (printable) */}
       <div className="bg-white border-2 border-app-navy/30 rounded-lg p-6 print:border-black">
@@ -219,6 +279,14 @@ export default function InvoiceView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CancelDialog
+        open={showCancel}
+        onOpenChange={setShowCancel}
+        title={`Cancel invoice ${inv.invoice_number}?`}
+        description="The invoice will be marked cancelled, ledger entries reversed, and follow-ups closed. You can re-create a fresh draft afterwards."
+        onConfirm={(reason) => cancelInvoice(reason)}
+      />
     </div>
   );
 }

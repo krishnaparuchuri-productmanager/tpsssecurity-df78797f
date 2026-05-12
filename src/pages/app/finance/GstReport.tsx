@@ -31,7 +31,7 @@ export default function GstReport() {
     const end = new Date(year, month, 0).toISOString().slice(0, 10);
     supabase.from("invoices")
       .select("id, invoice_number, invoice_date, total_taxable_value, gst_amount, gst_percentage, total_invoice_value, gst_applicable, gst_rcm, client_id, clients(client_name, gst_number, state)")
-      .eq("is_sandbox", isSandbox).eq("is_deleted", false).eq("gst_applicable", true)
+      .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled").eq("gst_applicable", true)
       .gte("invoice_date", start).lte("invoice_date", end)
       .order("invoice_date").then(({ data }) => setInvs((data ?? []) as unknown as Inv[]));
   }, [isSandbox, year, month]);
