@@ -165,6 +165,16 @@ export default function PaysheetView() {
           </tfoot>
         </table>
       </div>
+
+      <CancelDialog
+        open={showCancel}
+        onOpenChange={setShowCancel}
+        title={`Cancel paysheet ${head.paysheet_number}?`}
+        description="The paysheet will be marked cancelled. You can re-create a fresh draft afterwards."
+        showCascade={!!linkedInvoice}
+        cascadeLabel={linkedInvoice ? `Also cancel linked invoice ${linkedInvoice.invoice_number} (${linkedInvoice.status})` : undefined}
+        onConfirm={(reason, cascade) => cancelPaysheet(reason, cascade)}
+      />
     </div>
   );
 }
