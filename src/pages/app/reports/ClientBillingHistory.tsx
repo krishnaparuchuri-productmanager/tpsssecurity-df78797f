@@ -41,7 +41,7 @@ export default function ClientBillingHistory() {
     if (!clientId) { setRows([]); return; }
     supabase.from("invoices")
       .select("id, invoice_number, month_date, billing_amount, gst_amount, tds_amount, total_deductions, net_margin, amount_received, outstanding_amount")
-      .eq("client_id", clientId).eq("is_deleted", false)
+      .eq("client_id", clientId).eq("is_deleted", false).neq("status", "cancelled")
       .gte("month_date", from).lte("month_date", to)
       .order("month_date", { ascending: true })
       .then(({ data }) => setRows((data ?? []) as InvoiceRow[]));

@@ -89,7 +89,7 @@ export default function FinancialDashboard() {
     const iq = supabase.from("invoices")
       .select("outstanding_amount, total_invoice_value, status, client_id, invoice_date")
       .gte("invoice_date", start).lte("invoice_date", end)
-      .eq("is_sandbox", isSandbox).eq("is_deleted", false);
+      .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled");
     const pq = supabase.from("payments")
       .select("amount, payment_date, client_id")
       .gte("payment_date", start).lte("payment_date", end)

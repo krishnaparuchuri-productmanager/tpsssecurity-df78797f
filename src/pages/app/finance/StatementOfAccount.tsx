@@ -42,7 +42,7 @@ export default function StatementOfAccount() {
     if (!clientId) { setInvoices([]); setPayments([]); return; }
     supabase.from("invoices")
       .select("id, invoice_number, invoice_date, due_date, total_invoice_value, amount_received, outstanding_amount")
-      .eq("client_id", clientId).eq("is_sandbox", isSandbox).eq("is_deleted", false)
+      .eq("client_id", clientId).eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled")
       .gte("invoice_date", from).lte("invoice_date", to)
       .order("invoice_date").then(({ data }) => setInvoices((data ?? []) as Invoice[]));
     supabase.from("payments")
