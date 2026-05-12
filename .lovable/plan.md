@@ -1,41 +1,90 @@
-# Plan: Comprehensive, Security-Safe README.md
+# Post-Approval Cancel & Re-create — Plan
 
-Replace the placeholder `README.md` with a full project document for the TPSS Security ERP + marketing site, scrubbed of anything that could aid an attacker.
+Goal: When a client disputes an already-approved bill, the CEO can cancel the paysheet and/or invoice and re-create a corrected one. No in-place edit. No data loss — full audit trail.
 
-## Security guardrails (what the README will NOT contain)
-- No Supabase project ref, project URL, anon key, or any environment variable values
-- No edge-function URLs, cron secret names, or webhook endpoints
-- No table names, column names, RLS policy details, or SQL snippets
-- No internal route paths beyond the high-level module list (no `/app/admin/...` deep links)
-- No role-name strings (`ceo_admin`, `coo_ops`, `accountant`) — described generically as "Admin / Operations / Finance" tiers
-- No file paths into `src/integrations/...`, `supabase/functions/...`, or migration filenames
-- No mention of specific security mechanisms (trigger names, security-definer functions, audit-log table, failed-login tracking internals)
-- No credentials, seed-user instructions, or "how to become admin" steps
-- No live admin URL in any "try it" section — only the public marketing URL
-- No screenshots that show real client, employee, or financial data (placeholders only)
+## Rules (agreed)
 
-## README sections
+- **Scope**: Applies to both **paysheets** (after COO approval) and **invoices** (after Sent/Approved).
+- **Cancel allowed only if no receipts exist** against the invoice. If any receipt is recorded, user must first reverse it from the Receipts screen, then cancel.
+- **No edit-in-place**. Cancelled record is locked read-only; user clicks "Re-create" to spawn a fresh draft pre-filled from the cancelled one.
+- **CEO role only** can cancel. COO/Accountant see the action greyed-out with tooltip.
 
-1. **Title & Overview** — TPSS Security Operations & Finance Portal: a private, role-aware web portal that consolidates client, workforce, payroll, billing, and statutory-compliance management for a security-services business, plus a public marketing website.
-2. **Background / Context** — Why it exists: manpower-security firms in India juggle monthly paysheets across branches, statutory filings, client invoicing, receivables follow-up, and guard advances/settlements — typically across many spreadsheets. This portal centralises those workflows with proper approvals and audit trails.
-3. **Key Features** — High-level bullets only: Client & Employee masters, Branch/Shift/Deployment tracking, Payroll generation with multi-step approval, GST invoicing, Receipts & Cashbook, Statement of Account / Aging / Follow-ups, Employee Advances and Full-&-Final Settlement, Compliance Calendar with statutory-return helpers, Management Reports (MoM, Comparative, Annual), role-aware dashboards with branch filtering, automated monthly backups.
-4. **System Architecture** — ASCII diagram: Browser → React SPA → Managed Backend (database + auth + serverless functions + storage). Note hostname-split deployment (public marketing site vs. private admin portal) without naming the hosts in any exploitable way; the admin host is referenced generically as "the private subdomain".
-5. **Tech Stack** — React 18, Vite 5, TypeScript 5, Tailwind CSS, shadcn/ui, React Router, TanStack Query, Recharts, Lovable Cloud (managed Postgres + Auth + Edge Functions + Storage), Lovable AI Gateway (available for future use).
-6. **How It Works** — Generic user journey: sign in → role-scoped navigation appears → maintain masters → generate monthly paysheet → submit for approval → raise client invoice → record receipt → reconcile cashbook → run compliance and reports.
-7. **AI/ML Components** — None in production today. Lovable AI Gateway is wired-ready for planned features (payroll anomaly detection, invoice OCR, natural-language report Q&A). Marked as roadmap.
-8. **Setup Instructions** — High-level only: clone the GitHub repo, `bun install`, `bun dev`. Backend is provisioned automatically by Lovable Cloud — no manual database setup, no env-var configuration, no secret-handling instructions in the README. First-user provisioning is described as "performed by the project owner via the Lovable Cloud admin tools" (no step-by-step).
-9. **Example Use Case** — Narrative walkthrough using fictional data (Branch "North", client "ACME Pvt Ltd", guard "Employee #1234"): generate March paysheet → operations approves → invoice raised → payment received → ledger and dashboards update.
-10. **Challenges & Learnings** — Discussed at concept level only: designing a clean role-and-permission model, enforcing immutability of approved financial records, splitting public marketing and private admin experiences, building reports that stay performant on growing data. No implementation specifics.
-11. **Future Improvements / Roadmap** — Mobile attendance app, AI-driven payroll anomaly alerts, WhatsApp invoice delivery, deeper GST e-invoice integration, biometric-attendance ingestion.
-12. **Screenshots / Demo** — Public marketing URL only. Placeholder lines for screenshots (`docs/screenshots/...`) with a note that admin-portal screenshots are intentionally omitted.
+## Backend changes
 
-Plus short closing sections: **License** (placeholder — "Proprietary, all rights reserved"), **Contact** (point to the public marketing site only).
+### 1. Status additions
+- `paysheet_status` enum → add value `cancelled`.
+- `invoice_status` enum → add value `cancelled`.
+- New columns on `paysheets` and `invoices`:
+  - `cancelled_at timestamptz`
+  - `cancelled_by uuid`
+  - `cancellation_reason text`
+  - `replaced_by_id uuid` (link to the new draft created from this one)
+  - `replaces_id uuid` (back-link on the new record)
 
-## Pushing to GitHub
-Lovable's GitHub integration syncs every committed change to the connected repository automatically. Once the README is written and the change is committed in Lovable, it will appear in the GitHub repo on the next sync — no manual `git` push is needed (and is not permitted from the sandbox).
+### 2. RPC functions (SECURITY DEFINER, CEO-gated)
 
-If the project is **not** yet connected to GitHub, the user needs to do that one-time step from the Lovable editor: Plus (+) menu → GitHub → Connect project. The README change will then sync on the next commit.
+`cancel_invoice(_id uuid, _reason text)`
+- Verify caller is CEO + active.
+- Verify invoice status ∈ ('draft','sent','partially_paid','approved','overdue').
+- Block if any non-deleted receipt rows reference this invoice → raise `RECEIPTS_EXIST`.
+- Reverse any `financial_ledger` entry posted for this invoice (insert mirror entry, mark original `is_deleted`).
+- Close any open `invoice_followups` with `closed_reason='invoice_cancelled'`.
+- Set status='cancelled' + cancellation fields. Insert audit_logs row.
 
-## Deliverable
-- One file change: overwrite `README.md` (~250–400 lines), professional tone, ASCII diagram, no emojis, no sensitive details.
-- No code, schema, or runtime changes.
+`cancel_paysheet(_id uuid, _reason uuid, _cascade_invoice bool)`
+- CEO-only. Status must be 'approved' or 'submitted'.
+- If linked invoice exists and not cancelled:
+  - If `_cascade_invoice=true` → call `cancel_invoice` first (will fail if receipts exist).
+  - Else raise `LINKED_INVOICE_EXISTS`.
+- Reverse any compliance auto-postings tied to paysheet (mark related `compliance_payments` rows as needing re-link — flag only, no delete).
+- Set status='cancelled', record audit.
+
+`recreate_invoice(_old_id uuid)` and `recreate_paysheet(_old_id uuid)`
+- CEO-only, original must be `cancelled`.
+- Deep-copy the row into a new draft (new id, new number, status='draft'), set `replaces_id = _old_id` and back-fill `replaced_by_id` on the original.
+- Returns new id so the UI can navigate to the edit form.
+
+### 3. Triggers
+- Update existing immutability triggers on `paysheets` and `invoices` to allow status transitions to `cancelled` only via the RPC (check `current_setting('app.bypass_lock', true) = 'on'` set inside the SECURITY DEFINER fn).
+
+## Frontend changes
+
+### Invoice View (`src/pages/app/invoices/InvoiceView.tsx`)
+- Header action group (CEO only):
+  - **Cancel Bill** button (red outline). Opens dialog → reason textarea (required, ≥10 chars) → confirm.
+    - On `RECEIPTS_EXIST` error → toast "Reverse receipts first" + deep-link to Receipts list filtered by this invoice.
+  - When status='cancelled': show **Re-create Invoice** button → calls RPC → navigates to `/app/invoices/:newId/edit`.
+- Cancelled banner at top with reason, who, when, and link to replacement draft if any.
+- Status badge styling: muted grey with strikethrough.
+
+### Paysheet View (`src/pages/app/payroll/PaysheetView.tsx`)
+- Same pattern: **Cancel Paysheet** button (CEO only).
+  - Dialog includes checkbox "Also cancel linked invoice INV-xxx" (shown only if linked invoice exists and is cancellable).
+  - On `LINKED_INVOICE_EXISTS` error → instruct user to tick the cascade box or cancel invoice first.
+- **Re-create Paysheet** button on cancelled paysheets.
+
+### List screens
+- `InvoicesList.tsx` and `PaysheetList.tsx`: 
+  - Add 'Cancelled' to status filter dropdown.
+  - Strikethrough + grey row styling for cancelled entries.
+  - Exclude cancelled from outstanding/aging totals (verify SQL views — see downstream below).
+
+### Downstream impact (read-only verification + filter additions)
+- **Aging Report, SOA, Followups, Cashbook, GST Report, Monthly Summary, Annual Summary, MoM, Comparative Analysis, Financial Dashboard KPIs**: add `status <> 'cancelled'` filter wherever invoices are aggregated.
+- **Receipts list**: cancelled invoices already cannot have receipts (blocked at cancel-time), so no change.
+- **Compliance payments**: paysheet cancellation does not delete already-paid PF/ESI challans — they remain but get a flag "linked paysheet cancelled" shown in payments list.
+
+### Audit Log screen
+- New action types `CANCEL_INVOICE`, `CANCEL_PAYSHEET`, `RECREATE_INVOICE`, `RECREATE_PAYSHEET` already captured by existing `audit_logs` insert path — just ensure filter chips include them.
+
+## Out of scope
+- Credit Note generation (deferred).
+- Partial revision / line-item edits (deferred — explicitly rejected in favour of cancel + re-create).
+- Notifying client by email of cancellation (manual for now).
+
+## Files touched (estimate)
+- 1 new migration (enums, columns, 4 RPCs, trigger updates).
+- `InvoiceView.tsx`, `PaysheetView.tsx` — add action buttons + cancelled banner.
+- `InvoicesList.tsx`, `PaysheetList.tsx` — status filter + row styling.
+- ~8 report/aggregation queries — add `status <> 'cancelled'` filter.
+- 1 small shared `CancelDialog.tsx` component.
