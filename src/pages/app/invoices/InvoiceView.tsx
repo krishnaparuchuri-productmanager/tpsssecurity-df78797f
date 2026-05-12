@@ -279,6 +279,14 @@ export default function InvoiceView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CancelDialog
+        open={showCancel}
+        onOpenChange={setShowCancel}
+        title={`Cancel invoice ${inv.invoice_number}?`}
+        description="The invoice will be marked cancelled, ledger entries reversed, and follow-ups closed. You can re-create a fresh draft afterwards."
+        onConfirm={(reason) => cancelInvoice(reason)}
+      />
     </div>
   );
 }
