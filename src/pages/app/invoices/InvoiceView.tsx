@@ -34,7 +34,8 @@ export default function InvoiceView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isSandbox } = useEnvironment();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const isCEO = role === "ceo_admin";
   const [inv, setInv] = useState<Invoice | null>(null);
   const [company, setCompany] = useState<{
     company_name: string; pan_number: string | null; gst_number: string | null;
@@ -44,6 +45,7 @@ export default function InvoiceView() {
     registered_address: string | null; phone: string | null; email: string | null;
   } | null>(null);
   const [showPay, setShowPay] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
   const [pay, setPay] = useState({ amount: 0, payment_date: new Date().toISOString().slice(0,10), mode: "NEFT", reference: "", bank: "", notes: "" });
 
   async function load() {
