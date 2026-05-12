@@ -58,16 +58,17 @@ export default function InvoicesList() {
             {rows.length === 0 ? (
               <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No invoices yet</td></tr>
             ) : rows.map((r) => {
-              const overdue = r.due_date && r.due_date < today && Number(r.outstanding_amount) > 0;
+              const isCancelled = r.status === "cancelled";
+              const overdue = !isCancelled && r.due_date && r.due_date < today && Number(r.outstanding_amount) > 0;
               const status = overdue && r.status !== "paid" ? "overdue" : r.status;
               return (
-                <tr key={r.id} className="border-t border-app-border">
-                  <td className="p-2 font-mono text-xs">{r.invoice_number}</td>
+                <tr key={r.id} className={`border-t border-app-border ${isCancelled ? "opacity-60" : ""}`}>
+                  <td className={`p-2 font-mono text-xs ${isCancelled ? "line-through" : ""}`}>{r.invoice_number}</td>
                   <td className="p-2">{formatDate(r.invoice_date)}</td>
                   <td className="p-2">{r.clients?.client_name ?? "—"}</td>
                   <td className="p-2">{r.month}</td>
                   <td className="p-2 text-right tabular-nums">{formatINR(Number(r.total_invoice_value))}</td>
-                  <td className="p-2 text-right tabular-nums">{formatINR(Number(r.outstanding_amount))}</td>
+                  <td className="p-2 text-right tabular-nums">{isCancelled ? "—" : formatINR(Number(r.outstanding_amount))}</td>
                   <td className="p-2"><Badge className={STATUS_BADGE[status]}>{status}</Badge></td>
                   <td className="p-2">
                     <Link to={`/app/invoices/${r.id}/view`}><Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button></Link>
