@@ -83,7 +83,7 @@ const App = () => (
           <EnvironmentProvider>
             <HostRouter />
             <Routes>
-              <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="/" element={<Index />} />
               <Route path="/site" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
