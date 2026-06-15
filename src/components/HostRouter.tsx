@@ -1,13 +1,18 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const ADMIN_HOST = "admin.tpsssecurity.com";
+const ADMIN_HOSTS = [
+  "admin.tpsssecurity.com",
+  "portal.tpsssecurity.com",
+  "tpsssecurity-df78797f.pages.dev",
+  "tpss-security-sandbox.pages.dev",
+];
 const PUBLIC_HOSTS = ["www.tpsssecurity.com", "tpsssecurity.com"];
 
 /**
  * Hostname-based routing.
- * - On admin.tpsssecurity.com: only /login and /app/* are valid; everything else → /login
- * - On www.tpsssecurity.com (or apex): /login and /app/* bounce over to admin subdomain
+ * - On admin/portal hosts: only /login and /app/* are valid; everything else → /login
+ * - On www.tpsssecurity.com (or apex): show marketing site
  * - On preview/staging/localhost: no-op (so editor preview works normally)
  */
 export default function HostRouter() {
@@ -19,11 +24,11 @@ export default function HostRouter() {
     const host = window.location.hostname.toLowerCase();
     const path = location.pathname;
 
-    const isAdmin = host === ADMIN_HOST;
+    const isAdmin = ADMIN_HOSTS.includes(host);
     const isPublic = PUBLIC_HOSTS.includes(host);
 
     if (isAdmin) {
-      const isInternal = path === "/login" || path.startsWith("/app");
+      const isInternal = path === "/login" || path === "/forgot-password" || path === "/reset-password" || path.startsWith("/app");
       if (!isInternal) {
         navigate("/login", { replace: true });
       }
@@ -31,13 +36,14 @@ export default function HostRouter() {
     }
 
     if (isPublic) {
-      // Allow /login and /app/* to render directly on www to avoid redirect
-      // loops with the admin subdomain (which currently redirects back to www
-      // at the hosting/DNS layer). No-op here.
+      // Marketing site — redirect app paths to portal subdomain
+      if (path.startsWith("/app") || path === "/login") {
+        window.location.href = "https://portal.tpsssecurity.com" + path;
+      }
       return;
     }
 
-    // Preview / lovable.app / localhost / other — no redirect
+    // Preview / localhost / other — no redirect
   }, [location.pathname, location.search, location.hash, navigate]);
 
   return null;
