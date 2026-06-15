@@ -10,6 +10,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { EnvironmentProvider } from "@/contexts/EnvironmentContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Login from "@/pages/app/Login";
+import ForgotPassword from "@/pages/app/ForgotPassword";
+import ResetPassword from "@/pages/app/ResetPassword";
 import AppLayout from "@/components/app-shell/AppLayout";
 import Dashboard from "@/pages/app/Dashboard";
 import ClientsList from "@/pages/app/masters/ClientsList";
@@ -84,6 +86,8 @@ const App = () => (
               <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
               <Route path="/site" element={<Index />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/app" element={<AppLayout />}>
