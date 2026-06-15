@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const images = Array.from({ length: 58 }, (_, i) => `/images/gallery/slide-${i + 1}.jpg`);
+const PRELOAD_WINDOW = 3;
 
 const GallerySection = () => {
   const [current, setCurrent] = useState(0);
@@ -17,6 +18,15 @@ const GallerySection = () => {
     return () => clearInterval(id);
   }, [paused, lightbox, next]);
 
+  // Only render images near the current slide — avoids loading all 58 at once
+  const visibleIndices = useMemo(() => {
+    const set = new Set<number>();
+    for (let d = -PRELOAD_WINDOW; d <= PRELOAD_WINDOW; d++) {
+      set.add((current + d + images.length) % images.length);
+    }
+    return set;
+  }, [current]);
+
   return (
     <section id="gallery" className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
@@ -29,17 +39,19 @@ const GallerySection = () => {
         >
           {/* Slides */}
           <div className="relative aspect-[16/10] bg-navy">
-            {images.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`TPSS gallery ${i + 1}`}
-                className={`absolute inset-0 w-full h-full object-contain cursor-pointer transition-opacity duration-700 ${
-                  i === current ? "opacity-100" : "opacity-0 pointer-events-none"
-                }`}
-                onClick={() => setLightbox(src)}
-              />
-            ))}
+            {images.map((src, i) =>
+              visibleIndices.has(i) ? (
+                <img
+                  key={i}
+                  src={src}
+                  alt={`TPSS gallery ${i + 1}`}
+                  className={`absolute inset-0 w-full h-full object-contain cursor-pointer transition-opacity duration-700 ${
+                    i === current ? "opacity-100" : "opacity-0 pointer-events-none"
+                  }`}
+                  onClick={() => setLightbox(src)}
+                />
+              ) : null
+            )}
           </div>
 
           {/* Arrows */}

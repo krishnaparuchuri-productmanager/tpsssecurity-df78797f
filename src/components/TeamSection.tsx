@@ -19,7 +19,7 @@ const TeamSection = () => (
         {team.map((m) => (
           <div key={m.name} className="flex flex-col items-center w-72">
             <div className="w-56 h-56 rounded-full border-4 border-navy overflow-hidden mb-6">
-              <img src={m.photo} alt={m.name} className="w-full h-full object-cover" />
+              <img src={m.photo} alt={m.name} className="w-full h-full object-cover" loading="lazy" />
             </div>
             <h3 className="text-xl font-bold text-navy">{m.name}</h3>
             <span className="text-base font-medium text-gold">{m.designation}</span>
