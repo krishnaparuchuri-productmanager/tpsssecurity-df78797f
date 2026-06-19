@@ -35,18 +35,12 @@ const EMPTY: ProfileForm = {
 
 export default function CompanyProfile() {
   const { role } = useAuth();
-  const { environment, isSandbox, setEnvironment, refresh } = useEnvironment();
+  const { isSandbox } = useEnvironment();
   const isCEO = role === "ceo_admin";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [id, setId] = useState<string | null>(null);
   const [form, setForm] = useState<ProfileForm>(EMPTY);
-
-  // Env switch dialog state
-  const [envDialogOpen, setEnvDialogOpen] = useState(false);
-  const [envStep, setEnvStep] = useState<1 | 2>(1);
-  const [pendingEnv, setPendingEnv] = useState<"sandbox" | "production" | null>(null);
-  const [envSwitching, setEnvSwitching] = useState(false);
 
   // Wipe sandbox dialog state
   const [wipeOpen, setWipeOpen] = useState(false);
@@ -104,17 +98,6 @@ export default function CompanyProfile() {
     if (error) { toast.error(error.message); return; }
     await logAudit({ action: "UPDATE", table: "company_profile", recordId: id, newValues: payload });
     toast.success("Company profile updated");
-  }
-
-  async function confirmEnvSwitch() {
-    if (!pendingEnv) return;
-    setEnvSwitching(true);
-    const { error } = await setEnvironment(pendingEnv);
-    setEnvSwitching(false);
-    if (error) { toast.error(error); return; }
-    toast.success(`Switched to ${pendingEnv.toUpperCase()}`);
-    setEnvDialogOpen(false); setEnvStep(1); setPendingEnv(null);
-    await refresh();
   }
 
   async function doWipe() {
@@ -179,7 +162,7 @@ export default function CompanyProfile() {
         </Button>
       </div>
 
-      {/* Environment Card - CEO only */}
+      {/* Environment Card - CEO only — read-only, driven by deployment URL */}
       {isCEO && (
         <div className="bg-white border border-app-border rounded-lg p-6 space-y-4">
           <h2 className="font-semibold text-app-navy">Environment</h2>
@@ -190,18 +173,10 @@ export default function CompanyProfile() {
                 {isSandbox ? "🟡 SANDBOX" : "🟢 PRODUCTION"}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-app-muted">Sandbox</span>
-              <Switch
-                checked={!isSandbox}
-                onCheckedChange={(toProd) => {
-                  setPendingEnv(toProd ? "production" : "sandbox");
-                  setEnvStep(1);
-                  setEnvDialogOpen(true);
-                }}
-              />
-              <span className="text-xs text-app-muted">Production</span>
-            </div>
+            <p className="text-xs text-app-muted max-w-xs text-right">
+              Environment is determined by the deployment URL and cannot be changed here.
+              Use the sandbox URL to access test data.
+            </p>
           </div>
 
           {isSandbox && (
@@ -223,38 +198,6 @@ export default function CompanyProfile() {
           )}
         </div>
       )}
-
-      {/* Env switch dialog */}
-      <AlertDialog open={envDialogOpen} onOpenChange={(o) => { setEnvDialogOpen(o); if (!o) setEnvStep(1); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {envStep === 1 ? "Switch environment?" : "Are you absolutely sure?"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {envStep === 1 && pendingEnv === "production" && (
-                <>You are about to switch from <b>SANDBOX</b> to <b>PRODUCTION</b>. All future paysheets, invoices, and payments will use real data.</>
-              )}
-              {envStep === 1 && pendingEnv === "sandbox" && (
-                <>You are about to switch from <b>PRODUCTION</b> back to <b>SANDBOX</b>. The app will only show sandbox/test records.</>
-              )}
-              {envStep === 2 && (
-                <>This change is logged in audit and notified to all users. Confirm to proceed.</>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            {envStep === 1 ? (
-              <Button onClick={() => setEnvStep(2)}>Continue</Button>
-            ) : (
-              <AlertDialogAction onClick={confirmEnvSwitch} disabled={envSwitching}>
-                {envSwitching && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Confirm switch
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Wipe sandbox dialog */}
       <AlertDialog open={wipeOpen} onOpenChange={(o) => { setWipeOpen(o); if (!o) { setWipeStep(1); setWipeConfirm(""); } }}>
