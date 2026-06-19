@@ -380,47 +380,65 @@ export default function ClientForm() {
           </Button>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-[1100px] text-sm">
+          <table className="min-w-[820px] w-full text-sm border-collapse">
             <thead>
-              <tr className="text-left text-app-muted">
-                <th className="py-1 pr-2 min-w-[110px]">Designation</th>
-                <th className="py-1 pr-2 min-w-[70px]">Basic</th>
-                <th className="py-1 pr-2 min-w-[70px]">DA</th>
-                <th className="py-1 pr-2 min-w-[70px]">TA</th>
-                <th className="py-1 pr-2 min-w-[70px]">Spl</th>
+              {/* Row 1 headers — core wage fields */}
+              <tr className="text-left text-app-muted border-b border-app-border">
+                <th className="py-1 pr-2 min-w-[120px]">Designation</th>
+                <th className="py-1 pr-2 min-w-[75px]">Basic</th>
+                <th className="py-1 pr-2 min-w-[75px]">DA</th>
+                <th className="py-1 pr-2 min-w-[75px]">TA</th>
+                <th className="py-1 pr-2 min-w-[75px]">Spl Allow</th>
                 <th className="py-1 pr-2 min-w-[80px]">Conveyance</th>
-                <th className="py-1 pr-2 min-w-[70px]">Washing</th>
-                <th className="py-1 pr-2 min-w-[70px]">WO</th>
-                <th className="py-1 pr-2 min-w-[70px]">4hr OT</th>
-                <th className="py-1 pr-2 min-w-[70px]">Bonus</th>
-                <th className="py-1 pr-2 min-w-[80px]">Relieving</th>
-                <th className="py-1 pr-2 min-w-[90px]">Leave Wages</th>
-                <th className="py-1 pr-2 min-w-[70px]">EPF MW</th>
-                <th className="py-1 pr-2 min-w-[70px]">ESI MW</th>
+                <th className="py-1 pr-2 min-w-[75px]">Washing</th>
+                <th className="py-1 pr-2 min-w-[75px]">Weekly Off</th>
                 <th className="py-1 pr-2 min-w-[110px]">Effective From</th>
                 <th className="w-8"></th>
+              </tr>
+              {/* Row 2 headers — statutory/payroll extras */}
+              <tr className="text-left text-app-muted/70 text-xs border-b-2 border-app-border">
+                <th className="py-1 pr-2 text-app-muted/50 font-normal italic">↳ payroll extras</th>
+                <th className="py-1 pr-2">4hr OT</th>
+                <th className="py-1 pr-2">Bonus</th>
+                <th className="py-1 pr-2">Relieving</th>
+                <th className="py-1 pr-2">Leave Wages</th>
+                <th className="py-1 pr-2">EPF Min Wages</th>
+                <th className="py-1 pr-2">ESI Min Wages</th>
+                <th className="py-1 pr-2" colSpan={3}></th>
               </tr>
             </thead>
             <tbody>
               {wages.map((r, idx) => (
-                <tr key={idx}>
-                  <td className="pr-2 py-1"><Input value={r.designation} placeholder="e.g. ASO" onChange={(e) => updateWage(idx, "designation", e.target.value)} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.basic} onChange={(e) => updateWage(idx, "basic", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.da} onChange={(e) => updateWage(idx, "da", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.ta} onChange={(e) => updateWage(idx, "ta", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.spl_allowance} onChange={(e) => updateWage(idx, "spl_allowance", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.conveyance_allowance} onChange={(e) => updateWage(idx, "conveyance_allowance", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.washing_allowance} onChange={(e) => updateWage(idx, "washing_allowance", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.weekly_off_allowance} onChange={(e) => updateWage(idx, "weekly_off_allowance", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.four_hour_ot_rate} onChange={(e) => updateWage(idx, "four_hour_ot_rate", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.bonus_amount} onChange={(e) => updateWage(idx, "bonus_amount", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.relieving_charges} onChange={(e) => updateWage(idx, "relieving_charges", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.leave_wages} onChange={(e) => updateWage(idx, "leave_wages", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.epf_mw_wages} onChange={(e) => updateWage(idx, "epf_mw_wages", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="number" value={r.esi_mw_wages} onChange={(e) => updateWage(idx, "esi_mw_wages", Number(e.target.value))} /></td>
-                  <td className="pr-2 py-1"><Input type="date" value={r.effective_from} onChange={(e) => updateWage(idx, "effective_from", e.target.value)} /></td>
-                  <td><Button variant="ghost" size="icon" onClick={() => setWages(wages.filter((_, i) => i !== idx))}><Trash2 className="h-4 w-4" /></Button></td>
-                </tr>
+                <>
+                  {/* Row 1 — core fields */}
+                  <tr key={`${idx}-a`} className="border-t border-app-border/40">
+                    <td className="pr-2 pt-2 pb-0"><Input value={r.designation} placeholder="e.g. ASO" onChange={(e) => updateWage(idx, "designation", e.target.value)} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.basic} onChange={(e) => updateWage(idx, "basic", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.da} onChange={(e) => updateWage(idx, "da", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.ta} onChange={(e) => updateWage(idx, "ta", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.spl_allowance} onChange={(e) => updateWage(idx, "spl_allowance", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.conveyance_allowance} onChange={(e) => updateWage(idx, "conveyance_allowance", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.washing_allowance} onChange={(e) => updateWage(idx, "washing_allowance", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.weekly_off_allowance} onChange={(e) => updateWage(idx, "weekly_off_allowance", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="date" value={r.effective_from} onChange={(e) => updateWage(idx, "effective_from", e.target.value)} /></td>
+                    <td className="pl-1 align-middle" rowSpan={2}>
+                      <Button variant="ghost" size="icon" onClick={() => setWages(wages.filter((_, i) => i !== idx))}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                  {/* Row 2 — payroll extras */}
+                  <tr key={`${idx}-b`} className="border-b border-app-border/40 bg-muted/20">
+                    <td className="pr-2 pt-0 pb-2"></td>
+                    <td className="pr-2 pt-0 pb-2"><Input type="number" value={r.four_hour_ot_rate} onChange={(e) => updateWage(idx, "four_hour_ot_rate", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-0 pb-2"><Input type="number" value={r.bonus_amount} onChange={(e) => updateWage(idx, "bonus_amount", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-0 pb-2"><Input type="number" value={r.relieving_charges} onChange={(e) => updateWage(idx, "relieving_charges", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-0 pb-2"><Input type="number" value={r.leave_wages} onChange={(e) => updateWage(idx, "leave_wages", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-0 pb-2"><Input type="number" value={r.epf_mw_wages} onChange={(e) => updateWage(idx, "epf_mw_wages", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-0 pb-2"><Input type="number" value={r.esi_mw_wages} onChange={(e) => updateWage(idx, "esi_mw_wages", Number(e.target.value))} /></td>
+                    <td colSpan={2}></td>
+                  </tr>
+                </>
               ))}
             </tbody>
           </table>
