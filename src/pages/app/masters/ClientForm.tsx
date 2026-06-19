@@ -391,10 +391,10 @@ export default function ClientForm() {
                 <th className="py-1 pr-2">Conveyance</th>
                 <th className="py-1 pr-2">Washing</th>
                 <th className="py-1 pr-2">WO</th>
-                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">4hr OT ★</th>
-                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">Bonus ★</th>
-                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">Relieving ★</th>
-                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">Leave Wages ★</th>
+                <th className="py-1 pr-2">4hr OT</th>
+                <th className="py-1 pr-2">Bonus</th>
+                <th className="py-1 pr-2">Relieving</th>
+                <th className="py-1 pr-2">Leave Wages</th>
                 <th className="py-1 pr-2">EPF MW</th>
                 <th className="py-1 pr-2">ESI MW</th>
                 <th className="py-1 pr-2">Effective From</th>

@@ -250,10 +250,10 @@ export default function EmployeeForm() {
         <Field label="Washing"><Input type="number" value={form.washing_allowance} onChange={(e) => setForm({ ...form, washing_allowance: Number(e.target.value) })} /></Field>
         <Field label="Conveyance"><Input type="number" value={form.conveyance_allowance} onChange={(e) => setForm({ ...form, conveyance_allowance: Number(e.target.value) })} /></Field>
         <Field label="Special Allowance"><Input type="number" value={form.spl_allowance} onChange={(e) => setForm({ ...form, spl_allowance: Number(e.target.value) })} /></Field>
-        <Field label="4-Hr OT Rate ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.four_hour_ot_rate} onChange={(e) => setForm({ ...form, four_hour_ot_rate: Number(e.target.value) })} /></Field>
-        <Field label="Bonus Amount ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.bonus_amount} onChange={(e) => setForm({ ...form, bonus_amount: Number(e.target.value) })} /></Field>
-        <Field label="Relieving Charges ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.relieving_charges} onChange={(e) => setForm({ ...form, relieving_charges: Number(e.target.value) })} /></Field>
-        <Field label="Leave Wages ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.leave_wages} onChange={(e) => setForm({ ...form, leave_wages: Number(e.target.value) })} /></Field>
+        <Field label="4-Hr OT Rate"><Input type="number" value={form.four_hour_ot_rate} onChange={(e) => setForm({ ...form, four_hour_ot_rate: Number(e.target.value) })} /></Field>
+        <Field label="Bonus Amount"><Input type="number" value={form.bonus_amount} onChange={(e) => setForm({ ...form, bonus_amount: Number(e.target.value) })} /></Field>
+        <Field label="Relieving Charges"><Input type="number" value={form.relieving_charges} onChange={(e) => setForm({ ...form, relieving_charges: Number(e.target.value) })} /></Field>
+        <Field label="Leave Wages"><Input type="number" value={form.leave_wages} onChange={(e) => setForm({ ...form, leave_wages: Number(e.target.value) })} /></Field>
         <Field label="Payable Gross">
           <div className="h-10 flex items-center px-3 rounded-md border bg-app-surface font-mono font-semibold text-app-navy">{formatINR(payableGross)}</div>
         </Field>

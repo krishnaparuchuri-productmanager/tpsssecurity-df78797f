@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Pencil, Power, Download } from "lucide-react";
+import { Plus, Search, Pencil, PowerOff, Power, Download } from "lucide-react";
 import { formatINR } from "@/lib/format";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
@@ -161,14 +161,18 @@ export default function ClientsList() {
                     <td className="py-2 px-2 text-right">
                       <div className="flex justify-end gap-1">
                         {can("clients", "can_edit") && (
-                          <Button asChild size="sm" variant="ghost">
+                          <Button asChild size="sm" variant="ghost" title="Edit client">
                             <Link to={`/app/masters/clients/${r.id}/edit`}><Pencil className="h-4 w-4" /></Link>
                           </Button>
                         )}
                         {role === "ceo_admin" && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="ghost"><Power className="h-4 w-4" /></Button>
+                              <Button size="sm" variant="ghost" title={r.is_active ? "Deactivate client" : "Activate client"}>
+                                {r.is_active
+                                  ? <PowerOff className="h-4 w-4 text-red-500" />
+                                  : <Power className="h-4 w-4 text-green-600" />}
+                              </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
