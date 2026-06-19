@@ -388,8 +388,13 @@ export default function ClientForm() {
                 <th className="py-1 pr-2">DA</th>
                 <th className="py-1 pr-2">TA</th>
                 <th className="py-1 pr-2">Spl</th>
+                <th className="py-1 pr-2">Conveyance</th>
+                <th className="py-1 pr-2">Washing</th>
                 <th className="py-1 pr-2">WO</th>
-                <th className="py-1 pr-2">4hr OT</th>
+                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">4hr OT ★</th>
+                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">Bonus ★</th>
+                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">Relieving ★</th>
+                <th className="py-1 pr-2 text-orange-600" title="RED mandatory field">Leave Wages ★</th>
                 <th className="py-1 pr-2">EPF MW</th>
                 <th className="py-1 pr-2">ESI MW</th>
                 <th className="py-1 pr-2">Effective From</th>
@@ -404,8 +409,13 @@ export default function ClientForm() {
                   <td className="pr-2 py-1"><Input type="number" value={r.da} onChange={(e) => updateWage(idx, "da", Number(e.target.value))} /></td>
                   <td className="pr-2 py-1"><Input type="number" value={r.ta} onChange={(e) => updateWage(idx, "ta", Number(e.target.value))} /></td>
                   <td className="pr-2 py-1"><Input type="number" value={r.spl_allowance} onChange={(e) => updateWage(idx, "spl_allowance", Number(e.target.value))} /></td>
+                  <td className="pr-2 py-1"><Input type="number" value={r.conveyance_allowance} onChange={(e) => updateWage(idx, "conveyance_allowance", Number(e.target.value))} /></td>
+                  <td className="pr-2 py-1"><Input type="number" value={r.washing_allowance} onChange={(e) => updateWage(idx, "washing_allowance", Number(e.target.value))} /></td>
                   <td className="pr-2 py-1"><Input type="number" value={r.weekly_off_allowance} onChange={(e) => updateWage(idx, "weekly_off_allowance", Number(e.target.value))} /></td>
                   <td className="pr-2 py-1"><Input type="number" value={r.four_hour_ot_rate} onChange={(e) => updateWage(idx, "four_hour_ot_rate", Number(e.target.value))} /></td>
+                  <td className="pr-2 py-1"><Input type="number" value={r.bonus_amount} onChange={(e) => updateWage(idx, "bonus_amount", Number(e.target.value))} /></td>
+                  <td className="pr-2 py-1"><Input type="number" value={r.relieving_charges} onChange={(e) => updateWage(idx, "relieving_charges", Number(e.target.value))} /></td>
+                  <td className="pr-2 py-1"><Input type="number" value={r.leave_wages} onChange={(e) => updateWage(idx, "leave_wages", Number(e.target.value))} /></td>
                   <td className="pr-2 py-1"><Input type="number" value={r.epf_mw_wages} onChange={(e) => updateWage(idx, "epf_mw_wages", Number(e.target.value))} /></td>
                   <td className="pr-2 py-1"><Input type="number" value={r.esi_mw_wages} onChange={(e) => updateWage(idx, "esi_mw_wages", Number(e.target.value))} /></td>
                   <td className="pr-2 py-1"><Input type="date" value={r.effective_from} onChange={(e) => updateWage(idx, "effective_from", e.target.value)} /></td>

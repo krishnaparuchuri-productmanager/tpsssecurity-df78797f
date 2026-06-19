@@ -62,6 +62,7 @@ export default function EmployeeForm() {
     basic: 0, da: 0, ta: 0,
     weekly_off_allowance: 0, washing_allowance: 0,
     conveyance_allowance: 0, spl_allowance: 0,
+    four_hour_ot_rate: 0, bonus_amount: 0, relieving_charges: 0, leave_wages: 0,
     bank_name: "", bank_account_number: "", bank_ifsc: "",
     mobile: "",
   });
@@ -94,6 +95,10 @@ export default function EmployeeForm() {
           washing_allowance: Number(data.washing_allowance ?? 0),
           conveyance_allowance: Number(data.conveyance_allowance ?? 0),
           spl_allowance: Number(data.spl_allowance ?? 0),
+          four_hour_ot_rate: Number((data as any).four_hour_ot_rate ?? 0),
+          bonus_amount: Number((data as any).bonus_amount ?? 0),
+          relieving_charges: Number((data as any).relieving_charges ?? 0),
+          leave_wages: Number((data as any).leave_wages ?? 0),
           bank_name: data.bank_name ?? "",
           bank_account_number: data.bank_account_number ?? "",
           bank_ifsc: data.bank_ifsc ?? "",
@@ -156,6 +161,10 @@ export default function EmployeeForm() {
         washing_allowance: form.washing_allowance,
         conveyance_allowance: form.conveyance_allowance,
         spl_allowance: form.spl_allowance,
+        four_hour_ot_rate: form.four_hour_ot_rate,
+        bonus_amount: form.bonus_amount,
+        relieving_charges: form.relieving_charges,
+        leave_wages: form.leave_wages,
         bank_name: form.bank_name || null,
         bank_account_number: form.bank_account_number || null,
         bank_ifsc: form.bank_ifsc || null,
@@ -241,6 +250,10 @@ export default function EmployeeForm() {
         <Field label="Washing"><Input type="number" value={form.washing_allowance} onChange={(e) => setForm({ ...form, washing_allowance: Number(e.target.value) })} /></Field>
         <Field label="Conveyance"><Input type="number" value={form.conveyance_allowance} onChange={(e) => setForm({ ...form, conveyance_allowance: Number(e.target.value) })} /></Field>
         <Field label="Special Allowance"><Input type="number" value={form.spl_allowance} onChange={(e) => setForm({ ...form, spl_allowance: Number(e.target.value) })} /></Field>
+        <Field label="4-Hr OT Rate ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.four_hour_ot_rate} onChange={(e) => setForm({ ...form, four_hour_ot_rate: Number(e.target.value) })} /></Field>
+        <Field label="Bonus Amount ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.bonus_amount} onChange={(e) => setForm({ ...form, bonus_amount: Number(e.target.value) })} /></Field>
+        <Field label="Relieving Charges ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.relieving_charges} onChange={(e) => setForm({ ...form, relieving_charges: Number(e.target.value) })} /></Field>
+        <Field label="Leave Wages ★" className="border-l-2 border-orange-400 pl-2"><Input type="number" value={form.leave_wages} onChange={(e) => setForm({ ...form, leave_wages: Number(e.target.value) })} /></Field>
         <Field label="Payable Gross">
           <div className="h-10 flex items-center px-3 rounded-md border bg-app-surface font-mono font-semibold text-app-navy">{formatINR(payableGross)}</div>
         </Field>
