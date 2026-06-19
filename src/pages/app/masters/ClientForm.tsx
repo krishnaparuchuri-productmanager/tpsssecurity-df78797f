@@ -380,25 +380,25 @@ export default function ClientForm() {
           </Button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="min-w-[1100px] text-sm">
             <thead>
               <tr className="text-left text-app-muted">
-                <th className="py-1 pr-2">Designation</th>
-                <th className="py-1 pr-2">Basic</th>
-                <th className="py-1 pr-2">DA</th>
-                <th className="py-1 pr-2">TA</th>
-                <th className="py-1 pr-2">Spl</th>
-                <th className="py-1 pr-2">Conveyance</th>
-                <th className="py-1 pr-2">Washing</th>
-                <th className="py-1 pr-2">WO</th>
-                <th className="py-1 pr-2">4hr OT</th>
-                <th className="py-1 pr-2">Bonus</th>
-                <th className="py-1 pr-2">Relieving</th>
-                <th className="py-1 pr-2">Leave Wages</th>
-                <th className="py-1 pr-2">EPF MW</th>
-                <th className="py-1 pr-2">ESI MW</th>
-                <th className="py-1 pr-2">Effective From</th>
-                <th></th>
+                <th className="py-1 pr-2 min-w-[110px]">Designation</th>
+                <th className="py-1 pr-2 min-w-[70px]">Basic</th>
+                <th className="py-1 pr-2 min-w-[70px]">DA</th>
+                <th className="py-1 pr-2 min-w-[70px]">TA</th>
+                <th className="py-1 pr-2 min-w-[70px]">Spl</th>
+                <th className="py-1 pr-2 min-w-[80px]">Conveyance</th>
+                <th className="py-1 pr-2 min-w-[70px]">Washing</th>
+                <th className="py-1 pr-2 min-w-[70px]">WO</th>
+                <th className="py-1 pr-2 min-w-[70px]">4hr OT</th>
+                <th className="py-1 pr-2 min-w-[70px]">Bonus</th>
+                <th className="py-1 pr-2 min-w-[80px]">Relieving</th>
+                <th className="py-1 pr-2 min-w-[90px]">Leave Wages</th>
+                <th className="py-1 pr-2 min-w-[70px]">EPF MW</th>
+                <th className="py-1 pr-2 min-w-[70px]">ESI MW</th>
+                <th className="py-1 pr-2 min-w-[110px]">Effective From</th>
+                <th className="w-8"></th>
               </tr>
             </thead>
             <tbody>
