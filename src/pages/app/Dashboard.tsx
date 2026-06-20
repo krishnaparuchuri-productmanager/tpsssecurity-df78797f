@@ -14,6 +14,40 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 interface KPI { label: string; value: string; icon: React.ComponentType<{ className?: string }>; to?: string; }
 interface MonthBucket { label: string; key: string; billing: number; received: number }
 
+const ACTIVITY_LABELS: Record<string, string> = {
+  LOGIN: "Logged in",
+  EXPORT_employees: "Exported employee list",
+  EXPORT_paysheets: "Exported paysheets",
+  EXPORT_invoices: "Exported invoices",
+  CREATE_paysheets: "Created paysheet",
+  UPDATE_paysheets: "Updated paysheet",
+  APPROVE_paysheets: "Approved paysheet",
+  REJECT_paysheets: "Rejected paysheet",
+  CREATE_employees: "Added employee",
+  UPDATE_employees: "Updated employee",
+  DELETE_employees: "Deleted employee",
+  CREATE_invoices: "Created invoice",
+  UPDATE_invoices: "Updated invoice",
+  CREATE_clients: "Added client",
+  UPDATE_clients: "Updated client",
+  CREATE_advance_requests: "Created advance request",
+  APPROVE_advance_requests: "Approved advance request",
+  REJECT_advance_requests: "Rejected advance request",
+  CREATE_ffs_settlements: "Created FFS settlement",
+  APPROVE_ffs_settlements: "Approved FFS settlement",
+  CREATE_compliance_payments: "Logged compliance payment",
+  CREATE_expenses: "Added expense",
+  UPDATE_expenses: "Updated expense",
+  DELETE_expenses: "Deleted expense",
+  CREATE_receipts: "Recorded receipt",
+  CREATE_cashbook_entries: "Added cash entry",
+};
+
+function readableActivity(action: string, table: string | null): string {
+  const key = table ? `${action}_${table}` : action;
+  return ACTIVITY_LABELS[key] ?? ACTIVITY_LABELS[action] ?? `${action}${table ? ` · ${table.replace(/_/g, " ")}` : ""}`;
+}
+
 export default function Dashboard() {
   const { profile, role } = useAuth();
   const { isSandbox } = useEnvironment();
@@ -309,8 +343,8 @@ export default function Dashboard() {
                 <ul className="space-y-2 text-sm">
                   {recent.map((r) => (
                     <li key={r.id} className="flex justify-between border-b border-app-border/60 pb-1">
-                      <span><span className="font-mono text-xs text-app-saffron">{r.action}</span> {r.table_name ?? ""}</span>
-                      <span className="text-xs text-muted-foreground">{formatDate(r.created_at)}</span>
+                      <span className="text-sm">{readableActivity(r.action, r.table_name)}</span>
+                      <span className="text-xs text-muted-foreground shrink-0 ml-2">{formatDate(r.created_at)}</span>
                     </li>
                   ))}
                 </ul>
