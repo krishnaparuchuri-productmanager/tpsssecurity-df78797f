@@ -107,17 +107,9 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "Legacy Reports",
-    items: [
-      { to: "/app/reports/financial", label: "Financial Dashboard", icon: BarChart3, screen: "reports" },
-      { to: "/app/reports/mom", label: "Month-on-Month (legacy)", icon: BarChart3, screen: "reports" },
-    ],
-  },
-  {
     label: "Expenses",
     items: [
       { to: "/app/expenses/v2", label: "Expenses", icon: Receipt },
-      { to: "/app/expenses", label: "Monthly Expenses (legacy)", icon: Receipt, screen: "expenses" },
     ],
   },
   {

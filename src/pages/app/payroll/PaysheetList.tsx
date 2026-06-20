@@ -5,9 +5,12 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Eye, Send, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
+
+interface ClientLite { id: string; client_name: string; }
 
 interface Row {
   id: string; paysheet_number: string; month: string; month_date: string;
@@ -29,15 +32,24 @@ export default function PaysheetList() {
   const { isSandbox } = useEnvironment();
   const { user } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
+  const [clients, setClients] = useState<ClientLite[]>([]);
+  const [clientFilter, setClientFilter] = useState("all");
+
+  useEffect(() => {
+    supabase.from("clients").select("id, client_name").eq("is_active", true).eq("is_sandbox", isSandbox).order("client_name")
+      .then(({ data }) => setClients((data ?? []) as ClientLite[]));
+  }, [isSandbox]);
 
   async function load() {
-    const { data } = await supabase.from("paysheets")
+    let q = supabase.from("paysheets")
       .select("*, clients(client_name)")
       .eq("is_sandbox", isSandbox).eq("is_deleted", false)
       .order("month_date", { ascending: false });
+    if (clientFilter !== "all") q = q.eq("client_id", clientFilter);
+    const { data } = await q;
     setRows((data ?? []) as unknown as Row[]);
   }
-  useEffect(() => { load(); }, [isSandbox]);
+  useEffect(() => { load(); }, [isSandbox, clientFilter]);
 
   async function submitForApproval(r: Row) {
     if (r.anomaly_count > 0 && !confirm(`This paysheet has ${r.anomaly_count} anomaly flag(s). Submit anyway?`)) return;
@@ -51,11 +63,20 @@ export default function PaysheetList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-app-navy">Monthly Paysheets</h1>
-        <Link to="/app/payroll/create">
-          <Button className="bg-app-navy text-white"><Plus className="h-4 w-4 mr-1" /> Create Paysheet</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Clients" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Clients</SelectItem>
+              {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Link to="/app/payroll/create">
+            <Button className="bg-app-navy text-white"><Plus className="h-4 w-4 mr-1" /> Create Paysheet</Button>
+          </Link>
+        </div>
       </div>
       <div className="bg-white border border-app-border rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
@@ -88,8 +109,8 @@ export default function PaysheetList() {
                       <Link to={`/app/payroll/create?id=${r.id}`}>
                         <Button size="sm" variant="ghost" title="Edit"><Pencil className="h-4 w-4" /></Button>
                       </Link>
-                      <Button size="sm" variant="ghost" className="text-blue-700" title="Submit for approval" onClick={() => submitForApproval(r)}>
-                        <Send className="h-4 w-4" />
+                      <Button size="sm" variant="ghost" className="text-blue-700 gap-1" title="Submit for approval" onClick={() => submitForApproval(r)}>
+                        <Send className="h-4 w-4" /><span className="text-xs">Submit</span>
                       </Button>
                     </>
                   )}

@@ -11,7 +11,7 @@ import { formatINR, formatDate } from "@/lib/format";
 import { Briefcase, Users, Wallet, TrendingUp, AlertTriangle, ShieldCheck, ShieldAlert, FileText, MapPin } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-interface KPI { label: string; value: string; icon: React.ComponentType<{ className?: string }>; }
+interface KPI { label: string; value: string; icon: React.ComponentType<{ className?: string }>; to?: string; }
 interface MonthBucket { label: string; key: string; billing: number; received: number }
 
 export default function Dashboard() {
@@ -133,12 +133,12 @@ export default function Dashboard() {
   const kpis: KPI[] = [
     { label: "Total Billing (Month)", value: formatINR(fin.billing), icon: Wallet },
     { label: "Amount Received", value: formatINR(fin.received), icon: TrendingUp },
-    { label: "Outstanding Dues", value: formatINR(fin.outstanding), icon: AlertTriangle },
+    { label: "Outstanding Dues", value: formatINR(fin.outstanding), icon: AlertTriangle, to: "/app/finance/aging" },
     { label: "Net Margin", value: formatINR(fin.margin), icon: TrendingUp },
-    { label: "Active Clients", value: String(counts?.clients ?? "—"), icon: Briefcase },
-    { label: "Active Employees", value: String(counts?.employees ?? "—"), icon: Users },
-    { label: "Active Deployments", value: String(counts?.deployments ?? "—"), icon: MapPin },
-    { label: "Staff Salaries", value: formatINR(fin.salaries), icon: Users },
+    { label: "Active Clients", value: String(counts?.clients ?? "—"), icon: Briefcase, to: "/app/masters/clients" },
+    { label: "Active Employees", value: String(counts?.employees ?? "—"), icon: Users, to: "/app/masters/employees" },
+    { label: "Active Deployments", value: String(counts?.deployments ?? "—"), icon: MapPin, to: "/app/masters/deployments" },
+    { label: "Payroll (Month)", value: formatINR(fin.salaries), icon: Users, to: "/app/payroll/list" },
   ];
 
   const isAccountant = role === "accountant";
@@ -212,19 +212,24 @@ export default function Dashboard() {
 
       {!isAccountant && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {kpis.map((k) => (
-            <Card key={k.label} className="border-app-border">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="text-xs text-app-muted">{k.label}</div>
-                    <div className="text-lg font-bold text-app-navy mt-1 tabular-nums">{k.value}</div>
+          {kpis.map((k) => {
+            const card = (
+              <Card className={`border-app-border ${k.to ? "cursor-pointer hover:shadow-sm transition-shadow" : ""}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-xs text-app-muted">{k.label}</div>
+                      <div className="text-lg font-bold text-app-navy mt-1 tabular-nums">{k.value}</div>
+                    </div>
+                    <k.icon className="h-4 w-4 text-app-saffron" />
                   </div>
-                  <k.icon className="h-4 w-4 text-app-saffron" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+            return k.to
+              ? <Link key={k.label} to={k.to} className="contents">{card}</Link>
+              : <div key={k.label}>{card}</div>;
+          })}
           <Link to="/app/compliance" className="contents">
             <Card className={`cursor-pointer hover:shadow-md transition-shadow ${compClass}`}>
               <CardContent className="p-4">

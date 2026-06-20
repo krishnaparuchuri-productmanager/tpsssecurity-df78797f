@@ -11,8 +11,18 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 import { recalcEmployee, computeAnomalies, PaysheetEmpRow, r2 } from "@/lib/calc";
-import { ArrowLeft, Plus, Save, Send, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Plus, Save, Send, Loader2 } from "lucide-react";
 import { useSaveLabel } from "@/lib/envLabels";
+import { AnomalyPanel } from "./AnomalyPanel";
+
+const SHORT_ANOMALY: Record<string, string> = {
+  missing_uan: "No UAN",
+  missing_esi: "No ESI",
+  zero_wages: "0 wages",
+  duties_exceed: "Duties >",
+  esi_exempt: "ESI exempt",
+  new_joiner: "New joiner",
+};
 
 const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
@@ -297,6 +307,7 @@ export default function PaysheetCreate() {
 
   const t = totals();
   const anomalies = totalAnomalies();
+  const hasBlockers = rows.some(r => computeAnomalies(r).some(a => a.level === "red"));
 
   return (
     <div className="space-y-4">
@@ -344,17 +355,14 @@ export default function PaysheetCreate() {
 
       {step === 2 && (
         <div className="space-y-3">
-          {anomalies > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-2 text-sm flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              ⚠️ {anomalies} anomalies — review before submit
-            </div>
-          )}
+          {anomalies > 0 && <AnomalyPanel rows={rows} />}
           <div className="bg-white border border-app-border rounded-lg overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="bg-app-surface sticky top-0">
                 <tr className="text-left">
-                  <th className="p-1">#</th><th className="p-1">Name</th><th className="p-1">Desig</th>
+                  <th className="p-1 sticky left-0 bg-app-surface z-10 w-6">#</th>
+                  <th className="p-1 sticky left-6 bg-app-surface z-10 min-w-[160px]">Name</th>
+                  <th className="p-1">Desig</th>
                   <th className="p-1">UAN</th><th className="p-1">ESI</th>
                   <th className="p-1">Basic</th><th className="p-1">DA</th><th className="p-1">TA</th>
                   <th className="p-1">Pay.Gross</th>
@@ -364,18 +372,33 @@ export default function PaysheetCreate() {
                   <th className="p-1">ESI Emp</th><th className="p-1">ESI Empr</th>
                   <th className="p-1">PT</th><th className="p-1">Net</th>
                   <th className="p-1">Adv</th><th className="p-1">Final Net</th>
-                  <th className="p-1">⚑</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r, idx) => {
                   const flags = computeAnomalies(r);
+                  const worstLevel = flags.reduce((best, a) => {
+                    const ord: Record<string, number> = { red: 0, yellow: 1, blue: 2 };
+                    return (ord[a.level] ?? 9) < (ord[best] ?? 9) ? a.level : best;
+                  }, "none");
+                  const borderCls = worstLevel === "red" ? "border-l-4 border-l-red-500" : worstLevel === "yellow" ? "border-l-4 border-l-amber-400" : worstLevel === "blue" ? "border-l-4 border-l-blue-400" : "";
                   return (
                     <tr key={idx} className="border-t border-app-border hover:bg-app-surface/50">
-                      <td className="p-1">{idx + 1}</td>
-                      <td className="p-1">
-                        <Input className="h-7 text-xs" value={r.employee_name} onChange={(e) => updateRow(idx, { employee_name: e.target.value })} />
-                        {r.ad_hoc && <Badge variant="outline" className="ml-1 text-[9px]">Not in master</Badge>}
+                      <td className={`p-1 sticky left-0 bg-white z-10 ${borderCls}`}>{idx + 1}</td>
+                      <td className="p-1 sticky left-6 bg-white z-10">
+                        <Input className="h-7 text-xs min-w-[160px]" value={r.employee_name} onChange={(e) => updateRow(idx, { employee_name: e.target.value })} />
+                        {(r.ad_hoc || flags.length > 0) && (
+                          <div className="flex flex-wrap gap-0.5 mt-0.5">
+                            {r.ad_hoc && <Badge variant="outline" className="text-[9px]">Not in master</Badge>}
+                            {flags.map((f) => (
+                              <span key={f.code} className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium leading-tight ${
+                                f.level === "red" ? "bg-red-50 text-red-700" : f.level === "yellow" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"
+                              }`}>
+                                {SHORT_ANOMALY[f.code] ?? f.message}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="p-1"><Input className="h-7 text-xs w-20" value={r.designation} onChange={(e) => updateRow(idx, { designation: e.target.value })} /></td>
                       <td className="p-1"><Input className="h-7 text-xs w-24" value={r.uan_number ?? ""} onChange={(e) => updateRow(idx, { uan_number: e.target.value })} /></td>
@@ -395,13 +418,6 @@ export default function PaysheetCreate() {
                       <td className="p-1 tabular-nums">{r.net_salary}</td>
                       <td className="p-1"><Input className="h-7 text-xs w-16" type="number" value={r.advance_deduction} onChange={(e) => updateRow(idx, { advance_deduction: Number(e.target.value) })} /></td>
                       <td className="p-1 tabular-nums font-bold">{r.final_net_salary}</td>
-                      <td className="p-1">
-                        {flags.map((f) => (
-                          <span key={f.code} title={f.message} className="mr-0.5">
-                            {f.level === "red" ? "🔴" : f.level === "yellow" ? "🟡" : "🔵"}
-                          </span>
-                        ))}
-                      </td>
                     </tr>
                   );
                 })}
@@ -416,7 +432,6 @@ export default function PaysheetCreate() {
                   <td className="p-1 tabular-nums">{r2(t.net)}</td>
                   <td className="p-1 tabular-nums">{r2(t.adv)}</td>
                   <td className="p-1 tabular-nums">{r2(t.finalNet)}</td>
-                  <td></td>
                 </tr>
               </tbody>
             </table>
@@ -425,7 +440,7 @@ export default function PaysheetCreate() {
             <Button variant="outline" size="sm" onClick={() => setRows([...rows, { ...emptyRow(), working_days: workingDays }])}>
               <Plus className="h-3 w-3 mr-1" /> Add Row
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setStep(3)}>Next: Summary →</Button>
+            <Button variant="outline" size="sm" onClick={() => setStep(3)} disabled={hasBlockers} title={hasBlockers ? "Resolve red blocker anomalies before proceeding" : undefined}>Next: Summary →</Button>
             <Button variant="ghost" size="sm" onClick={() => setStep(1)}>← Back</Button>
           </div>
         </div>

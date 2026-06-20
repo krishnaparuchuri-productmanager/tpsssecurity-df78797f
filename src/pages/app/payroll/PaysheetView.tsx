@@ -78,8 +78,12 @@ export default function PaysheetView() {
       <div className="flex items-center gap-2 flex-wrap">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
         <div>
-          <h1 className="text-2xl font-bold text-app-navy">{head.paysheet_number}</h1>
-          <div className="text-sm text-app-muted">{head.clients?.client_name} • {head.month} • <Badge className={isCancelled ? "bg-gray-200 text-gray-600 line-through" : ""}>{head.status}</Badge></div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold text-app-navy">{head.paysheet_number}</h1>
+            <Badge className={isCancelled ? "bg-gray-200 text-gray-600 line-through" : ""}>{head.status}</Badge>
+          </div>
+          <div className="text-base font-medium text-app-navy mt-0.5">{head.clients?.client_name}</div>
+          <div className="text-sm text-app-muted">{head.month}</div>
           {head.rejection_reason && <div className="text-sm text-red-600 mt-1">Reason: {head.rejection_reason}</div>}
         </div>
         <div className="ml-auto flex gap-2 print:hidden flex-wrap">
@@ -131,6 +135,7 @@ export default function PaysheetView() {
         <table className="w-full text-xs">
           <thead className="bg-app-surface text-left">
             <tr>
+              <th className="p-1 w-7">#</th>
               <th className="p-1">Name</th><th className="p-1">Desig</th>
               <th className="p-1">UAN</th><th className="p-1">ESI</th>
               <th className="p-1">Duties</th>
@@ -141,8 +146,9 @@ export default function PaysheetView() {
             </tr>
           </thead>
           <tbody>
-            {emps.map((e) => (
+            {emps.map((e, idx) => (
               <tr key={e.id} className="border-t border-app-border">
+                <td className="p-1 text-app-muted">{idx + 1}</td>
                 <td className="p-1">{e.employee_name}</td>
                 <td className="p-1">{e.designation}</td>
                 <td className="p-1">{e.uan_number ?? "—"}</td>
@@ -159,7 +165,7 @@ export default function PaysheetView() {
           </tbody>
           <tfoot className="bg-app-surface font-bold">
             <tr>
-              <td className="p-1" colSpan={10}>Total ({head.total_employees} employees)</td>
+              <td className="p-1" colSpan={11}>Total ({head.total_employees} employees)</td>
               <td className="p-1 text-right tabular-nums">{formatINR(Number(head.total_net_salary))}</td>
             </tr>
           </tfoot>
