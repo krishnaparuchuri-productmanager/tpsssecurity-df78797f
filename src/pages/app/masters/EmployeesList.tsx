@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Pencil, Download } from "lucide-react";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
+import Paginator from "@/components/Paginator";
+
+const PAGE_SIZE = 25;
 
 interface Row {
   id: string;
@@ -33,6 +36,7 @@ export default function EmployeesList() {
   const [clientFilter, setClientFilter] = useState("all");
   const [designationFilter, setDesignationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("Active");
+  const [page, setPage] = useState(1);
 
   async function load() {
     setRows(null);
@@ -55,6 +59,8 @@ export default function EmployeesList() {
     const s = search.toLowerCase();
     return r.full_name.toLowerCase().includes(s) || (r.uan_number ?? "").toLowerCase().includes(s);
   });
+
+  useEffect(() => { setPage(1); }, [search, clientFilter, designationFilter, statusFilter]);
 
   function exportCsv() {
     if (!rows?.length) return;
@@ -117,7 +123,7 @@ export default function EmployeesList() {
           </Select>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border border-app-border rounded-lg">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left border-b border-app-border text-app-muted">
@@ -141,7 +147,7 @@ export default function EmployeesList() {
                   No employees found. {can("employees", "can_create") && <Link className="text-app-saffron underline" to="/app/masters/employees/new">Add your first employee</Link>}
                 </td></tr>
               ) : (
-                filtered.map((r) => (
+                filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r) => (
                   <tr key={r.id} className="border-b border-app-border/60 hover:bg-app-surface">
                     <td className="py-2 px-2 font-mono text-xs">{r.employee_code}</td>
                     <td className="py-2 px-2 font-medium">{r.full_name}</td>
@@ -166,6 +172,7 @@ export default function EmployeesList() {
               )}
             </tbody>
           </table>
+          <Paginator total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
       </div>
     </div>

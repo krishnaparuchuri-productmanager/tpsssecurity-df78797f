@@ -9,8 +9,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Eye, Send, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
+import Paginator from "@/components/Paginator";
 
 interface ClientLite { id: string; client_name: string; }
+
+const PAGE_SIZE = 25;
+const MONTH_OPTIONS: { label: string; value: string }[] = (() => {
+  const opts: { label: string; value: string }[] = [];
+  const now = new Date();
+  for (let i = 0; i < 18; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    opts.push({
+      label: d.toLocaleDateString("en-IN", { month: "short", year: "numeric" }).toUpperCase(),
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`,
+    });
+  }
+  return opts;
+})();
 
 interface Row {
   id: string; paysheet_number: string; month: string; month_date: string;
@@ -34,6 +49,8 @@ export default function PaysheetList() {
   const [rows, setRows] = useState<Row[]>([]);
   const [clients, setClients] = useState<ClientLite[]>([]);
   const [clientFilter, setClientFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     supabase.from("clients").select("id, client_name").eq("is_active", true).eq("is_sandbox", isSandbox).order("client_name")
@@ -46,10 +63,11 @@ export default function PaysheetList() {
       .eq("is_sandbox", isSandbox).eq("is_deleted", false)
       .order("month_date", { ascending: false });
     if (clientFilter !== "all") q = q.eq("client_id", clientFilter);
+    if (monthFilter !== "all") q = q.eq("month_date", monthFilter);
     const { data } = await q;
     setRows((data ?? []) as unknown as Row[]);
   }
-  useEffect(() => { load(); }, [isSandbox, clientFilter]);
+  useEffect(() => { setPage(1); load(); }, [isSandbox, clientFilter, monthFilter]);
 
   async function submitForApproval(r: Row) {
     if (r.anomaly_count > 0 && !confirm(`This paysheet has ${r.anomaly_count} anomaly flag(s). Submit anyway?`)) return;
@@ -66,6 +84,13 @@ export default function PaysheetList() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-app-navy">Monthly Paysheets</h1>
         <div className="flex items-center gap-2">
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Months" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Months</SelectItem>
+              {MONTH_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Select value={clientFilter} onValueChange={setClientFilter}>
             <SelectTrigger className="w-[200px]"><SelectValue placeholder="All Clients" /></SelectTrigger>
             <SelectContent>
@@ -91,7 +116,7 @@ export default function PaysheetList() {
           <tbody>
             {rows.length === 0 ? (
               <tr><td colSpan={10} className="p-6 text-center text-muted-foreground">No paysheets yet</td></tr>
-            ) : rows.map((r) => (
+            ) : rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r) => (
               <tr key={r.id} className="border-t border-app-border">
                 <td className="p-2 font-mono text-xs">{r.paysheet_number}</td>
                 <td className="p-2">{r.month}</td>
@@ -119,6 +144,7 @@ export default function PaysheetList() {
             ))}
           </tbody>
         </table>
+        <Paginator total={rows.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
       </div>
     </div>
   );

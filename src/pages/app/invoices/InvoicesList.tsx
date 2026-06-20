@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Eye } from "lucide-react";
 import { formatINR, formatDate } from "@/lib/format";
+import Paginator from "@/components/Paginator";
+
+const PAGE_SIZE = 25;
 
 const STATUS_BADGE: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700",
@@ -25,7 +28,9 @@ interface Row {
 export default function InvoicesList() {
   const { isSandbox } = useEnvironment();
   const [rows, setRows] = useState<Row[]>([]);
+  const [page, setPage] = useState(1);
 
+  useEffect(() => { setPage(1); }, [isSandbox]);
   useEffect(() => {
     supabase.from("invoices")
       .select("id, invoice_number, invoice_date, due_date, month, total_invoice_value, outstanding_amount, status, clients(client_name)")
@@ -57,7 +62,7 @@ export default function InvoicesList() {
           <tbody>
             {rows.length === 0 ? (
               <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No invoices yet</td></tr>
-            ) : rows.map((r) => {
+            ) : rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((r) => {
               const isCancelled = r.status === "cancelled";
               const overdue = !isCancelled && r.due_date && r.due_date < today && Number(r.outstanding_amount) > 0;
               const status = overdue && r.status !== "paid" ? "overdue" : r.status;
@@ -78,6 +83,7 @@ export default function InvoicesList() {
             })}
           </tbody>
         </table>
+        <Paginator total={rows.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
       </div>
     </div>
   );

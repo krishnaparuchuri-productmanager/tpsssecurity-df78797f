@@ -28,6 +28,7 @@ export default function Dashboard() {
   const [pendingCount, setPendingCount] = useState(0);
   const [compliance, setCompliance] = useState({ done: 0, total: 0, overdue: 0 });
   const [failedLogins7d, setFailedLogins7d] = useState(0);
+  const [upcomingTasks, setUpcomingTasks] = useState<Array<{ task_name: string; category: string; due_date: string; status: string }>>([]);
 
   useEffect(() => {
     supabase.from("branches").select("id, branch_name").eq("is_deleted", false).eq("is_active", true).order("branch_name")
@@ -111,6 +112,18 @@ export default function Dashboard() {
       const overdue = all.filter((t) => t.status !== "completed" && t.due_date < today).length;
       setCompliance({ done, total: all.length, overdue });
 
+      // Upcoming compliance tasks (overdue in last 30 days + due in next 7 days)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+      const sevenDaysLater = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      const { data: upcoming } = await supabase.from("compliance_tasks")
+        .select("task_name, category, due_date, status")
+        .neq("status", "completed")
+        .gte("due_date", thirtyDaysAgo)
+        .lte("due_date", sevenDaysLater)
+        .eq("is_deleted", false)
+        .order("due_date");
+      setUpcomingTasks((upcoming ?? []) as typeof upcomingTasks);
+
       // Security: failed logins (CEO only)
       if (role === "ceo_admin") {
         const since = new Date(Date.now() - 7 * 86400000).toISOString();
@@ -141,8 +154,18 @@ export default function Dashboard() {
     { label: "Payroll (Month)", value: formatINR(fin.salaries), icon: Users, to: "/app/payroll/list" },
   ];
 
+  const today = new Date().toISOString().slice(0, 10);
   const isAccountant = role === "accountant";
   const canSeeApprovals = role === "ceo_admin" || role === "coo_ops";
+
+  const CAT_COLORS: Record<string, string> = {
+    EPF: "bg-blue-100 text-blue-800",
+    ESI: "bg-emerald-100 text-emerald-800",
+    GST: "bg-amber-100 text-amber-800",
+    PT: "bg-purple-100 text-purple-800",
+    TDS: "bg-rose-100 text-rose-800",
+    Other: "bg-slate-100 text-slate-600",
+  };
 
   // Compliance tile color
   const compTotal = compliance.total;
@@ -320,12 +343,30 @@ export default function Dashboard() {
             </Card>
           ) : (
             <Card className="border-app-border">
-              <CardHeader><CardTitle className="text-base text-app-navy">Compliance Reminders</CardTitle></CardHeader>
-              <CardContent className="text-sm space-y-2 text-muted-foreground">
-                <div>• EPF payment due by 15th of every month</div>
-                <div>• ESI payment due by 15th of every month</div>
-                <div>• GST return due by 20th of every month</div>
-                <div>• Professional Tax due by 10th of every month</div>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base text-app-navy">Compliance Reminders</CardTitle>
+                <Link to="/app/compliance" className="text-xs text-app-saffron hover:underline">View all →</Link>
+              </CardHeader>
+              <CardContent>
+                {upcomingTasks.length === 0 ? (
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <span className="text-green-600 font-bold">✓</span> All compliance tasks are up to date
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {upcomingTasks.map((t, i) => (
+                      <li key={i} className="flex items-center justify-between gap-2 border-b border-app-border/60 pb-1.5 last:border-0 last:pb-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded font-medium ${CAT_COLORS[t.category] ?? CAT_COLORS.Other}`}>{t.category}</span>
+                          <span className="truncate text-xs">{t.task_name}</span>
+                        </div>
+                        <span className={`shrink-0 text-xs tabular-nums ${t.due_date < today ? "text-red-600 font-medium" : "text-app-muted"}`}>
+                          {t.due_date < today ? "Overdue" : formatDate(t.due_date)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
           )}

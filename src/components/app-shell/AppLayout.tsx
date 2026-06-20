@@ -23,6 +23,7 @@ import {
 import TopBar from "./TopBar";
 import SandboxBanner from "./SandboxBanner";
 import EnvBadge from "./EnvBadge";
+import Breadcrumbs from "./Breadcrumbs";
 import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 
 const SESSION_TIMEOUT = 30 * 60 * 1000;
@@ -227,6 +228,7 @@ export default function AppLayout() {
             <TopBar remainingMs={remainingMs} />
           </header>
           <SandboxBanner />
+          <Breadcrumbs />
           <main className="flex-1 p-4 md:p-6 bg-app-surface overflow-x-hidden">
             <Outlet />
           </main>
