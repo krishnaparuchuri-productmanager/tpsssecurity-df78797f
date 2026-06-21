@@ -77,6 +77,7 @@ const NAV: NavGroup[] = [
       { to: "/app/payroll/create", label: "Create Paysheet", icon: Wallet, screen: "payroll" },
       { to: "/app/payroll/list", label: "Monthly Paysheets", icon: FileText, screen: "payroll" },
       { to: "/app/payroll/approvals", label: "Approval Queue", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
+      { to: "/app/payroll/bank-payment", label: "Bank Payment", icon: Wallet, roles: ["ceo_admin", "coo_ops", "accountant"] },
     ],
   },
   {
@@ -133,6 +134,7 @@ const NAV: NavGroup[] = [
       { to: "/app/admin/backup", label: "Backups", icon: History, roles: ["ceo_admin"] },
       { to: "/app/masters/expense-categories", label: "Expense Categories", icon: Settings, roles: ["ceo_admin"] },
       { to: "/app/masters/branches/manage", label: "Branches Management", icon: Building2, roles: ["ceo_admin"] },
+      { to: "/app/admin/tpss-accounts", label: "TPSS Bank Accounts", icon: Wallet, roles: ["ceo_admin"] },
     ],
   },
 ];

@@ -71,6 +71,8 @@ import AnnualSummary from "@/pages/app/reports/AnnualSummary";
 import ActivityLog from "@/pages/app/admin/ActivityLog";
 import BranchSummary from "@/pages/app/admin/BranchSummary";
 import BranchesAdmin from "@/pages/app/masters/BranchesAdmin";
+import BankPayment from "@/pages/app/payroll/BankPayment";
+import TpssAccountsAdmin from "@/pages/app/admin/TpssAccountsAdmin";
 
 const queryClient = new QueryClient();
 
@@ -181,6 +183,12 @@ const App = () => (
                     <Route path="admin/backup" element={<BackupAdmin />} />
                     <Route path="admin/activity-log" element={<ActivityLog />} />
                     <Route path="admin/branch-summary" element={<BranchSummary />} />
+                    <Route path="admin/tpss-accounts" element={<TpssAccountsAdmin />} />
+                  </Route>
+
+                  {/* S5/S6 — Bank Payment */}
+                  <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops", "accountant"]} />}>
+                    <Route path="payroll/bank-payment" element={<BankPayment />} />
                   </Route>
 
                   {/* Phase 3C — Reports */}
