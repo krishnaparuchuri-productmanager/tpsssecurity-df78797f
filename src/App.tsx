@@ -74,6 +74,7 @@ import BranchesAdmin from "@/pages/app/masters/BranchesAdmin";
 import BankPayment from "@/pages/app/payroll/BankPayment";
 import Payslip from "@/pages/app/payroll/Payslip";
 import BankDisbursementReport from "@/pages/app/payroll/BankDisbursementReport";
+import SupportingDocuments from "@/pages/app/reports/SupportingDocuments";
 import TpssAccountsAdmin from "@/pages/app/admin/TpssAccountsAdmin";
 
 const queryClient = new QueryClient();
@@ -202,6 +203,7 @@ const App = () => (
                   <Route path="reports/client-billing-history" element={<ClientBillingHistory />} />
                   <Route path="reports/employee-history" element={<EmployeeHistory />} />
                   <Route path="reports/annual-summary" element={<AnnualSummary />} />
+                  <Route path="reports/supporting-documents" element={<SupportingDocuments />} />
                 </Route>
               </Route>
 
