@@ -87,6 +87,8 @@ export default function ClientForm() {
     gst_rcm: false,
     invoice_prefix: "",
     pt_applicable: false,
+    pf_applicable: true,
+    esi_applicable: true,
     e_invoice_applicable: false,
     contact_person: "",
     contact_phone: "",
@@ -124,6 +126,8 @@ export default function ClientForm() {
           gst_rcm: !!c.gst_rcm,
           invoice_prefix: c.invoice_prefix ?? "",
           pt_applicable: !!c.pt_applicable,
+          pf_applicable: c.pf_applicable !== false,
+          esi_applicable: c.esi_applicable !== false,
           e_invoice_applicable: !!c.e_invoice_applicable,
           contact_person: c.contact_person ?? "",
           contact_phone: c.contact_phone ?? "",
@@ -187,6 +191,8 @@ export default function ClientForm() {
         gst_rcm: form.gst_applicable ? form.gst_rcm : false,
         invoice_prefix: form.invoice_prefix || null,
         pt_applicable: form.pt_applicable,
+        pf_applicable: form.pf_applicable,
+        esi_applicable: form.esi_applicable,
         e_invoice_applicable: form.e_invoice_applicable,
         contact_person: form.contact_person || null,
         contact_phone: form.contact_phone || null,
@@ -345,6 +351,18 @@ export default function ClientForm() {
             <div className="flex items-center gap-2 h-10">
               <Switch checked={form.pt_applicable} onCheckedChange={(v) => setForm({ ...form, pt_applicable: v })} />
               <span className="text-sm text-muted-foreground">{form.pt_applicable ? "Yes" : "No"}</span>
+            </div>
+          </Field>
+          <Field label="PF Applicable">
+            <div className="flex items-center gap-2 h-10">
+              <Switch checked={form.pf_applicable} onCheckedChange={(v) => setForm({ ...form, pf_applicable: v })} />
+              <span className="text-sm text-muted-foreground">{form.pf_applicable ? "Yes — PF deducted" : "No — PF not applicable"}</span>
+            </div>
+          </Field>
+          <Field label="ESI Applicable">
+            <div className="flex items-center gap-2 h-10">
+              <Switch checked={form.esi_applicable} onCheckedChange={(v) => setForm({ ...form, esi_applicable: v })} />
+              <span className="text-sm text-muted-foreground">{form.esi_applicable ? "Yes — ESI deducted" : "No — ESI not applicable"}</span>
             </div>
           </Field>
           <Field label="E-Invoice Applicable">

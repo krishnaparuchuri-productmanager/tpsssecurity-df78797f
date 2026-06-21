@@ -38,15 +38,17 @@ export interface PaysheetEmpRow {
   ad_hoc?: boolean;
 }
 
-export interface PtRule {
-  applicable: boolean;
+export interface ClientFlags {
+  pt_applicable: boolean;
+  pf_applicable: boolean;
+  esi_applicable: boolean;
 }
 
 export function r2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-export function recalcEmployee(row: PaysheetEmpRow, pt: PtRule): PaysheetEmpRow {
+export function recalcEmployee(row: PaysheetEmpRow, flags: ClientFlags): PaysheetEmpRow {
   const payable = (row.basic || 0) + (row.da || 0) + (row.ta || 0)
     + (row.four_hour_ot || 0) + (row.weekly_off || 0) + (row.bonus || 0)
     + (row.relieving_charges || 0) + (row.leave_wages || 0)
@@ -57,16 +59,23 @@ export function recalcEmployee(row: PaysheetEmpRow, pt: PtRule): PaysheetEmpRow 
   const earned = r2((payable / wd) * (row.no_of_duties || 0));
 
   const earnedBasicDa = r2(((row.basic + row.da) / wd) * (row.no_of_duties || 0));
-  const epfWages = Math.max(earnedBasicDa, row.epf_mw_wages || 0);
-  const epfEmp = r2(epfWages * 0.12);
-  const epfEmpr = r2(epfWages * 0.13);
 
-  const esiWages = earned <= 21000 ? earned : 0;
-  const esiEmp = r2(esiWages * 0.0075);
-  const esiEmpr = r2(esiWages * 0.0325);
+  let epfWages = 0, epfEmp = 0, epfEmpr = 0;
+  if (flags.pf_applicable) {
+    epfWages = Math.max(earnedBasicDa, row.epf_mw_wages || 0);
+    epfEmp = r2(epfWages * 0.12);
+    epfEmpr = r2(epfWages * 0.13);
+  }
+
+  let esiWages = 0, esiEmp = 0, esiEmpr = 0;
+  if (flags.esi_applicable) {
+    esiWages = earned <= 21000 ? earned : 0;
+    esiEmp = r2(esiWages * 0.0075);
+    esiEmpr = r2(esiWages * 0.0325);
+  }
 
   let pt_deduction = 0;
-  if (pt.applicable) {
+  if (flags.pt_applicable) {
     if (earned >= 20000) pt_deduction = 200;
     else if (earned >= 15000) pt_deduction = 150;
   }
