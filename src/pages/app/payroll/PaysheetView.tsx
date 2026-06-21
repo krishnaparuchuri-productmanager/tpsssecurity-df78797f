@@ -31,7 +31,7 @@ export default function PaysheetView() {
   const [emps, setEmps] = useState<Array<{
     id: string; employee_name: string; designation: string; uan_number: string | null; esi_number: string | null;
     earned_wages: number; epf_employee_deduction: number; esi_employee_deduction: number;
-    pt_deduction: number; final_net_salary: number; no_of_duties: number; advance_deduction: number; uniform_advance_deduction: number;
+    pt_deduction: number; final_net_salary: number; no_of_duties: number; advance_deduction: number; uniform_advance_deduction: number; canteen_total: number;
   }>>([]);
 
   async function load() {
@@ -158,7 +158,7 @@ export default function PaysheetView() {
               <th className="p-1 text-right">Earned</th>
               <th className="p-1 text-right">EPF</th><th className="p-1 text-right">ESI</th>
               <th className="p-1 text-right">PT</th><th className="p-1 text-right">Adv</th>
-              <th className="p-1 text-right">U.Adv</th><th className="p-1 text-right">Net</th>
+              <th className="p-1 text-right">U.Adv</th><th className="p-1 text-right">Canteen</th><th className="p-1 text-right">Net</th>
             </tr>
           </thead>
           <tbody>
@@ -176,13 +176,14 @@ export default function PaysheetView() {
                 <td className="p-1 text-right tabular-nums">{formatINR(Number(e.pt_deduction))}</td>
                 <td className="p-1 text-right tabular-nums">{formatINR(Number(e.advance_deduction))}</td>
                 <td className="p-1 text-right tabular-nums">{formatINR(Number(e.uniform_advance_deduction))}</td>
+                <td className="p-1 text-right tabular-nums">{formatINR(Number(e.canteen_total))}</td>
                 <td className="p-1 text-right tabular-nums font-bold">{formatINR(Number(e.final_net_salary))}</td>
               </tr>
             ))}
           </tbody>
           <tfoot className="bg-app-surface font-bold">
             <tr>
-              <td className="p-1" colSpan={12}>Total ({head.total_employees} employees)</td>
+              <td className="p-1" colSpan={13}>Total ({head.total_employees} employees)</td>
               <td className="p-1 text-right tabular-nums">{formatINR(Number(head.total_net_salary))}</td>
             </tr>
           </tfoot>

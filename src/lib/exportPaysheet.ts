@@ -13,6 +13,7 @@ interface Emp {
   epf_employee_deduction: number; epf_employer_contribution: number;
   esi_employee_deduction: number; esi_employer_contribution: number;
   pt_deduction: number; advance_deduction: number; uniform_advance_deduction: number;
+  canteen_price: number; canteen_quantity: number; canteen_subsidy: number; canteen_total: number;
   net_salary: number; final_net_salary: number;
 }
 interface Head {
@@ -37,7 +38,9 @@ export function downloadPaysheetExcel(head: Head, emps: Emp[], company?: Brandin
     "EPF Emp": Number(e.epf_employee_deduction), "EPF Empr": Number(e.epf_employer_contribution),
     "ESI Emp": Number(e.esi_employee_deduction), "ESI Empr": Number(e.esi_employer_contribution),
     PT: Number(e.pt_deduction), "Net Salary": Number(e.net_salary),
-    Advance: Number(e.advance_deduction), "Unif Adv": Number(e.uniform_advance_deduction), "Final Net": Number(e.final_net_salary),
+    Advance: Number(e.advance_deduction), "Unif Adv": Number(e.uniform_advance_deduction),
+    "Canteen Price": Number(e.canteen_price), "Canteen Qty": Number(e.canteen_quantity), "Canteen Sub%": Number(e.canteen_subsidy), "Canteen Ded": Number(e.canteen_total),
+    "Final Net": Number(e.final_net_salary),
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
   if (company) addExcelBranding(ws, company);
@@ -47,7 +50,7 @@ export function downloadPaysheetExcel(head: Head, emps: Emp[], company?: Brandin
 }
 
 export function downloadPaysheetCsv(head: Head, emps: Emp[]) {
-  const headers = ["#","Name","Designation","UAN","ESI","Duties","Basic","DA","TA","4Hr OT *","Weekly Off","Bonus *","Relieving *","Leave Wages *","Conveyance","Washing","Uniform","Spl Allow","Payable Gross","Earned","EPF Emp","EPF Empr","ESI Emp","ESI Empr","PT","Net Salary","Advance","Unif Adv","Final Net"];
+  const headers = ["#","Name","Designation","UAN","ESI","Duties","Basic","DA","TA","4Hr OT *","Weekly Off","Bonus *","Relieving *","Leave Wages *","Conveyance","Washing","Uniform","Spl Allow","Payable Gross","Earned","EPF Emp","EPF Empr","ESI Emp","ESI Empr","PT","Net Salary","Advance","Unif Adv","Canteen Price","Canteen Qty","Canteen Sub%","Canteen Ded","Final Net"];
   const lines = [headers.join(",")];
   emps.forEach((e, i) => {
     lines.push([i+1, e.employee_name, e.designation, e.uan_number ?? "", e.esi_number ?? "",
@@ -58,7 +61,9 @@ export function downloadPaysheetCsv(head: Head, emps: Emp[]) {
       e.payable_gross, e.earned_wages,
       e.epf_employee_deduction, e.epf_employer_contribution,
       e.esi_employee_deduction, e.esi_employer_contribution,
-      e.pt_deduction, e.net_salary, e.advance_deduction, e.uniform_advance_deduction, e.final_net_salary,
+      e.pt_deduction, e.net_salary, e.advance_deduction, e.uniform_advance_deduction,
+      e.canteen_price, e.canteen_quantity, e.canteen_subsidy, e.canteen_total,
+      e.final_net_salary,
     ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","));
   });
   const blob = new Blob([lines.join("\n")], { type: "text/csv" });

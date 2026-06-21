@@ -35,7 +35,7 @@ function emptyRow(designation = "ASO"): PaysheetEmpRow {
     working_days: 30, no_of_duties: 0, earned_wages: 0,
     epf_mw_wages: 0, epf_wages: 0, epf_employee_deduction: 0, epf_employer_contribution: 0,
     esi_wages: 0, esi_employee_deduction: 0, esi_employer_contribution: 0,
-    pt_deduction: 0, net_salary: 0, advance_deduction: 0, uniform_advance_deduction: 0, final_net_salary: 0,
+    pt_deduction: 0, net_salary: 0, advance_deduction: 0, uniform_advance_deduction: 0, canteen_price: 0, canteen_quantity: 0, canteen_subsidy: 0, canteen_total: 0, final_net_salary: 0,
     is_new_joiner: false, ad_hoc: true,
   };
 }
@@ -122,6 +122,10 @@ export default function PaysheetCreate() {
         net_salary: Number(e.net_salary),
         advance_deduction: Number(e.advance_deduction),
         uniform_advance_deduction: Number(e.uniform_advance_deduction ?? 0),
+        canteen_price: Number(e.canteen_price ?? 0),
+        canteen_quantity: Number(e.canteen_quantity ?? 0),
+        canteen_subsidy: Number(e.canteen_subsidy ?? 0),
+        canteen_total: Number(e.canteen_total ?? 0),
         final_net_salary: Number(e.final_net_salary),
         is_new_joiner: !!e.is_new_joiner,
         ad_hoc: !e.employee_id,
@@ -191,7 +195,7 @@ export default function PaysheetCreate() {
         epf_mw_wages: Number(cfg?.epf_mw_wages ?? 0),
         epf_wages: 0, epf_employee_deduction: 0, epf_employer_contribution: 0,
         esi_wages: 0, esi_employee_deduction: 0, esi_employer_contribution: 0,
-        pt_deduction: 0, net_salary: 0, advance_deduction: 0, uniform_advance_deduction: 0, final_net_salary: 0,
+        pt_deduction: 0, net_salary: 0, advance_deduction: 0, uniform_advance_deduction: 0, canteen_price: 0, canteen_quantity: 0, canteen_subsidy: 0, canteen_total: 0, final_net_salary: 0,
         is_new_joiner: !!e.is_new_joiner,
         ad_hoc: false,
       };
@@ -246,8 +250,9 @@ export default function PaysheetCreate() {
       net: acc.net + r.net_salary,
       adv: acc.adv + r.advance_deduction,
       uniformAdv: acc.uniformAdv + (r.uniform_advance_deduction || 0),
+      canteenTotal: acc.canteenTotal + (r.canteen_total || 0),
       finalNet: acc.finalNet + r.final_net_salary,
-    }), { employees: 0, earned: 0, epfEmp: 0, epfEmpr: 0, esiEmp: 0, esiEmpr: 0, pt: 0, net: 0, adv: 0, uniformAdv: 0, finalNet: 0 });
+    }), { employees: 0, earned: 0, epfEmp: 0, epfEmpr: 0, esiEmp: 0, esiEmpr: 0, pt: 0, net: 0, adv: 0, uniformAdv: 0, canteenTotal: 0, finalNet: 0 });
   }
 
   function totalAnomalies() {
@@ -321,7 +326,9 @@ export default function PaysheetCreate() {
           esi_wages: r.esi_wages, esi_employee_deduction: r.esi_employee_deduction,
           esi_employer_contribution: r.esi_employer_contribution,
           pt_deduction: r.pt_deduction, net_salary: r.net_salary,
-          advance_deduction: r.advance_deduction, uniform_advance_deduction: r.uniform_advance_deduction, final_net_salary: r.final_net_salary,
+          advance_deduction: r.advance_deduction, uniform_advance_deduction: r.uniform_advance_deduction,
+          canteen_price: r.canteen_price, canteen_quantity: r.canteen_quantity, canteen_subsidy: r.canteen_subsidy, canteen_total: r.canteen_total,
+          final_net_salary: r.final_net_salary,
           is_new_joiner: r.is_new_joiner,
           anomaly_flags: computeAnomalies(r) as never,
           is_sandbox: isSandbox,
@@ -405,7 +412,7 @@ export default function PaysheetCreate() {
                   <th className="p-1">EPF Emp</th><th className="p-1">EPF Empr</th>
                   <th className="p-1">ESI Emp</th><th className="p-1">ESI Empr</th>
                   <th className="p-1">PT</th><th className="p-1">Net</th>
-                  <th className="p-1">Adv</th><th className="p-1">U.Adv</th><th className="p-1">Final Net</th>
+                  <th className="p-1">Adv</th><th className="p-1">U.Adv</th><th className="p-1">C.Price</th><th className="p-1">C.Qty</th><th className="p-1">C.Sum</th><th className="p-1">C.Sub%</th><th className="p-1">Canteen</th><th className="p-1">Final Net</th>
                 </tr>
               </thead>
               <tbody>
@@ -459,6 +466,11 @@ export default function PaysheetCreate() {
                           </div>
                         ) : <span className="text-xs text-muted-foreground">—</span>}
                       </td>
+                      <td className="p-1"><Input className="h-7 text-xs w-16" type="number" value={r.canteen_price} onChange={(e) => updateRow(idx, { canteen_price: Number(e.target.value) })} /></td>
+                      <td className="p-1"><Input className="h-7 text-xs w-14" type="number" value={r.canteen_quantity} onChange={(e) => updateRow(idx, { canteen_quantity: Number(e.target.value) })} /></td>
+                      <td className="p-1 tabular-nums text-xs">{r2((r.canteen_price || 0) * (r.canteen_quantity || 0))}</td>
+                      <td className="p-1"><Input className="h-7 text-xs w-14" type="number" value={r.canteen_subsidy} onChange={(e) => updateRow(idx, { canteen_subsidy: Number(e.target.value) })} /></td>
+                      <td className="p-1 tabular-nums">{r.canteen_total}</td>
                       <td className="p-1 tabular-nums font-bold">{r.final_net_salary}</td>
                     </tr>
                   );
@@ -474,6 +486,8 @@ export default function PaysheetCreate() {
                   <td className="p-1 tabular-nums">{r2(t.net)}</td>
                   <td className="p-1 tabular-nums">{r2(t.adv)}</td>
                   <td className="p-1 tabular-nums">{r2(t.uniformAdv)}</td>
+                  <td className="p-1"></td><td className="p-1"></td><td className="p-1"></td><td className="p-1"></td>
+                  <td className="p-1 tabular-nums">{r2(t.canteenTotal)}</td>
                   <td className="p-1 tabular-nums">{r2(t.finalNet)}</td>
                 </tr>
               </tbody>
@@ -499,6 +513,7 @@ export default function PaysheetCreate() {
             <Stat label="ESI Employee" value={`₹${r2(t.esiEmp).toLocaleString()}`} />
             <Stat label="ESI Employer" value={`₹${r2(t.esiEmpr).toLocaleString()}`} />
             <Stat label="PT" value={`₹${r2(t.pt).toLocaleString()}`} />
+            <Stat label="Canteen Deductions" value={`₹${r2(t.canteenTotal).toLocaleString()}`} />
             <Stat label="Final Net Salary" value={`₹${r2(t.finalNet).toLocaleString()}`} highlight />
           </div>
           <div className="flex gap-2 justify-end">
