@@ -18,6 +18,7 @@ export interface PaysheetEmpRow {
   leave_wages: number;
   conveyance_allowance: number;
   washing_allowance: number;
+  uniform_allowance: number;
   spl_allowance: number;
   payable_gross: number;
   working_days: number;
@@ -58,7 +59,7 @@ export function recalcEmployee(row: PaysheetEmpRow, flags: ClientFlags): Payshee
     + (row.four_hour_ot || 0) + (row.weekly_off || 0) + (row.bonus || 0)
     + (row.relieving_charges || 0) + (row.leave_wages || 0)
     + (row.conveyance_allowance || 0) + (row.washing_allowance || 0)
-    + (row.spl_allowance || 0);
+    + (row.uniform_allowance || 0) + (row.spl_allowance || 0);
 
   const wd = row.working_days > 0 ? row.working_days : 30;
   const earned = r2((payable / wd) * (row.no_of_duties || 0));

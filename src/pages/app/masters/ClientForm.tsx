@@ -23,7 +23,7 @@ interface WageRow {
   id?: string;
   designation: string;
   basic: number; da: number; ta: number;
-  spl_allowance: number; conveyance_allowance: number; washing_allowance: number;
+  spl_allowance: number; conveyance_allowance: number; washing_allowance: number; uniform_allowance: number;
   weekly_off_allowance: number; four_hour_ot_rate: number;
   bonus_amount: number; relieving_charges: number; leave_wages: number;
   payable_gross: number; epf_mw_wages: number; esi_mw_wages: number;
@@ -32,7 +32,7 @@ interface WageRow {
 
 const emptyWage: WageRow = {
   designation: "", basic: 0, da: 0, ta: 0,
-  spl_allowance: 0, conveyance_allowance: 0, washing_allowance: 0,
+  spl_allowance: 0, conveyance_allowance: 0, washing_allowance: 0, uniform_allowance: 0,
   weekly_off_allowance: 0, four_hour_ot_rate: 0,
   bonus_amount: 0, relieving_charges: 0, leave_wages: 0,
   payable_gross: 0, epf_mw_wages: 0, esi_mw_wages: 0,
@@ -146,7 +146,7 @@ export default function ClientForm() {
           id: x.id, designation: x.designation,
           basic: Number(x.basic), da: Number(x.da), ta: Number(x.ta),
           spl_allowance: Number(x.spl_allowance), conveyance_allowance: Number(x.conveyance_allowance),
-          washing_allowance: Number(x.washing_allowance), weekly_off_allowance: Number(x.weekly_off_allowance),
+          washing_allowance: Number(x.washing_allowance), uniform_allowance: Number(x.uniform_allowance ?? 0), weekly_off_allowance: Number(x.weekly_off_allowance),
           four_hour_ot_rate: Number(x.four_hour_ot_rate), bonus_amount: Number(x.bonus_amount),
           relieving_charges: Number(x.relieving_charges), leave_wages: Number(x.leave_wages),
           payable_gross: Number(x.payable_gross), epf_mw_wages: Number(x.epf_mw_wages), esi_mw_wages: Number(x.esi_mw_wages),
@@ -232,7 +232,7 @@ export default function ClientForm() {
             designation: w.designation.trim(),
             basic: w.basic, da: w.da, ta: w.ta,
             spl_allowance: w.spl_allowance, conveyance_allowance: w.conveyance_allowance,
-            washing_allowance: w.washing_allowance, weekly_off_allowance: w.weekly_off_allowance,
+            washing_allowance: w.washing_allowance, uniform_allowance: w.uniform_allowance, weekly_off_allowance: w.weekly_off_allowance,
             four_hour_ot_rate: w.four_hour_ot_rate, bonus_amount: w.bonus_amount,
             relieving_charges: w.relieving_charges, leave_wages: w.leave_wages,
             payable_gross: w.payable_gross, epf_mw_wages: w.epf_mw_wages, esi_mw_wages: w.esi_mw_wages,
@@ -441,6 +441,7 @@ export default function ClientForm() {
                 <th className="py-1 pr-2 min-w-[75px]">Spl Allow</th>
                 <th className="py-1 pr-2 min-w-[80px]">Conveyance</th>
                 <th className="py-1 pr-2 min-w-[75px]">Washing</th>
+                <th className="py-1 pr-2 min-w-[75px]">Uniform</th>
                 <th className="py-1 pr-2 min-w-[75px]">Weekly Off</th>
                 <th className="py-1 pr-2 min-w-[110px]">Effective From</th>
                 <th className="w-8"></th>
@@ -454,7 +455,7 @@ export default function ClientForm() {
                 <th className="py-1 pr-2">Leave Wages</th>
                 <th className="py-1 pr-2">EPF Min Wages</th>
                 <th className="py-1 pr-2">ESI Min Wages</th>
-                <th className="py-1 pr-2" colSpan={3}></th>
+                <th className="py-1 pr-2" colSpan={4}></th>
               </tr>
             </thead>
             <tbody>
@@ -469,6 +470,7 @@ export default function ClientForm() {
                     <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.spl_allowance} onChange={(e) => updateWage(idx, "spl_allowance", Number(e.target.value))} /></td>
                     <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.conveyance_allowance} onChange={(e) => updateWage(idx, "conveyance_allowance", Number(e.target.value))} /></td>
                     <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.washing_allowance} onChange={(e) => updateWage(idx, "washing_allowance", Number(e.target.value))} /></td>
+                    <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.uniform_allowance} onChange={(e) => updateWage(idx, "uniform_allowance", Number(e.target.value))} /></td>
                     <td className="pr-2 pt-2 pb-0"><Input type="number" value={r.weekly_off_allowance} onChange={(e) => updateWage(idx, "weekly_off_allowance", Number(e.target.value))} /></td>
                     <td className="pr-2 pt-2 pb-0"><Input type="date" value={r.effective_from} onChange={(e) => updateWage(idx, "effective_from", e.target.value)} /></td>
                     <td className="pl-1 align-middle" rowSpan={2}>
