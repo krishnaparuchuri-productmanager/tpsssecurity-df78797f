@@ -86,6 +86,8 @@ export default function ClientForm() {
     gst_number: "",
     gst_rcm: false,
     invoice_prefix: "",
+    service_charge_pct: 0,
+    service_charge_show_in_invoice: false,
     pt_applicable: false,
     pf_applicable: true,
     pf_calc_method: 'basic_da' as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
@@ -127,6 +129,8 @@ export default function ClientForm() {
           gst_number: c.gst_number ?? "",
           gst_rcm: !!c.gst_rcm,
           invoice_prefix: c.invoice_prefix ?? "",
+          service_charge_pct: Number(c.service_charge_pct ?? 0),
+          service_charge_show_in_invoice: !!c.service_charge_show_in_invoice,
           pt_applicable: !!c.pt_applicable,
           pf_applicable: c.pf_applicable !== false,
           pf_calc_method: (c.pf_calc_method ?? 'basic_da') as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
@@ -194,6 +198,8 @@ export default function ClientForm() {
         gst_number: form.gst_number || null,
         gst_rcm: form.gst_applicable ? form.gst_rcm : false,
         invoice_prefix: form.invoice_prefix || null,
+        service_charge_pct: form.service_charge_pct,
+        service_charge_show_in_invoice: form.service_charge_show_in_invoice,
         pt_applicable: form.pt_applicable,
         pf_applicable: form.pf_applicable,
         pf_calc_method: form.pf_calc_method,
@@ -352,6 +358,17 @@ export default function ClientForm() {
                 </div>
               </Field>
             </>
+          )}
+          <Field label="Service Charge %">
+            <Input type="number" step="0.01" min="0" max="100" value={form.service_charge_pct} onChange={(e) => setForm({ ...form, service_charge_pct: Number(e.target.value) })} placeholder="e.g. 10" />
+          </Field>
+          {form.service_charge_pct > 0 && (
+            <Field label="Show Service Charge in Invoice">
+              <div className="flex items-center gap-2 h-10">
+                <Switch checked={form.service_charge_show_in_invoice} onCheckedChange={(v) => setForm({ ...form, service_charge_show_in_invoice: v })} />
+                <span className="text-sm text-muted-foreground">{form.service_charge_show_in_invoice ? "Yes — shown as separate line on invoice" : "No — embedded in billing rate"}</span>
+              </div>
+            </Field>
           )}
           <Field label="Professional Tax Applicable">
             <div className="flex items-center gap-2 h-10">

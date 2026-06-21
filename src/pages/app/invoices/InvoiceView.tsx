@@ -28,7 +28,7 @@ interface Invoice {
   service_period_from: string; service_period_to: string;
   cancelled_at: string | null; cancelled_by: string | null; cancellation_reason: string | null;
   replaced_by_id: string | null; replaces_id: string | null;
-  clients: { client_name: string; client_code: string; address: string | null; gst_number: string | null } | null;
+  clients: { client_name: string; client_code: string; address: string | null; gst_number: string | null; service_charge_pct: number; service_charge_show_in_invoice: boolean } | null;
 }
 
 export default function InvoiceView() {
@@ -53,7 +53,7 @@ export default function InvoiceView() {
   async function load() {
     if (!id) return;
     const [{ data: i }, { data: c }] = await Promise.all([
-      supabase.from("invoices").select("*, clients(client_name, client_code, address, gst_number)").eq("id", id).maybeSingle(),
+      supabase.from("invoices").select("*, clients(client_name, client_code, address, gst_number, service_charge_pct, service_charge_show_in_invoice)").eq("id", id).maybeSingle(),
       supabase.from("company_profile").select("*").maybeSingle(),
     ]);
     setInv(i as unknown as Invoice);
@@ -113,6 +113,10 @@ export default function InvoiceView() {
 
   const lines = (inv.billing_lines as Array<{ qty: number; description: string; sac_code: string; rate_per_month: number; working_days: number; no_of_duties: number; amount: number }>) ?? [];
   const isCancelled = inv.status === "cancelled";
+  const scPct = Number(inv.clients?.service_charge_pct ?? 0);
+  const showSc = !!inv.clients?.service_charge_show_in_invoice && scPct > 0;
+  const scSubTotal = showSc ? Math.round((Number(inv.billing_amount) / (1 + scPct / 100)) * 100) / 100 : 0;
+  const scAmount = showSc ? Math.round((Number(inv.billing_amount) - scSubTotal) * 100) / 100 : 0;
 
   return (
     <div className="space-y-4 max-w-5xl">
@@ -214,6 +218,18 @@ export default function InvoiceView() {
                 <td className="p-1 border text-right tabular-nums">{formatINR(l.amount)}</td>
               </tr>
             ))}
+            {showSc ? (
+              <>
+                <tr>
+                  <td colSpan={6} className="p-1 border text-right text-app-muted">Sub-total (excl. service charges)</td>
+                  <td className="p-1 border text-right tabular-nums text-app-muted">{formatINR(scSubTotal)}</td>
+                </tr>
+                <tr>
+                  <td colSpan={6} className="p-1 border text-right text-app-muted">Service Charges @ {scPct}%</td>
+                  <td className="p-1 border text-right tabular-nums text-app-muted">{formatINR(scAmount)}</td>
+                </tr>
+              </>
+            ) : null}
             <tr className="font-semibold">
               <td colSpan={6} className="p-1 border text-right">Total Taxable Value</td>
               <td className="p-1 border text-right tabular-nums">{formatINR(Number(inv.billing_amount))}</td>
