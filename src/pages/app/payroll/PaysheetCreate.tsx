@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
-import { recalcEmployee, computeAnomalies, PaysheetEmpRow, ClientFlags, r2 } from "@/lib/calc";
+import { recalcEmployee, computeAnomalies, PaysheetEmpRow, ClientFlags, PfCalcMethod, r2 } from "@/lib/calc";
 import { ArrowLeft, Plus, Save, Send, Loader2 } from "lucide-react";
 import { useSaveLabel } from "@/lib/envLabels";
 import { AnomalyPanel } from "./AnomalyPanel";
@@ -49,7 +49,7 @@ export default function PaysheetCreate() {
   const editId = searchParams.get("id");
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [clients, setClients] = useState<Array<{ id: string; client_name: string; pt_applicable: boolean; pf_applicable: boolean; esi_applicable: boolean }>>([]);
+  const [clients, setClients] = useState<Array<{ id: string; client_name: string; pt_applicable: boolean; pf_applicable: boolean; pf_calc_method: string; esi_applicable: boolean }>>([]);
   const [clientId, setClientId] = useState("");
   const [year, setYear] = useState(new Date().getFullYear());
   const [monthIdx, setMonthIdx] = useState(new Date().getMonth());
@@ -63,7 +63,7 @@ export default function PaysheetCreate() {
 
   useEffect(() => {
     supabase.from("clients")
-      .select("id, client_name, pt_applicable, pf_applicable, esi_applicable")
+      .select("id, client_name, pt_applicable, pf_applicable, pf_calc_method, esi_applicable")
       .eq("is_active", true).eq("is_sandbox", isSandbox).eq("is_deleted", false)
       .order("client_name")
       .then(({ data }) => setClients((data ?? []) as typeof clients));
@@ -188,6 +188,7 @@ export default function PaysheetCreate() {
       const flags: ClientFlags = {
         pt_applicable: client?.pt_applicable ?? false,
         pf_applicable: client?.pf_applicable ?? true,
+        pf_calc_method: (client?.pf_calc_method ?? 'basic_da') as PfCalcMethod,
         esi_applicable: client?.esi_applicable ?? true,
       };
       return recalcEmployee(base, flags);

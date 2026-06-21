@@ -38,10 +38,13 @@ export interface PaysheetEmpRow {
   ad_hoc?: boolean;
 }
 
+export type PfCalcMethod = 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot';
+
 export interface ClientFlags {
   pt_applicable: boolean;
   pf_applicable: boolean;
   esi_applicable: boolean;
+  pf_calc_method: PfCalcMethod;
 }
 
 export function r2(n: number) {
@@ -62,7 +65,23 @@ export function recalcEmployee(row: PaysheetEmpRow, flags: ClientFlags): Payshee
 
   let epfWages = 0, epfEmp = 0, epfEmpr = 0;
   if (flags.pf_applicable) {
-    epfWages = Math.max(earnedBasicDa, row.epf_mw_wages || 0);
+    const duties = row.no_of_duties || 0;
+    let epfBase: number;
+    switch (flags.pf_calc_method) {
+      case 'basic_only':
+        epfBase = r2((row.basic / wd) * duties);
+        break;
+      case 'basic_da_half':
+        epfBase = r2(((row.basic + row.da) / 2 / wd) * duties);
+        break;
+      case 'basic_da_ot':
+        epfBase = r2(((row.basic + row.da + row.four_hour_ot) / wd) * duties);
+        break;
+      case 'basic_da':
+      default:
+        epfBase = earnedBasicDa;
+    }
+    epfWages = Math.max(epfBase, row.epf_mw_wages || 0);
     epfEmp = r2(epfWages * 0.12);
     epfEmpr = r2(epfWages * 0.13);
   }

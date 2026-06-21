@@ -88,6 +88,7 @@ export default function ClientForm() {
     invoice_prefix: "",
     pt_applicable: false,
     pf_applicable: true,
+    pf_calc_method: 'basic_da' as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
     esi_applicable: true,
     e_invoice_applicable: false,
     contact_person: "",
@@ -127,6 +128,7 @@ export default function ClientForm() {
           invoice_prefix: c.invoice_prefix ?? "",
           pt_applicable: !!c.pt_applicable,
           pf_applicable: c.pf_applicable !== false,
+          pf_calc_method: (c.pf_calc_method ?? 'basic_da') as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
           esi_applicable: c.esi_applicable !== false,
           e_invoice_applicable: !!c.e_invoice_applicable,
           contact_person: c.contact_person ?? "",
@@ -192,6 +194,7 @@ export default function ClientForm() {
         invoice_prefix: form.invoice_prefix || null,
         pt_applicable: form.pt_applicable,
         pf_applicable: form.pf_applicable,
+        pf_calc_method: form.pf_calc_method,
         esi_applicable: form.esi_applicable,
         e_invoice_applicable: form.e_invoice_applicable,
         contact_person: form.contact_person || null,
@@ -359,6 +362,19 @@ export default function ClientForm() {
               <span className="text-sm text-muted-foreground">{form.pf_applicable ? "Yes — PF deducted" : "No — PF not applicable"}</span>
             </div>
           </Field>
+          {form.pf_applicable && (
+            <Field label="PF Calculation Method">
+              <Select value={form.pf_calc_method} onValueChange={(v) => setForm({ ...form, pf_calc_method: v as typeof form.pf_calc_method })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="basic_only">Basic ÷ days × duties</SelectItem>
+                  <SelectItem value="basic_da">(Basic + DA) ÷ days × duties</SelectItem>
+                  <SelectItem value="basic_da_half">((Basic + DA) ÷ 2) ÷ days × duties</SelectItem>
+                  <SelectItem value="basic_da_ot">(Basic + DA + OT) ÷ days × duties</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
           <Field label="ESI Applicable">
             <div className="flex items-center gap-2 h-10">
               <Switch checked={form.esi_applicable} onCheckedChange={(v) => setForm({ ...form, esi_applicable: v })} />
