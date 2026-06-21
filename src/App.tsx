@@ -203,7 +203,9 @@ const App = () => (
                   <Route path="reports/client-billing-history" element={<ClientBillingHistory />} />
                   <Route path="reports/employee-history" element={<EmployeeHistory />} />
                   <Route path="reports/annual-summary" element={<AnnualSummary />} />
-                  <Route path="reports/supporting-documents" element={<SupportingDocuments />} />
+                  <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops", "accountant"]} />}>
+                    <Route path="reports/supporting-documents" element={<SupportingDocuments />} />
+                  </Route>
                 </Route>
               </Route>
 

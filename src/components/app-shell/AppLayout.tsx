@@ -109,7 +109,7 @@ const NAV: NavGroup[] = [
       { to: "/app/reports/client-billing-history", label: "Client History", icon: FileText },
       { to: "/app/reports/employee-history", label: "Employee History", icon: FileText },
       { to: "/app/reports/annual-summary", label: "Annual Summary", icon: FileText },
-      { to: "/app/reports/supporting-documents", label: "Statutory Documents", icon: FileText },
+      { to: "/app/reports/supporting-documents", label: "Statutory Documents", icon: FileText, roles: ["ceo_admin", "coo_ops", "accountant"] },
     ],
   },
   {

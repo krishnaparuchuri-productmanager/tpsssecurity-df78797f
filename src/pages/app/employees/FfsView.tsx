@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download } from "lucide-react";
 import { formatINR, formatDate } from "@/lib/format";
-import { getCompanyHeader, drawLetterhead, jsPDF, autoTable } from "@/lib/reportPdf";
+import { getCompanyHeader, drawLetterhead, drawWatermark, jsPDF, autoTable } from "@/lib/reportPdf";
 
 function inWords(amount: number): string {
   const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine",
@@ -46,12 +46,7 @@ export default function FfsView() {
     const doc = new jsPDF();
 
     // Watermark drawn first so content renders on top
-    if (f.is_sandbox) {
-      doc.setFontSize(72);
-      doc.setTextColor(255, 218, 218);
-      doc.setFont("helvetica", "bold");
-      doc.text("SANDBOX", 105, 160, { align: "center", angle: 45 });
-    }
+    drawWatermark(doc, header.company_name, f.is_sandbox);
 
     doc.setTextColor(0, 0, 0);
     let y = drawLetterhead(doc, header, "FULL & FINAL SETTLEMENT");

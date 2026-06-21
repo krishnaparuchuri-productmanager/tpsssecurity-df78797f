@@ -53,4 +53,18 @@ export function drawLetterhead(doc: jsPDF, header: CompanyHeader, title: string)
   return y + 14;
 }
 
+export function drawWatermark(doc: jsPDF, companyName: string, isSandbox: boolean) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(52);
+  doc.setTextColor(237, 237, 237);
+  doc.text(companyName.toUpperCase(), pw / 2, ph / 2, { align: "center", angle: 45 });
+  if (isSandbox) {
+    doc.setFontSize(62);
+    doc.setTextColor(255, 218, 218);
+    doc.text("SANDBOX", pw / 2, ph / 2 + 30, { align: "center", angle: 45 });
+  }
+}
+
 export { jsPDF, autoTable };
