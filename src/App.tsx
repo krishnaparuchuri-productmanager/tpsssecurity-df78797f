@@ -73,6 +73,7 @@ import BranchSummary from "@/pages/app/admin/BranchSummary";
 import BranchesAdmin from "@/pages/app/masters/BranchesAdmin";
 import BankPayment from "@/pages/app/payroll/BankPayment";
 import Payslip from "@/pages/app/payroll/Payslip";
+import BankDisbursementReport from "@/pages/app/payroll/BankDisbursementReport";
 import TpssAccountsAdmin from "@/pages/app/admin/TpssAccountsAdmin";
 
 const queryClient = new QueryClient();
@@ -191,6 +192,7 @@ const App = () => (
                   <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops", "accountant"]} />}>
                     <Route path="payroll/bank-payment" element={<BankPayment />} />
                     <Route path="payroll/payslip" element={<Payslip />} />
+                    <Route path="payroll/bank-disbursement" element={<BankDisbursementReport />} />
                   </Route>
 
                   {/* Phase 3C — Reports */}
