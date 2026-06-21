@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,7 @@ interface Row { category: string; debit_amount: number; credit_amount: number }
 
 export default function MonthlySummary() {
   const { isSandbox } = useEnvironment();
+  const company = useCompanyProfile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -78,8 +81,10 @@ export default function MonthlySummary() {
       { Item: "Net Profit/(Loss)", Value: net },
     ];
 
+    const wsSummary = XLSX.utils.json_to_sheet(summary);
+    if (company) addExcelBranding(wsSummary, company);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), "Summary");
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(incomeRows), "Income");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expenseRows), "Expenses");
     XLSX.writeFile(wb, `MonthlySummary_${year}-${String(month).padStart(2,"0")}.xlsx`);

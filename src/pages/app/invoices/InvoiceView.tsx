@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CreditCard, Printer, Ban, RefreshCw } from "lucide-react";
+import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 import { formatINR, formatDate } from "@/lib/format";
@@ -43,6 +44,7 @@ export default function InvoiceView() {
     bank_ifsc: string | null; bank_name: string | null; iso_certification: string | null;
     invoice_location_code: string | null; jurisdiction: string | null;
     registered_address: string | null; phone: string | null; email: string | null;
+    logo_url: string | null;
   } | null>(null);
   const [showPay, setShowPay] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
@@ -156,13 +158,20 @@ export default function InvoiceView() {
 
       {/* Invoice card (printable) */}
       <div className="bg-white border-2 border-app-navy/30 rounded-lg p-6 print:border-black">
-        <div className="flex justify-between items-start border-b-2 pb-3">
-          <div>
-            <div className="text-xl font-bold text-app-navy">{company.company_name}</div>
-            <div className="text-xs">{company.iso_certification}</div>
-            <div className="text-xs">GSTIN: {company.gst_number ?? "—"}</div>
+        <div className="flex justify-between items-start border-b-2 pb-3 gap-4">
+          <div className="flex items-start gap-3">
+            {company.logo_url ? (
+              <img src={company.logo_url} alt="company logo" className="h-14 w-auto object-contain flex-shrink-0" />
+            ) : (
+              <img src={tpssLogo} alt="company logo" className="h-14 w-auto object-contain flex-shrink-0" />
+            )}
+            <div>
+              <div className="text-xl font-bold text-app-navy">{company.company_name}</div>
+              <div className="text-xs">{company.iso_certification}</div>
+              <div className="text-xs">GSTIN: {company.gst_number ?? "—"}</div>
+            </div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex-shrink-0">
             <div className="text-lg font-bold">TAX INVOICE</div>
             <div className="text-xs">GSTIN: {company.gst_number ?? "—"}</div>
           </div>

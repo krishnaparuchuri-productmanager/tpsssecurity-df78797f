@@ -10,6 +10,8 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { formatINR, formatDate } from "@/lib/format";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 interface Inv {
   id: string; invoice_number: string; invoice_date: string;
@@ -21,6 +23,7 @@ interface Inv {
 
 export default function GstReport() {
   const { isSandbox } = useEnvironment();
+  const company = useCompanyProfile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -58,7 +61,9 @@ export default function GstReport() {
       "Taxable Value": Number(i.total_taxable_value), "GST %": Number(i.gst_percentage),
       "GST Amount": Number(i.gst_amount), "Invoice Total": Number(i.total_invoice_value),
     }));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mkRows(fwd)), "GSTR-1");
+    const wsFwd = XLSX.utils.json_to_sheet(mkRows(fwd));
+    if (company) addExcelBranding(wsFwd, company);
+    XLSX.utils.book_append_sheet(wb, wsFwd, "GSTR-1");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(mkRows(rcm)), "RCM");
     XLSX.writeFile(wb, `GST_${year}-${String(month).padStart(2, "0")}.xlsx`);
   }

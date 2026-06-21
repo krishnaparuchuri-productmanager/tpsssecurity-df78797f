@@ -9,11 +9,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { downloadPaysheetExcel } from "@/lib/exportPaysheet";
 import { CancelDialog } from "@/components/CancelDialog";
 import { toast } from "sonner";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 
 export default function PaysheetView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { role } = useAuth();
+  const company = useCompanyProfile();
   const canExportExcel = role === "ceo_admin" || role === "coo_ops";
   const isCEO = role === "ceo_admin";
   const [showCancel, setShowCancel] = useState(false);
@@ -91,7 +94,7 @@ export default function PaysheetView() {
             <Printer className="h-4 w-4 mr-1" /> Print / PDF
           </Button>
           {canExportExcel && (
-            <Button variant="outline" onClick={() => downloadPaysheetExcel(head, emps)}>
+            <Button variant="outline" onClick={() => downloadPaysheetExcel(head, emps, company)}>
               <Download className="h-4 w-4 mr-1" /> Excel
             </Button>
           )}
@@ -130,6 +133,19 @@ export default function PaysheetView() {
           This paysheet replaces <Link to={`/app/payroll/${head.replaces_id}/view`} className="underline">a cancelled paysheet</Link>.
         </div>
       )}
+
+      <div className="bg-white border border-app-border rounded-lg p-4 flex items-start gap-4">
+        {company?.logo_url ? (
+          <img src={company.logo_url} alt="company logo" className="h-14 w-auto object-contain flex-shrink-0" />
+        ) : (
+          <img src={tpssLogo} alt="company logo" className="h-14 w-auto object-contain flex-shrink-0" />
+        )}
+        <div className="min-w-0">
+          <div className="text-base font-bold text-app-navy">{company?.company_name ?? ""}</div>
+          <div className="text-xs text-app-muted">{company?.registered_address ?? ""}</div>
+          <div className="text-xs text-app-muted">{company?.phone}{company?.phone && company?.email ? " | " : ""}{company?.email}</div>
+        </div>
+      </div>
 
       <div className="bg-white border border-app-border rounded-lg overflow-x-auto">
         <table className="w-full text-xs">

@@ -11,6 +11,8 @@ import * as XLSX from "xlsx";
 import { formatINR, formatDate } from "@/lib/format";
 import { activity } from "@/lib/activity";
 import { drawLetterhead, getCompanyHeader, jsPDF, autoTable } from "@/lib/reportPdf";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 interface InvoiceRow {
   id: string; invoice_number: string; month_date: string; billing_amount: number;
@@ -26,6 +28,7 @@ function fyDefault(): { from: string; to: string } {
 
 export default function ClientBillingHistory() {
   const def = fyDefault();
+  const company = useCompanyProfile();
   const [clientId, setClientId] = useState("");
   const [from, setFrom] = useState(def.from);
   const [to, setTo] = useState(def.to);
@@ -73,8 +76,10 @@ export default function ClientBillingHistory() {
       Deductions: Number(r.total_deductions), "Net Margin": Number(r.net_margin),
       Received: Number(r.amount_received), Outstanding: Number(r.outstanding_amount),
     }));
+    const wsBilling = XLSX.utils.json_to_sheet(data);
+    if (company) addExcelBranding(wsBilling, company);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Billing");
+    XLSX.utils.book_append_sheet(wb, wsBilling, "Billing");
     const fname = `${clientName || "Client"}_BillingHistory_${from}_to_${to}.xlsx`;
     XLSX.writeFile(wb, fname);
     activity.export(fname, "excel");

@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 interface PaysheetRow {
   id: string; month: string;
@@ -22,6 +24,7 @@ interface PaysheetRow {
 
 export default function EcrEsiGenerator() {
   const { isSandbox } = useEnvironment();
+  const company = useCompanyProfile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -76,7 +79,9 @@ export default function EcrEsiGenerator() {
         "Reason Code (numeric only)": "", "Last Working Day": "",
       }));
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "ESI");
+    const wsEsi = XLSX.utils.json_to_sheet(data);
+    if (company) addExcelBranding(wsEsi, company);
+    XLSX.utils.book_append_sheet(wb, wsEsi, "ESI");
     XLSX.writeFile(wb, `ESI_Challan_${year}-${String(month).padStart(2, "0")}.xlsx`);
   }
 

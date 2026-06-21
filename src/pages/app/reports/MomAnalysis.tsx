@@ -11,6 +11,8 @@ import { Download, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import * as XLSX from "xlsx";
 import { formatINR } from "@/lib/format";
 import { activity } from "@/lib/activity";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 const METRICS = [
   { value: "billing", label: "Billing" },
@@ -27,6 +29,7 @@ interface SeriesRow { month_label: string; month_start: string; value: number; }
 
 export default function MomAnalysis() {
   const { role } = useAuth();
+  const company = useCompanyProfile();
   const canExport = role === "ceo_admin" || role === "coo_ops";
   const [metric, setMetric] = useState("billing");
   const [branchId, setBranchId] = useState<string>("all");
@@ -68,8 +71,10 @@ export default function MomAnalysis() {
       Month: r.month_label, Value: r.value,
       "Change (₹)": r.change ?? "", "Change (%)": r.pct === null ? "" : `${r.pct.toFixed(1)}%`,
     }));
+    const wsMom = XLSX.utils.json_to_sheet(rows);
+    if (company) addExcelBranding(wsMom, company);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "MoM");
+    XLSX.utils.book_append_sheet(wb, wsMom, "MoM");
     const fname = `MoM_${metric}_${Date.now()}.xlsx`;
     XLSX.writeFile(wb, fname);
     activity.export(fname, "excel");

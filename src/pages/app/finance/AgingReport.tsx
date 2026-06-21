@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { formatINR } from "@/lib/format";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 interface Inv {
   id: string; invoice_number: string; invoice_date: string; due_date: string | null;
@@ -46,6 +48,7 @@ function bucketize(invs: Inv[], asOf: string): Row[] {
 
 export default function AgingReport() {
   const { isSandbox } = useEnvironment();
+  const company = useCompanyProfile();
   const [asOf, setAsOf] = useState(todayStr);
   const [invs, setInvs] = useState<Inv[]>([]);
 
@@ -70,8 +73,10 @@ export default function AgingReport() {
     }));
     data.push({ Client: "TOTAL", "Current": totals.current, "1-30 days": totals.b1_30, "31-60 days": totals.b31_60,
       "61-90 days": totals.b61_90, "90+ days": totals.b90_plus, "Total Outstanding": totals.total });
+    const ws = XLSX.utils.json_to_sheet(data);
+    if (company) addExcelBranding(ws, company);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Aging");
+    XLSX.utils.book_append_sheet(wb, ws, "Aging");
     XLSX.writeFile(wb, `Aging_${asOf}.xlsx`);
   }
 

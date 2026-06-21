@@ -13,6 +13,8 @@ import * as XLSX from "xlsx";
 import { formatINR, formatDate } from "@/lib/format";
 import { activity } from "@/lib/activity";
 import { drawLetterhead, getCompanyHeader, jsPDF, autoTable } from "@/lib/reportPdf";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 interface EmpOpt { id: string; full_name: string; employee_code: string; }
 interface PayrollRow { paysheet_id: string; month: string; client_id: string; client_name: string; no_of_duties: number; earned_wages: number; epf_employee_deduction: number; esi_employee_deduction: number; pt_deduction: number; advance_deduction: number; final_net_salary: number; }
@@ -27,6 +29,7 @@ function fyDefault() {
 }
 
 export default function EmployeeHistory() {
+  const company = useCompanyProfile();
   const def = fyDefault();
   const [employees, setEmployees] = useState<EmpOpt[]>([]);
   const [empId, setEmpId] = useState("");
@@ -106,11 +109,13 @@ export default function EmployeeHistory() {
 
   function exportExcel() {
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payroll.map((r) => ({
+    const wsPayroll = XLSX.utils.json_to_sheet(payroll.map((r) => ({
       Month: r.month, Client: r.client_name, Duties: r.no_of_duties,
       "Earned Wages": r.earned_wages, PF: r.epf_employee_deduction, ESI: r.esi_employee_deduction,
       PT: r.pt_deduction, "Advance Ded": r.advance_deduction, "Net Salary": r.final_net_salary,
-    }))), "Payroll");
+    })));
+    if (company) addExcelBranding(wsPayroll, company);
+    XLSX.utils.book_append_sheet(wb, wsPayroll, "Payroll");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(advances.map((r) => ({
       Date: r.advance_date, Type: r.advance_type, Amount: Number(r.total_amount),
       "Monthly Ded": Number(r.monthly_deduction), Remaining: Number(r.amount_remaining), Status: r.status,

@@ -10,6 +10,8 @@ import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { formatINR } from "@/lib/format";
 import { activity } from "@/lib/activity";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 const METRICS = ["billing", "received", "outstanding", "employees", "epf", "esi", "net_salary", "expenses"];
 const LABEL: Record<string, string> = {
@@ -24,6 +26,7 @@ function ymToFirstDay(ym: string): string {
 }
 
 export default function ComparativeAnalysis() {
+  const company = useCompanyProfile();
   const today = new Date();
   const thisMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const prev = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -87,8 +90,10 @@ export default function ComparativeAnalysis() {
         "% Change": p === null ? "" : `${p.toFixed(1)}%`,
       };
     });
+    const wsComp = XLSX.utils.json_to_sheet(out);
+    if (company) addExcelBranding(wsComp, company);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(out), "Comparative");
+    XLSX.utils.book_append_sheet(wb, wsComp, "Comparative");
     const fname = `Comparative_${monthA}_vs_${monthB}.xlsx`;
     XLSX.writeFile(wb, fname);
     activity.export(fname, "excel");

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 import {
   CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -72,6 +74,7 @@ interface Client { id: string; client_name: string }
 
 export default function MomReport() {
   const { isSandbox } = useEnvironment();
+  const company = useCompanyProfile();
   const [fromYM, setFromYM] = useState(ymToday(-11));
   const [toYM, setToYM] = useState(ymToday(0));
   const [metric, setMetric] = useState<Metric>("revenue");
@@ -220,6 +223,7 @@ export default function MomReport() {
       months.reduce((s, mm) => s + totals.income[mm] - totals.expense[mm], 0)]);
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
+    if (company) addExcelBranding(ws, company);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "MoM Analysis");
     XLSX.writeFile(wb, `MoM_${fromYM}_to_${toYM}.xlsx`);

@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { addExcelBranding, BrandingInfo } from "@/lib/excelBranding";
 
 interface Emp {
   employee_name: string; designation: string;
@@ -20,7 +21,7 @@ interface Head {
   clients: { client_name: string } | null;
 }
 
-export function downloadPaysheetExcel(head: Head, emps: Emp[]) {
+export function downloadPaysheetExcel(head: Head, emps: Emp[], company?: BrandingInfo | null) {
   const rows = emps.map((e, i) => ({
     "#": i + 1,
     Name: e.employee_name, Designation: e.designation,
@@ -39,6 +40,7 @@ export function downloadPaysheetExcel(head: Head, emps: Emp[]) {
     Advance: Number(e.advance_deduction), "Final Net": Number(e.final_net_salary),
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
+  if (company) addExcelBranding(ws, company);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Paysheet");
   XLSX.writeFile(wb, `${head.paysheet_number}_${(head.clients?.client_name ?? "").replace(/\W+/g, "_")}.xlsx`);

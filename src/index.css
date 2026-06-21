@@ -130,3 +130,18 @@
   background-color: hsl(var(--app-navy)) !important;
   color: #fff;
 }
+
+@media print {
+  [data-sidebar], aside, nav {
+    display: none !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  @page {
+    margin: 12mm;
+  }
+}

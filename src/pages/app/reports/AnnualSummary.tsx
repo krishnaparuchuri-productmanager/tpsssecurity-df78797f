@@ -8,6 +8,8 @@ import { Download, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 import { formatINR, formatDate } from "@/lib/format";
 import { activity } from "@/lib/activity";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 import { drawLetterhead, getCompanyHeader, jsPDF, autoTable } from "@/lib/reportPdf";
 
 function fyOptions() {
@@ -23,6 +25,7 @@ function fyOptions() {
 
 export default function AnnualSummary() {
   const opts = fyOptions();
+  const company = useCompanyProfile();
   const [fy, setFy] = useState(opts[0].value);
   const [branchId, setBranchId] = useState("all");
   const [branches, setBranches] = useState<{ id: string; branch_name: string }[]>([]);
@@ -65,12 +68,14 @@ export default function AnnualSummary() {
       const wb = XLSX.utils.book_new();
 
       // 1. Invoice register
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d.invoices.map((i) => ({
+      const wsInv = XLSX.utils.json_to_sheet(d.invoices.map((i) => ({
         "Invoice #": i.invoice_number, Month: i.month_date?.slice(0, 7) ?? "", Date: i.invoice_date, Client: i.clients?.client_name ?? "",
         Billing: Number(i.billing_amount), GST: Number(i.gst_amount), TDS: Number(i.tds_amount),
         "Invoice Value": Number(i.total_invoice_value), Received: Number(i.amount_received),
         Outstanding: Number(i.outstanding_amount), Status: i.status,
-      }))), "1. Invoice Register");
+      })));
+      if (company) addExcelBranding(wsInv, company);
+      XLSX.utils.book_append_sheet(wb, wsInv, "1. Invoice Register");
 
       // 2. Payment register (receipts table)
       const { data: rcpt } = await supabase

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
+import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 import { formatDate, formatINR } from "@/lib/format";
 
 export default function ReceiptView() {
@@ -15,7 +16,7 @@ export default function ReceiptView() {
     invoices: { invoice_number: string; outstanding_amount: number } | null;
   } | null>(null);
   const [company, setCompany] = useState<{ company_name: string; registered_address: string | null;
-    phone: string | null; email: string | null } | null>(null);
+    phone: string | null; email: string | null; logo_url: string | null } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -24,7 +25,7 @@ export default function ReceiptView() {
         supabase.from("payments")
           .select("receipt_number, payment_date, amount, payment_mode, reference_number, bank_name, clients(client_name), invoices(invoice_number, outstanding_amount)")
           .eq("id", id).maybeSingle(),
-        supabase.from("company_profile").select("company_name, registered_address, phone, email").maybeSingle(),
+        supabase.from("company_profile").select("company_name, registered_address, phone, email, logo_url").maybeSingle(),
       ]);
       setR(p as unknown as typeof r);
       setCompany(c as unknown as typeof company);
@@ -42,10 +43,17 @@ export default function ReceiptView() {
       </div>
 
       <div className="bg-white border-2 border-app-navy rounded-lg p-6">
-        <div className="text-center border-b-2 pb-2">
-          <div className="text-xl font-bold text-app-navy">{company.company_name}</div>
-          <div className="text-xs">{company.registered_address}</div>
-          <div className="text-xs">{company.phone} | {company.email}</div>
+        <div className="border-b-2 pb-2 flex items-center gap-3">
+          {company.logo_url ? (
+            <img src={company.logo_url} alt="company logo" className="h-12 w-auto object-contain flex-shrink-0" />
+          ) : (
+            <img src={tpssLogo} alt="company logo" className="h-12 w-auto object-contain flex-shrink-0" />
+          )}
+          <div className="text-center flex-1">
+            <div className="text-xl font-bold text-app-navy">{company.company_name}</div>
+            <div className="text-xs">{company.registered_address}</div>
+            <div className="text-xs">{company.phone} | {company.email}</div>
+          </div>
         </div>
         <h2 className="text-center text-lg font-bold mt-4">PAYMENT RECEIPT</h2>
         <hr className="my-2" />

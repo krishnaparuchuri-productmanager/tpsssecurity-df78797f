@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateCompanyProfileCache } from "@/hooks/useCompanyProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ interface ProfileForm {
   phone: string; email: string; website: string;
   pf_code: string; esi_code: string; bank_account_number: string; bank_ifsc: string; bank_name: string;
   iso_certification: string; invoice_location_code: string; jurisdiction: string;
+  logo_url: string;
 }
 
 const EMPTY: ProfileForm = {
@@ -31,6 +33,7 @@ const EMPTY: ProfileForm = {
   pf_code: "", esi_code: "", bank_account_number: "", bank_ifsc: "", bank_name: "",
   iso_certification: "ISO:9001:2015", invoice_location_code: "NLR",
   jurisdiction: "Subject to Nellore Jurisdiction",
+  logo_url: "",
 };
 
 export default function CompanyProfile() {
@@ -72,6 +75,7 @@ export default function CompanyProfile() {
           iso_certification: data.iso_certification ?? "ISO:9001:2015",
           invoice_location_code: data.invoice_location_code ?? "NLR",
           jurisdiction: data.jurisdiction ?? "Subject to Nellore Jurisdiction",
+          logo_url: data.logo_url ?? "",
         });
       }
       setLoading(false);
@@ -92,11 +96,13 @@ export default function CompanyProfile() {
       bank_account_number: form.bank_account_number || null,
       bank_ifsc: form.bank_ifsc || null,
       bank_name: form.bank_name || null,
+      logo_url: form.logo_url || null,
     };
     const { error } = await supabase.from("company_profile").update(payload).eq("id", id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     await logAudit({ action: "UPDATE", table: "company_profile", recordId: id, newValues: payload });
+    invalidateCompanyProfileCache();
     toast.success("Company profile updated");
   }
 
@@ -139,6 +145,12 @@ export default function CompanyProfile() {
         <Field label="Phone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
         <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
         <Field label="Website"><Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} /></Field>
+        <Field label="Logo URL (used in reports &amp; prints)" className="md:col-span-2">
+          <div className="flex items-center gap-3">
+            <Input placeholder="https://..." value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} className="flex-1" />
+            {form.logo_url && <img src={form.logo_url} alt="logo preview" className="h-10 w-auto object-contain border rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
+          </div>
+        </Field>
         <Field label="Registered Address" className="md:col-span-2">
           <Textarea rows={3} value={form.registered_address} onChange={(e) => setForm({ ...form, registered_address: e.target.value })} />
         </Field>

@@ -12,6 +12,8 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatINR, formatDate } from "@/lib/format";
+import { useCompanyProfile } from "@/hooks/useCompanyProfile";
+import { addExcelBranding } from "@/lib/excelBranding";
 
 interface Client { id: string; client_name: string; client_code: string; gst_number: string | null; address: string | null; }
 interface Invoice {
@@ -24,6 +26,7 @@ interface Line { date: string; particulars: string; ref: string; debit: number; 
 
 export default function StatementOfAccount() {
   const { isSandbox } = useEnvironment();
+  const company = useCompanyProfile();
   const today = new Date();
   const [clientId, setClientId] = useState("");
   const [from, setFrom] = useState(`${today.getFullYear()}-04-01`);
@@ -80,8 +83,10 @@ export default function StatementOfAccount() {
       Date: l.date, Particulars: l.particulars, Reference: l.ref,
       Debit: l.debit || "", Credit: l.credit || "", Balance: l.balance,
     }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    if (company) addExcelBranding(ws, company);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Statement");
+    XLSX.utils.book_append_sheet(wb, ws, "Statement");
     XLSX.writeFile(wb, `Statement_${client?.client_code ?? "client"}_${from}_to_${to}.xlsx`);
   }
 
