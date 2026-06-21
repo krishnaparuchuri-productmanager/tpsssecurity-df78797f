@@ -35,7 +35,7 @@ function emptyRow(designation = "ASO"): PaysheetEmpRow {
     working_days: 30, no_of_duties: 0, earned_wages: 0,
     epf_mw_wages: 0, epf_wages: 0, epf_employee_deduction: 0, epf_employer_contribution: 0,
     esi_wages: 0, esi_employee_deduction: 0, esi_employer_contribution: 0,
-    pt_deduction: 0, net_salary: 0, advance_deduction: 0, final_net_salary: 0,
+    pt_deduction: 0, net_salary: 0, advance_deduction: 0, uniform_advance_deduction: 0, final_net_salary: 0,
     is_new_joiner: false, ad_hoc: true,
   };
 }
@@ -57,6 +57,7 @@ export default function PaysheetCreate() {
   const [rows, setRows] = useState<PaysheetEmpRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [paysheetId, setPaysheetId] = useState<string | null>(null);
+  const [uniformBalances, setUniformBalances] = useState<Record<string, number>>({});
 
   const monthDate = `${year}-${String(monthIdx + 1).padStart(2, "0")}-01`;
   const monthLabel = `${MONTHS[monthIdx]}-${year}`;
@@ -120,11 +121,19 @@ export default function PaysheetCreate() {
         pt_deduction: Number(e.pt_deduction),
         net_salary: Number(e.net_salary),
         advance_deduction: Number(e.advance_deduction),
+        uniform_advance_deduction: Number(e.uniform_advance_deduction ?? 0),
         final_net_salary: Number(e.final_net_salary),
         is_new_joiner: !!e.is_new_joiner,
         ad_hoc: !e.employee_id,
       }));
       setRows(loaded);
+      const empIds = (emps ?? []).filter(e => e.employee_id).map(e => e.employee_id as string);
+      if (empIds.length > 0) {
+        const { data: balData } = await supabase.from("employees").select("id, uniform_advance_balance").in("id", empIds);
+        const balMap: Record<string, number> = {};
+        (balData ?? []).forEach((b: any) => { balMap[b.id] = Number(b.uniform_advance_balance ?? 0); });
+        setUniformBalances(balMap);
+      }
       setStep(2);
       if (ps.status === "rejected" && ps.rejection_reason) {
         toast.warning(`Previous rejection: ${ps.rejection_reason}`);
@@ -182,7 +191,7 @@ export default function PaysheetCreate() {
         epf_mw_wages: Number(cfg?.epf_mw_wages ?? 0),
         epf_wages: 0, epf_employee_deduction: 0, epf_employer_contribution: 0,
         esi_wages: 0, esi_employee_deduction: 0, esi_employer_contribution: 0,
-        pt_deduction: 0, net_salary: 0, advance_deduction: 0, final_net_salary: 0,
+        pt_deduction: 0, net_salary: 0, advance_deduction: 0, uniform_advance_deduction: 0, final_net_salary: 0,
         is_new_joiner: !!e.is_new_joiner,
         ad_hoc: false,
       };
@@ -197,6 +206,9 @@ export default function PaysheetCreate() {
       return recalcEmployee(base, flags);
     });
     setRows(newRows);
+    const balMap: Record<string, number> = {};
+    (emps ?? []).forEach(e => { balMap[e.id] = Number((e as any).uniform_advance_balance ?? 0); });
+    setUniformBalances(balMap);
     setStep(2);
   }
 
@@ -205,8 +217,15 @@ export default function PaysheetCreate() {
     const flags: ClientFlags = {
       pt_applicable: client?.pt_applicable ?? false,
       pf_applicable: client?.pf_applicable ?? true,
+      pf_calc_method: (client?.pf_calc_method ?? 'basic_da') as PfCalcMethod,
       esi_applicable: client?.esi_applicable ?? true,
+      esi_calc_method: (client?.esi_calc_method ?? 'basic_da') as EsiCalcMethod,
     };
+    if ('uniform_advance_deduction' in patch) {
+      const empId = rows[idx]?.employee_id;
+      const bal = empId ? (uniformBalances[empId] ?? 0) : 0;
+      patch = { ...patch, uniform_advance_deduction: Math.min(Number(patch.uniform_advance_deduction ?? 0), bal) };
+    }
     setRows((cur) => {
       const next = [...cur];
       const merged = { ...next[idx], ...patch, working_days: workingDays };
@@ -226,8 +245,9 @@ export default function PaysheetCreate() {
       pt: acc.pt + r.pt_deduction,
       net: acc.net + r.net_salary,
       adv: acc.adv + r.advance_deduction,
+      uniformAdv: acc.uniformAdv + (r.uniform_advance_deduction || 0),
       finalNet: acc.finalNet + r.final_net_salary,
-    }), { employees: 0, earned: 0, epfEmp: 0, epfEmpr: 0, esiEmp: 0, esiEmpr: 0, pt: 0, net: 0, adv: 0, finalNet: 0 });
+    }), { employees: 0, earned: 0, epfEmp: 0, epfEmpr: 0, esiEmp: 0, esiEmpr: 0, pt: 0, net: 0, adv: 0, uniformAdv: 0, finalNet: 0 });
   }
 
   function totalAnomalies() {
@@ -301,7 +321,7 @@ export default function PaysheetCreate() {
           esi_wages: r.esi_wages, esi_employee_deduction: r.esi_employee_deduction,
           esi_employer_contribution: r.esi_employer_contribution,
           pt_deduction: r.pt_deduction, net_salary: r.net_salary,
-          advance_deduction: r.advance_deduction, final_net_salary: r.final_net_salary,
+          advance_deduction: r.advance_deduction, uniform_advance_deduction: r.uniform_advance_deduction, final_net_salary: r.final_net_salary,
           is_new_joiner: r.is_new_joiner,
           anomaly_flags: computeAnomalies(r) as never,
           is_sandbox: isSandbox,
@@ -385,7 +405,7 @@ export default function PaysheetCreate() {
                   <th className="p-1">EPF Emp</th><th className="p-1">EPF Empr</th>
                   <th className="p-1">ESI Emp</th><th className="p-1">ESI Empr</th>
                   <th className="p-1">PT</th><th className="p-1">Net</th>
-                  <th className="p-1">Adv</th><th className="p-1">Final Net</th>
+                  <th className="p-1">Adv</th><th className="p-1">U.Adv</th><th className="p-1">Final Net</th>
                 </tr>
               </thead>
               <tbody>
@@ -431,6 +451,14 @@ export default function PaysheetCreate() {
                       <td className="p-1 tabular-nums">{r.pt_deduction}</td>
                       <td className="p-1 tabular-nums">{r.net_salary}</td>
                       <td className="p-1"><Input className="h-7 text-xs w-16" type="number" value={r.advance_deduction} onChange={(e) => updateRow(idx, { advance_deduction: Number(e.target.value) })} /></td>
+                      <td className="p-1">
+                        {r.employee_id && (uniformBalances[r.employee_id] ?? 0) > 0 ? (
+                          <div>
+                            <Input className="h-7 text-xs w-16" type="number" value={r.uniform_advance_deduction} max={uniformBalances[r.employee_id]} onChange={(e) => updateRow(idx, { uniform_advance_deduction: Number(e.target.value) })} />
+                            <div className="text-[9px] text-muted-foreground">Bal:{uniformBalances[r.employee_id]}</div>
+                          </div>
+                        ) : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
                       <td className="p-1 tabular-nums font-bold">{r.final_net_salary}</td>
                     </tr>
                   );
@@ -445,6 +473,7 @@ export default function PaysheetCreate() {
                   <td className="p-1 tabular-nums">{r2(t.pt)}</td>
                   <td className="p-1 tabular-nums">{r2(t.net)}</td>
                   <td className="p-1 tabular-nums">{r2(t.adv)}</td>
+                  <td className="p-1 tabular-nums">{r2(t.uniformAdv)}</td>
                   <td className="p-1 tabular-nums">{r2(t.finalNet)}</td>
                 </tr>
               </tbody>

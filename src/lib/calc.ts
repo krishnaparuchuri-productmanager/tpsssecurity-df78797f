@@ -34,6 +34,7 @@ export interface PaysheetEmpRow {
   pt_deduction: number;
   net_salary: number;
   advance_deduction: number;
+  uniform_advance_deduction: number;
   final_net_salary: number;
   is_new_joiner: boolean;
   ad_hoc?: boolean;
@@ -121,7 +122,7 @@ export function recalcEmployee(row: PaysheetEmpRow, flags: ClientFlags): Payshee
   }
 
   const net = r2(earned - epfEmp - esiEmp - pt_deduction);
-  const final_net = r2(net - (row.advance_deduction || 0));
+  const final_net = r2(net - (row.advance_deduction || 0) - (row.uniform_advance_deduction || 0));
 
   return {
     ...row,
