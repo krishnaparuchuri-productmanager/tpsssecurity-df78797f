@@ -62,7 +62,9 @@ export function recalcEmployee(row: PaysheetEmpRow, flags: ClientFlags): Payshee
     + (row.uniform_allowance || 0) + (row.spl_allowance || 0);
 
   const wd = row.working_days > 0 ? row.working_days : 30;
-  const earned = r2((payable / wd) * (row.no_of_duties || 0));
+  // Uniform allowance is retained by TPSS (provided as uniform in kind) — excluded from employee take-home
+  const payableForEmployee = payable - (row.uniform_allowance || 0);
+  const earned = r2((payableForEmployee / wd) * (row.no_of_duties || 0));
 
   const earnedBasicDa = r2(((row.basic + row.da) / wd) * (row.no_of_duties || 0));
 
