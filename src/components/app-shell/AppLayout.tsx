@@ -78,6 +78,7 @@ const NAV: NavGroup[] = [
       { to: "/app/payroll/list", label: "Monthly Paysheets", icon: FileText, screen: "payroll" },
       { to: "/app/payroll/approvals", label: "Approval Queue", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
       { to: "/app/payroll/bank-payment", label: "Bank Payment", icon: Wallet, roles: ["ceo_admin", "coo_ops", "accountant"] },
+      { to: "/app/payroll/payslip", label: "Payslips", icon: FileText, roles: ["ceo_admin", "coo_ops", "accountant"] },
     ],
   },
   {
