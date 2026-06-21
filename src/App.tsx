@@ -38,6 +38,7 @@ import MonthlySummary from "@/pages/app/finance/MonthlySummary";
 import AdvancesList from "@/pages/app/employees/AdvancesList";
 import AdvanceForm from "@/pages/app/employees/AdvanceForm";
 import AdvanceApprovals from "@/pages/app/employees/AdvanceApprovals";
+import UniformAdvanceConfirmations from "@/pages/app/employees/UniformAdvanceConfirmations";
 import EmployeeAdvances from "@/pages/app/employees/EmployeeAdvances";
 import FfsList from "@/pages/app/employees/FfsList";
 import FfsForm from "@/pages/app/employees/FfsForm";
@@ -140,6 +141,9 @@ const App = () => (
                   <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops"]} />}>
                     <Route path="employees/advances/approvals" element={<AdvanceApprovals />} />
                     <Route path="employees/ffs/approvals" element={<FfsApprovals />} />
+                  </Route>
+                  <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops", "accountant"]} />}>
+                    <Route path="employees/advances/uniform-confirm" element={<UniformAdvanceConfirmations />} />
                   </Route>
 
                   {/* Phase 3A — FFS */}

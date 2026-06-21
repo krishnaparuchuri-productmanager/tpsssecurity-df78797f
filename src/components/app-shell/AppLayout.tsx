@@ -18,7 +18,7 @@ import {
 import { NavLink } from "@/components/NavLink";
 import {
   LayoutDashboard, Users, Building2, Wallet, BarChart3, Receipt, ShieldCheck,
-  Settings, FileText, UserCog, History, Briefcase,
+  Settings, FileText, UserCog, History, Briefcase, CheckCircle2,
 } from "lucide-react";
 import TopBar from "./TopBar";
 import SandboxBanner from "./SandboxBanner";
@@ -66,6 +66,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: "/app/employees/advances/list", label: "Advances", icon: Wallet },
       { to: "/app/employees/advances/approvals", label: "Advance Approvals", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
+      { to: "/app/employees/advances/uniform-confirm", label: "Uniform Adv. Confirm", icon: CheckCircle2, roles: ["ceo_admin", "coo_ops", "accountant"] },
       { to: "/app/employees/ffs/list", label: "Full & Final", icon: FileText },
       { to: "/app/employees/ffs/approvals", label: "FFS Approvals", icon: ShieldCheck, roles: ["ceo_admin", "coo_ops"] },
     ],
