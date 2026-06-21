@@ -109,7 +109,7 @@ export function recalcEmployee(row: PaysheetEmpRow, flags: ClientFlags): Payshee
     }
     esiWages = esiBase;
     esiEmp = r2(esiWages * 0.0075);
-    esiEmpr = r2(esiWages * 0.035);
+    esiEmpr = r2(esiWages * 0.0325);
   }
 
   let pt_deduction = 0;
