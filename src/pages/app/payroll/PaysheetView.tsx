@@ -32,18 +32,25 @@ export default function PaysheetView() {
     id: string; employee_name: string; designation: string; uan_number: string | null; esi_number: string | null;
     earned_wages: number; epf_employee_deduction: number; esi_employee_deduction: number;
     pt_deduction: number; final_net_salary: number; no_of_duties: number; advance_deduction: number; uniform_advance_deduction: number; canteen_total: number;
+    amount_paid: number; payment_status: string;
+  }>>([]);
+  const [payHistory, setPayHistory] = useState<Array<{
+    id: string; employee_name: string; amount_in_batch: number; payment_identifier: string; created_at: string;
+    batch: { batch_number: string; debit_account_number: string | null; created_at: string } | null;
   }>>([]);
 
   async function load() {
     if (!id) return;
-    const [{ data: h }, { data: e }, { data: linked }] = await Promise.all([
+    const [{ data: h }, { data: e }, { data: linked }, { data: hist }] = await Promise.all([
       supabase.from("paysheets").select("id, paysheet_number, month, status, rejection_reason, total_employees, total_net_salary, cancelled_at, cancellation_reason, replaced_by_id, replaces_id, clients(client_name)").eq("id", id).maybeSingle(),
       supabase.from("paysheet_employees").select("*").eq("paysheet_id", id).order("employee_name"),
       supabase.from("invoices").select("id, invoice_number, status").eq("paysheet_id", id).eq("is_deleted", false).neq("status", "cancelled").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      (supabase as any).from("bank_payment_records").select("id, employee_name, amount_in_batch, payment_identifier, created_at, batch:bank_payment_batches(batch_number, debit_account_number, created_at)").eq("paysheet_id", id).order("created_at", { ascending: false }),
     ]);
     setHead(h as unknown as typeof head);
     setEmps((e ?? []) as unknown as typeof emps);
     setLinkedInvoice(linked as typeof linkedInvoice);
+    setPayHistory((hist ?? []) as unknown as typeof payHistory);
   }
   useEffect(() => { load(); }, [id]);
 
@@ -159,6 +166,7 @@ export default function PaysheetView() {
               <th className="p-1 text-right">EPF</th><th className="p-1 text-right">ESI</th>
               <th className="p-1 text-right">PT</th><th className="p-1 text-right">Adv</th>
               <th className="p-1 text-right">U.Adv</th><th className="p-1 text-right">Canteen</th><th className="p-1 text-right">Net</th>
+              <th className="p-1 text-right">Paid</th><th className="p-1 text-center">Pay Status</th>
             </tr>
           </thead>
           <tbody>
@@ -178,6 +186,16 @@ export default function PaysheetView() {
                 <td className="p-1 text-right tabular-nums">{formatINR(Number(e.uniform_advance_deduction))}</td>
                 <td className="p-1 text-right tabular-nums">{formatINR(Number(e.canteen_total))}</td>
                 <td className="p-1 text-right tabular-nums font-bold">{formatINR(Number(e.final_net_salary))}</td>
+                <td className="p-1 text-right tabular-nums">{Number(e.amount_paid) > 0 ? formatINR(Number(e.amount_paid)) : "—"}</td>
+                <td className="p-1 text-center">
+                  {e.payment_status === "paid" ? (
+                    <Badge variant="outline" className="text-[10px] border-green-400 text-green-700 bg-green-50">Paid</Badge>
+                  ) : e.payment_status === "partial" ? (
+                    <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700 bg-amber-50">Partial</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] border-gray-300 text-gray-500">Unpaid</Badge>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -185,10 +203,63 @@ export default function PaysheetView() {
             <tr>
               <td className="p-1" colSpan={13}>Total ({head.total_employees} employees)</td>
               <td className="p-1 text-right tabular-nums">{formatINR(Number(head.total_net_salary))}</td>
+              <td className="p-1 text-right tabular-nums">
+                {formatINR(emps.reduce((s, e) => s + Number(e.amount_paid ?? 0), 0))}
+              </td>
+              <td className="p-1"></td>
             </tr>
           </tfoot>
         </table>
       </div>
+
+      {payHistory.length > 0 && (
+        <div className="bg-white border border-app-border rounded-lg overflow-hidden print:hidden">
+          <div className="px-4 py-2.5 border-b border-app-border bg-app-surface flex items-center justify-between">
+            <div className="font-semibold text-app-navy text-sm">Payment History</div>
+            <div className="text-xs text-muted-foreground">
+              {payHistory.length} payment record{payHistory.length !== 1 ? "s" : ""}
+              {" · "}Total paid:{" "}
+              <span className="font-medium text-app-navy">
+                {formatINR(payHistory.reduce((s, r) => s + Number(r.amount_in_batch), 0))}
+              </span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-app-surface/50 text-left text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-1.5">Employee</th>
+                  <th className="px-3 py-1.5">Batch</th>
+                  <th className="px-3 py-1.5">Date</th>
+                  <th className="px-3 py-1.5">Debit Acct</th>
+                  <th className="px-3 py-1.5 text-center">Type</th>
+                  <th className="px-3 py-1.5 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payHistory.map((r) => (
+                  <tr key={r.id} className="border-t border-app-border">
+                    <td className="px-3 py-1.5 font-medium">{r.employee_name}</td>
+                    <td className="px-3 py-1.5 font-mono">{r.batch?.batch_number ?? "—"}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground">
+                      {formatDate(r.batch?.created_at ?? r.created_at)}
+                    </td>
+                    <td className="px-3 py-1.5 font-mono text-muted-foreground">
+                      {r.batch?.debit_account_number ?? "—"}
+                    </td>
+                    <td className="px-3 py-1.5 text-center">
+                      <Badge variant="outline" className="text-[10px]">{r.payment_identifier}</Badge>
+                    </td>
+                    <td className="px-3 py-1.5 text-right tabular-nums font-medium">
+                      {formatINR(Number(r.amount_in_batch))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <CancelDialog
         open={showCancel}

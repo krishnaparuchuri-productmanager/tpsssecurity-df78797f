@@ -359,18 +359,11 @@ function NewPaymentTab({ tpssAccounts }: { tpssAccounts: TpssAccount[] }) {
         .insert(recordsWithBatch);
       if (recErr) throw recErr;
 
-      for (const [peId, sel] of Object.entries(selections)) {
-        if (!sel.amount) continue;
-        const entry = empMap[peId];
-        if (!entry) continue;
-        const { emp } = entry;
-        const newPaid = emp.amount_paid + sel.amount;
-        const newStatus = newPaid >= emp.final_net_salary ? "paid" : "partial";
-        await (supabase as any)
-          .from("paysheet_employees")
-          .update({ amount_paid: newPaid, payment_status: newStatus })
-          .eq("id", peId);
-      }
+      // Atomic update of all employees in this batch
+      const { error: rpcErr } = await supabase.rpc("finalise_payment_batch" as any, {
+        _batch_id: batch.id,
+      });
+      if (rpcErr) throw rpcErr;
 
       localStorage.removeItem(draftKey(isSandbox, selectedMonthDate));
       setSelections({});
