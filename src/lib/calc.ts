@@ -39,12 +39,14 @@ export interface PaysheetEmpRow {
 }
 
 export type PfCalcMethod = 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot';
+export type EsiCalcMethod = 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot';
 
 export interface ClientFlags {
   pt_applicable: boolean;
   pf_applicable: boolean;
-  esi_applicable: boolean;
   pf_calc_method: PfCalcMethod;
+  esi_applicable: boolean;
+  esi_calc_method: EsiCalcMethod;
 }
 
 export function r2(n: number) {
@@ -87,10 +89,26 @@ export function recalcEmployee(row: PaysheetEmpRow, flags: ClientFlags): Payshee
   }
 
   let esiWages = 0, esiEmp = 0, esiEmpr = 0;
-  if (flags.esi_applicable) {
-    esiWages = earned <= 21000 ? earned : 0;
+  if (flags.esi_applicable && earned <= 21000) {
+    const duties = row.no_of_duties || 0;
+    let esiBase: number;
+    switch (flags.esi_calc_method) {
+      case 'basic_only':
+        esiBase = r2((row.basic / wd) * duties);
+        break;
+      case 'basic_da_half':
+        esiBase = r2(((row.basic + row.da) / 2 / wd) * duties);
+        break;
+      case 'basic_da_ot':
+        esiBase = r2(((row.basic + row.da + row.four_hour_ot) / wd) * duties);
+        break;
+      case 'basic_da':
+      default:
+        esiBase = earnedBasicDa;
+    }
+    esiWages = esiBase;
     esiEmp = r2(esiWages * 0.0075);
-    esiEmpr = r2(esiWages * 0.0325);
+    esiEmpr = r2(esiWages * 0.035);
   }
 
   let pt_deduction = 0;

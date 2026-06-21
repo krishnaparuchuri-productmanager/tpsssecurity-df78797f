@@ -90,6 +90,7 @@ export default function ClientForm() {
     pf_applicable: true,
     pf_calc_method: 'basic_da' as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
     esi_applicable: true,
+    esi_calc_method: 'basic_da' as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
     e_invoice_applicable: false,
     contact_person: "",
     contact_phone: "",
@@ -130,6 +131,7 @@ export default function ClientForm() {
           pf_applicable: c.pf_applicable !== false,
           pf_calc_method: (c.pf_calc_method ?? 'basic_da') as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
           esi_applicable: c.esi_applicable !== false,
+          esi_calc_method: (c.esi_calc_method ?? 'basic_da') as 'basic_only' | 'basic_da' | 'basic_da_half' | 'basic_da_ot',
           e_invoice_applicable: !!c.e_invoice_applicable,
           contact_person: c.contact_person ?? "",
           contact_phone: c.contact_phone ?? "",
@@ -196,6 +198,7 @@ export default function ClientForm() {
         pf_applicable: form.pf_applicable,
         pf_calc_method: form.pf_calc_method,
         esi_applicable: form.esi_applicable,
+        esi_calc_method: form.esi_calc_method,
         e_invoice_applicable: form.e_invoice_applicable,
         contact_person: form.contact_person || null,
         contact_phone: form.contact_phone || null,
@@ -381,6 +384,19 @@ export default function ClientForm() {
               <span className="text-sm text-muted-foreground">{form.esi_applicable ? "Yes — ESI deducted" : "No — ESI not applicable"}</span>
             </div>
           </Field>
+          {form.esi_applicable && (
+            <Field label="ESI Calculation Method">
+              <Select value={form.esi_calc_method} onValueChange={(v) => setForm({ ...form, esi_calc_method: v as typeof form.esi_calc_method })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="basic_only">Basic ÷ days × duties</SelectItem>
+                  <SelectItem value="basic_da">(Basic + DA) ÷ days × duties</SelectItem>
+                  <SelectItem value="basic_da_half">((Basic + DA) ÷ 2) ÷ days × duties</SelectItem>
+                  <SelectItem value="basic_da_ot">(Basic + DA + OT) ÷ days × duties</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
           <Field label="E-Invoice Applicable">
             <div className="flex items-center gap-2 h-10">
               <Switch checked={form.e_invoice_applicable} onCheckedChange={(v) => setForm({ ...form, e_invoice_applicable: v })} />
