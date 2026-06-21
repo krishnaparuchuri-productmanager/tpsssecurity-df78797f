@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
-interface Emp { id: string; full_name: string; employee_code: string; max_advance_limit: number; current_advance_balance: number; client_id: string | null }
+interface Emp { id: string; full_name: string; employee_code: string; max_advance_limit: number; current_advance_balance: number; uniform_advance_balance: number; client_id: string | null }
 
 export default function AdvanceForm() {
   const navigate = useNavigate();
@@ -28,14 +28,14 @@ export default function AdvanceForm() {
 
   useEffect(() => {
     supabase.from("employees")
-      .select("id, full_name, employee_code, max_advance_limit, current_advance_balance, client_id")
+      .select("id, full_name, employee_code, max_advance_limit, current_advance_balance, uniform_advance_balance, client_id")
       .eq("status","Active").eq("is_sandbox",isSandbox).eq("is_deleted",false)
       .order("full_name")
       .then(({ data }) => setEmployees((data ?? []) as Emp[]));
   }, [isSandbox]);
 
   const selected = employees.find(e => e.id === employeeId);
-  const overLimit = selected && selected.max_advance_limit > 0 &&
+  const overLimit = advanceType !== 'uniform_advance' && selected && selected.max_advance_limit > 0 &&
     (Number(selected.current_advance_balance) + Number(totalAmount)) > Number(selected.max_advance_limit);
 
   async function submit() {
@@ -73,9 +73,14 @@ export default function AdvanceForm() {
                 <SelectTrigger><SelectValue placeholder="Select employee" /></SelectTrigger>
                 <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.id}>{e.employee_code} — {e.full_name}</SelectItem>)}</SelectContent>
               </Select>
-              {selected && (
+              {selected && advanceType !== 'uniform_advance' && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Limit: ₹{Number(selected.max_advance_limit||0).toLocaleString()} · Outstanding: ₹{Number(selected.current_advance_balance||0).toLocaleString()}
+                </p>
+              )}
+              {selected && advanceType === 'uniform_advance' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Uniform Advance Outstanding: ₹{Number(selected.uniform_advance_balance||0).toLocaleString()}
                 </p>
               )}
             </div>
@@ -86,6 +91,7 @@ export default function AdvanceForm() {
                 <SelectContent>
                   <SelectItem value="salary_advance">Salary Advance</SelectItem>
                   <SelectItem value="expense_advance">Expense Advance</SelectItem>
+                  <SelectItem value="uniform_advance">Uniform Advance</SelectItem>
                 </SelectContent>
               </Select>
             </div>

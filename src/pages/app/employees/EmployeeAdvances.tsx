@@ -17,7 +17,7 @@ export default function EmployeeAdvances() {
     if (!id) return;
     (async () => {
       const [{ data: e }, { data: a }, { data: s }] = await Promise.all([
-        supabase.from("employees").select("id, full_name, employee_code, max_advance_limit, current_advance_balance").eq("id", id).maybeSingle(),
+        supabase.from("employees").select("id, full_name, employee_code, max_advance_limit, current_advance_balance, uniform_advance_balance").eq("id", id).maybeSingle(),
         supabase.from("employee_advances").select("*").eq("employee_id", id).eq("is_deleted", false).order("created_at", { ascending: false }),
         supabase.from("advance_recovery_schedule").select("*, advance:employee_advances(advance_number)").eq("employee_id", id).eq("is_deleted", false).order("recovery_month"),
       ]);
@@ -35,7 +35,8 @@ export default function EmployeeAdvances() {
         <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
           <div><div className="text-xs text-muted-foreground">Code</div><div>{emp?.employee_code}</div></div>
           <div><div className="text-xs text-muted-foreground">Limit</div><div className="tabular-nums">{formatINR(emp?.max_advance_limit ?? 0)}</div></div>
-          <div><div className="text-xs text-muted-foreground">Outstanding</div><div className="tabular-nums font-bold text-app-navy">{formatINR(emp?.current_advance_balance ?? 0)}</div></div>
+          <div><div className="text-xs text-muted-foreground">Advance Outstanding</div><div className="tabular-nums font-bold text-app-navy">{formatINR(emp?.current_advance_balance ?? 0)}</div></div>
+          <div><div className="text-xs text-muted-foreground">Uniform Advance Outstanding</div><div className="tabular-nums font-bold text-app-navy">{formatINR(emp?.uniform_advance_balance ?? 0)}</div></div>
         </CardContent>
       </Card>
 
