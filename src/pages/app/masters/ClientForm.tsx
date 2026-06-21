@@ -100,6 +100,7 @@ export default function ClientForm() {
     address: "",
     is_active: true,
     notes: "",
+    canteen_enabled: false,
   });
   const [wages, setWages] = useState<WageRow[]>([{ ...emptyWage }]);
   const [lines, setLines] = useState<BillingLine[]>([{ ...emptyLine }]);
@@ -143,6 +144,7 @@ export default function ClientForm() {
           address: c.address ?? "",
           is_active: !!c.is_active,
           notes: c.notes ?? "",
+          canteen_enabled: !!c.canteen_enabled,
         });
       }
       if (wg && wg.length > 0) {
@@ -212,6 +214,7 @@ export default function ClientForm() {
         address: form.address || null,
         is_active: form.is_active,
         notes: form.notes || null,
+        canteen_enabled: form.canteen_enabled,
         is_sandbox: isSandbox,
       };
 
@@ -374,6 +377,12 @@ export default function ClientForm() {
             <div className="flex items-center gap-2 h-10">
               <Switch checked={form.pt_applicable} onCheckedChange={(v) => setForm({ ...form, pt_applicable: v })} />
               <span className="text-sm text-muted-foreground">{form.pt_applicable ? "Yes" : "No"}</span>
+            </div>
+          </Field>
+          <Field label="Canteen Facility Enabled">
+            <div className="flex items-center gap-2 h-10">
+              <Switch checked={form.canteen_enabled} onCheckedChange={(v) => setForm({ ...form, canteen_enabled: v })} />
+              <span className="text-sm text-muted-foreground">{form.canteen_enabled ? "Yes — canteen deduction shown in FnF" : "No"}</span>
             </div>
           </Field>
           <Field label="PF Applicable">

@@ -6,7 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download } from "lucide-react";
 import { formatINR, formatDate } from "@/lib/format";
-import jsPDF from "jspdf";
+import { getCompanyHeader, drawLetterhead, jsPDF, autoTable } from "@/lib/reportPdf";
+
+function inWords(amount: number): string {
+  const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine",
+    "Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+  const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  function two(n: number): string {
+    return n < 20 ? ones[n] : (tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "")).trim();
+  }
+  function three(n: number): string {
+    return n >= 100 ? ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + two(n % 100) : "") : two(n);
+  }
+  function convert(n: number): string {
+    if (n === 0) return "";
+    if (n >= 10000000) return three(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + convert(n % 10000000) : "");
+    if (n >= 100000) return three(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + convert(n % 100000) : "");
+    if (n >= 1000) return three(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + three(n % 1000) : "");
+    return three(n);
+  }
+  const n = Math.round(Math.abs(amount));
+  return (amount < 0 ? "Negative " : "") + "Rupees " + (convert(n) || "Zero") + " Only";
+}
 
 export default function FfsView() {
   const { id } = useParams();
@@ -15,42 +36,123 @@ export default function FfsView() {
   useEffect(() => {
     if (!id) return;
     supabase.from("employee_ffs")
-      .select("*, employee:employees(full_name, employee_code, designation, date_of_joining), client:clients(client_name)")
+      .select("*, employee:employees(full_name, employee_code, designation, date_of_joining), client:clients(client_name, canteen_enabled)")
       .eq("id", id).maybeSingle().then(({ data }) => setF(data));
   }, [id]);
 
-  function download() {
+  async function download() {
     if (!f) return;
+    const header = await getCompanyHeader();
     const doc = new jsPDF();
-    let y = 20;
-    doc.setFontSize(16); doc.text("FULL & FINAL SETTLEMENT", 105, y, { align: "center" }); y += 8;
-    doc.setFontSize(10); doc.text("Trinetra Professional Security Services", 105, y, { align: "center" }); y += 12;
-    doc.setFontSize(11);
-    doc.text(`FFS No: ${f.ffs_number}`, 14, y); doc.text(`Date: ${formatDate(f.relieving_date)}`, 140, y); y += 7;
-    doc.text(`Employee: ${f.employee?.full_name} (${f.employee?.employee_code})`, 14, y); y += 6;
-    doc.text(`Client: ${f.client?.client_name ?? "—"}`, 14, y); y += 6;
-    doc.text(`Reason: ${f.reason_for_leaving}`, 14, y); y += 10;
 
-    doc.setFont(undefined, "bold"); doc.text("EARNINGS", 14, y); doc.setFont(undefined, "normal"); y += 6;
-    [["Earned Wages Pending", f.earned_wages_pending],
-     ["Leave Encashment", f.leave_encashment_amount],
-     ["Bonus", f.bonus_amount],
-     ["Gratuity", f.gratuity_amount ?? 0]].forEach(([l,v]) => {
-      doc.text(String(l), 20, y); doc.text(formatINR(Number(v)), 180, y, { align: "right" }); y += 5;
+    // Watermark drawn first so content renders on top
+    if (f.is_sandbox) {
+      doc.setFontSize(72);
+      doc.setTextColor(255, 218, 218);
+      doc.setFont("helvetica", "bold");
+      doc.text("SANDBOX", 105, 160, { align: "center", angle: 45 });
+    }
+
+    doc.setTextColor(0, 0, 0);
+    let y = drawLetterhead(doc, header, "FULL & FINAL SETTLEMENT");
+
+    // Header details block
+    y += 4;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(60);
+    doc.text(`FFS No: ${f.ffs_number}`, 14, y);
+    doc.text(`Date: ${formatDate(f.relieving_date)}`, 105, y);
+    doc.text(`Status: ${(f.status ?? "").toUpperCase()}`, 162, y);
+    y += 6;
+    doc.text(`Employee: ${f.employee?.full_name} (${f.employee?.employee_code})`, 14, y);
+    y += 5;
+    doc.text(`Designation: ${f.employee?.designation ?? "—"}`, 14, y);
+    doc.text(`DOJ: ${formatDate(f.employee?.date_of_joining)}`, 105, y);
+    y += 5;
+    doc.text(`Client: ${f.client?.client_name ?? "—"}`, 14, y);
+    doc.text(`Reason: ${f.reason_for_leaving}`, 105, y);
+    y += 5;
+    doc.text(`Relieving Date: ${formatDate(f.relieving_date)}`, 14, y);
+    doc.text(`Last Working Day: ${formatDate(f.last_working_day)}`, 105, y);
+    y += 5;
+    doc.setDrawColor(200); doc.setLineWidth(0.3); doc.line(14, y, 196, y);
+    y += 4;
+
+    // Earnings table
+    const earningsRows: [string, string][] = [
+      ["Earned Wages Pending", formatINR(f.earned_wages_pending)],
+      ["Leave Encashment", formatINR(f.leave_encashment_amount)],
+      ["Bonus", formatINR(f.bonus_amount)],
+    ];
+    if (Number(f.gratuity_amount) > 0) {
+      earningsRows.push([`Gratuity (${f.gratuity_years_of_service} yrs service)`, formatINR(f.gratuity_amount)]);
+    }
+    earningsRows.push(["TOTAL EARNINGS", formatINR(f.total_earnings)]);
+
+    autoTable(doc, {
+      startY: y,
+      head: [["EARNINGS", "Amount (₹)"]],
+      body: earningsRows,
+      theme: "plain",
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [10, 22, 40], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+      columnStyles: { 0: { cellWidth: 130 }, 1: { halign: "right", cellWidth: 52 } },
+      didParseCell(data) {
+        if (data.section === "body" && data.row.index === earningsRows.length - 1) {
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [240, 240, 240];
+        }
+      },
+      margin: { left: 14, right: 14 },
     });
-    doc.setFont(undefined,"bold"); doc.text("Total Earnings", 20, y); doc.text(formatINR(f.total_earnings), 180, y, { align:"right"}); y += 10;
+    y = (doc as any).lastAutoTable.finalY + 6;
 
-    doc.text("DEDUCTIONS", 14, y); doc.setFont(undefined,"normal"); y += 6;
-    [["Advance Outstanding", f.advance_outstanding],
-     [f.other_deductions_label || "Other", f.other_deductions]].forEach(([l,v]) => {
-      doc.text(String(l), 20, y); doc.text(formatINR(Number(v)), 180, y, { align: "right" }); y += 5;
+    // Deductions table
+    const dedRows: [string, string][] = [
+      ["Advance Outstanding", formatINR(f.advance_outstanding)],
+    ];
+    if (Number(f.canteen_deduction) > 0) {
+      dedRows.push(["Canteen Dues", formatINR(f.canteen_deduction)]);
+    }
+    if (Number(f.other_deductions) > 0) {
+      dedRows.push([f.other_deductions_label || "Other Deductions", formatINR(f.other_deductions)]);
+    }
+    dedRows.push(["TOTAL DEDUCTIONS", formatINR(f.total_deductions_ffs)]);
+
+    autoTable(doc, {
+      startY: y,
+      head: [["DEDUCTIONS", "Amount (₹)"]],
+      body: dedRows,
+      theme: "plain",
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [140, 30, 30], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+      columnStyles: { 0: { cellWidth: 130 }, 1: { halign: "right", cellWidth: 52 } },
+      didParseCell(data) {
+        if (data.section === "body" && data.row.index === dedRows.length - 1) {
+          data.cell.styles.fontStyle = "bold";
+          data.cell.styles.fillColor = [240, 240, 240];
+        }
+      },
+      margin: { left: 14, right: 14 },
     });
-    doc.setFont(undefined,"bold"); doc.text("Total Deductions", 20, y); doc.text(formatINR(f.total_deductions_ffs), 180, y, { align:"right"}); y += 10;
+    y = (doc as any).lastAutoTable.finalY + 5;
 
-    doc.setFontSize(13); doc.text(`NET PAYABLE: ${formatINR(f.net_payable)}`, 14, y); y += 20;
-    doc.setFontSize(10); doc.setFont(undefined,"normal");
+    // Net payable
+    doc.setDrawColor(10, 22, 40); doc.setLineWidth(0.6); doc.line(14, y, 196, y); y += 6;
+    doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(10, 22, 40);
+    doc.text("NET PAYABLE", 14, y);
+    doc.text(formatINR(f.net_payable), 196, y, { align: "right" });
+    y += 6;
+    doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.setTextColor(80);
+    doc.text(`Amount in words: ${inWords(f.net_payable)}`, 14, y);
+    y += 14;
+
+    // Signature lines
+    doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(0);
     doc.text("Employee Signature: _________________________", 14, y);
-    doc.text("Authorized Signatory: ______________________", 120, y);
+    doc.text("Authorized Signatory: ______________________", 116, y);
+
     doc.save(`${f.ffs_number}.pdf`);
   }
 
@@ -82,6 +184,9 @@ export default function FfsView() {
           <div className="flex justify-between border-t pt-1 font-semibold"><span>Total Earnings</span><span className="tabular-nums">{formatINR(f.total_earnings)}</span></div>
           <div className="font-semibold mt-3">Deductions</div>
           <div className="flex justify-between"><span>Advance Outstanding</span><span className="tabular-nums">{formatINR(f.advance_outstanding)}</span></div>
+          {Number(f.canteen_deduction) > 0 && (
+            <div className="flex justify-between"><span>Canteen Dues</span><span className="tabular-nums">{formatINR(f.canteen_deduction)}</span></div>
+          )}
           <div className="flex justify-between"><span>{f.other_deductions_label || "Other"}</span><span className="tabular-nums">{formatINR(f.other_deductions)}</span></div>
           <div className="flex justify-between border-t pt-1 font-semibold"><span>Total Deductions</span><span className="tabular-nums">{formatINR(f.total_deductions_ffs)}</span></div>
           <div className="flex justify-between border-t pt-2 text-base font-bold text-app-navy"><span>Net Payable</span><span className="tabular-nums">{formatINR(f.net_payable)}</span></div>

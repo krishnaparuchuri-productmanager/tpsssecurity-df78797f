@@ -32,6 +32,8 @@ export default function FfsForm() {
   const [gratuityBasic, setGratuityBasic] = useState(0);
   const [otherDed, setOtherDed] = useState(0);
   const [otherLabel, setOtherLabel] = useState("");
+  const [canteenDed, setCanteenDed] = useState(0);
+  const [clientCanteenEnabled, setClientCanteenEnabled] = useState(false);
   const [calc, setCalc] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
@@ -49,6 +51,14 @@ export default function FfsForm() {
   }, [employeeId, employees]);
 
   useEffect(() => {
+    if (!employeeId) { setClientCanteenEnabled(false); return; }
+    const emp = employees.find(x => x.id === employeeId);
+    if (!emp?.client_id) { setClientCanteenEnabled(false); return; }
+    supabase.from("clients").select("canteen_enabled").eq("id", emp.client_id).maybeSingle()
+      .then(({ data }) => setClientCanteenEnabled(!!(data as any)?.canteen_enabled));
+  }, [employeeId, employees]);
+
+  useEffect(() => {
     if (!employeeId) { setCalc(null); return; }
     const t = setTimeout(async () => {
       const { data } = await supabase.rpc("compute_ffs", { _payload: {
@@ -56,11 +66,12 @@ export default function FfsForm() {
         earned_wages_pending: earned, leave_encashment_amount: leaveAmount,
         bonus_amount: bonus, gratuity_applicable: gratuityApply,
         gratuity_basic: gratuityBasic, other_deductions: otherDed,
+        canteen_deduction: canteenDed,
       } as any });
       setCalc(data);
     }, 250);
     return () => clearTimeout(t);
-  }, [employeeId, relievingDate, earned, leaveAmount, bonus, gratuityApply, gratuityBasic, otherDed]);
+  }, [employeeId, relievingDate, earned, leaveAmount, bonus, gratuityApply, gratuityBasic, otherDed, canteenDed]);
 
   async function save(submit: boolean) {
     if (!employeeId || !reason) { toast.error("Fill required fields"); return; }
@@ -72,6 +83,7 @@ export default function FfsForm() {
       leave_encashment_amount: leaveAmount, bonus_amount: bonus,
       gratuity_applicable: gratuityApply, gratuity_basic: gratuityBasic,
       other_deductions: otherDed, other_deductions_label: otherLabel,
+      canteen_deduction: canteenDed,
       status: submit ? "submitted" : "draft",
     } as any });
     setSaving(false);
@@ -120,6 +132,9 @@ export default function FfsForm() {
             <div><Label>Leave Encashment Amount</Label><Input type="number" value={leaveAmount} onChange={e=>setLeaveAmount(Number(e.target.value))} /></div>
             <div><Label>Other Deductions</Label><Input type="number" value={otherDed} onChange={e=>setOtherDed(Number(e.target.value))} /></div>
             <div><Label>Other Deduction Label</Label><Input value={otherLabel} onChange={e=>setOtherLabel(e.target.value)} /></div>
+            {clientCanteenEnabled && (
+              <div><Label>Canteen Dues (exit month)</Label><Input type="number" value={canteenDed} onChange={e=>setCanteenDed(Number(e.target.value))} /></div>
+            )}
           </div>
           <Card className="bg-app-surface">
             <CardContent className="p-3 space-y-2 text-sm">
@@ -149,6 +164,9 @@ export default function FfsForm() {
             <div className="flex justify-between border-t pt-1 font-semibold"><span>Total Earnings</span><span className="tabular-nums">{formatINR(calc.total_earnings)}</span></div>
             <div className="font-semibold text-app-navy mt-3">DEDUCTIONS</div>
             <div className="flex justify-between"><span>Advance Outstanding</span><span className="tabular-nums">{formatINR(calc.advance_outstanding)}</span></div>
+            {clientCanteenEnabled && canteenDed > 0 && (
+              <div className="flex justify-between"><span>Canteen Dues</span><span className="tabular-nums">{formatINR(canteenDed)}</span></div>
+            )}
             <div className="flex justify-between"><span>Other</span><span className="tabular-nums">{formatINR(otherDed)}</span></div>
             <div className="flex justify-between border-t pt-1 font-semibold"><span>Total Deductions</span><span className="tabular-nums">{formatINR(calc.total_deductions_ffs)}</span></div>
             <div className="flex justify-between border-t pt-2 font-bold text-base text-app-navy"><span>NET PAYABLE</span><span className="tabular-nums">{formatINR(calc.net_payable)}</span></div>
