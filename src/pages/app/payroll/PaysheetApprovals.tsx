@@ -13,7 +13,7 @@ import { formatINR } from "@/lib/format";
 
 export default function PaysheetApprovals() {
   const { isSandbox } = useEnvironment();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [rows, setRows] = useState<Array<{
     id: string; paysheet_number: string; month: string; submitted_by: string | null;
     total_employees: number; total_net_salary: number; anomaly_count: number;
@@ -32,7 +32,7 @@ export default function PaysheetApprovals() {
   useEffect(() => { load(); }, [isSandbox]);
 
   async function approve(id: string, submittedBy: string | null) {
-    if (submittedBy && submittedBy === user?.id) {
+    if (submittedBy && submittedBy === user?.id && role !== "ceo_admin") {
       toast.error("Cannot approve your own submission");
       return;
     }
