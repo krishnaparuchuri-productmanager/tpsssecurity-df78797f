@@ -90,7 +90,7 @@ export default function FfsView() {
       head: [["EARNINGS", "Amount (Rs.)"]],
       body: earningsRows,
       theme: "plain",
-      styles: { fontSize: 9, cellPadding: 2 },
+      styles: { fontSize: 9, cellPadding: 2, fillColor: [255, 255, 255] },
       headStyles: { fillColor: [10, 22, 40], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
       columnStyles: { 0: { cellWidth: 130 }, 1: { halign: "right", cellWidth: 52 } },
       didParseCell(data) {
@@ -120,7 +120,7 @@ export default function FfsView() {
       head: [["DEDUCTIONS", "Amount (Rs.)"]],
       body: dedRows,
       theme: "plain",
-      styles: { fontSize: 9, cellPadding: 2 },
+      styles: { fontSize: 9, cellPadding: 2, fillColor: [255, 255, 255] },
       headStyles: { fillColor: [140, 30, 30], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
       columnStyles: { 0: { cellWidth: 130 }, 1: { halign: "right", cellWidth: 52 } },
       didParseCell(data) {

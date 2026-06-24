@@ -140,20 +140,23 @@ function generateSlipOnPage(
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  // Watermark — drawn first so content renders on top
+  // Watermark — drawn first, with real transparency, so content renders opaquely on top
+  doc.saveGraphicsState();
+  doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(50);
-  doc.setTextColor(237, 237, 237);
+  doc.setTextColor(120, 120, 120);
   doc.text(
-    (header.company_name || "TPSS").toUpperCase(),
+    (header.company_name || "TPSS").replace(/\s+/g, "").toUpperCase(),
     pageW / 2, pageH / 2,
     { align: "center", angle: 45 },
   );
   if (isSandbox) {
     doc.setFontSize(60);
-    doc.setTextColor(255, 218, 218);
+    doc.setTextColor(200, 0, 0);
     doc.text("SANDBOX", pageW / 2, pageH / 2 + 30, { align: "center", angle: 45 });
   }
+  doc.restoreGraphicsState();
 
   // Header
   let y = drawPayslipLetterhead(doc, header, logoBase64, ps.month);
