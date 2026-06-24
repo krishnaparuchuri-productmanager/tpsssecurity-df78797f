@@ -45,9 +45,6 @@ export default function FfsView() {
     const header = await getCompanyHeader();
     const doc = new jsPDF();
 
-    // Watermark drawn first so content renders on top
-    drawWatermark(doc, header.company_name, f.is_sandbox);
-
     doc.setTextColor(0, 0, 0);
     let y = drawLetterhead(doc, header, "FULL & FINAL SETTLEMENT");
 
@@ -147,6 +144,9 @@ export default function FfsView() {
     doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(0);
     doc.text("Employee Signature: _________________________", 14, y);
     doc.text("Authorized Signatory: ______________________", 116, y);
+
+    // Watermark drawn last so it overlays on top of tables, signature lines, etc.
+    drawWatermark(doc, header.company_name, f.is_sandbox);
 
     doc.save(`${f.ffs_number}.pdf`);
   }

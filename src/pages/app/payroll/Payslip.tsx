@@ -140,24 +140,6 @@ function generateSlipOnPage(
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  // Watermark — drawn first, with real transparency, so content renders opaquely on top
-  doc.saveGraphicsState();
-  doc.setGState(new (doc as any).GState({ opacity: 0.18 }));
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(48);
-  doc.setTextColor(90, 90, 90);
-  doc.text(
-    "TPSSSECURITY",
-    pageW / 2, pageH / 2,
-    { align: "center", angle: 45 },
-  );
-  if (isSandbox) {
-    doc.setFontSize(40);
-    doc.setTextColor(200, 0, 0);
-    doc.text("SANDBOX", pageW / 2, pageH / 2 + 25, { align: "center", angle: 45 });
-  }
-  doc.restoreGraphicsState();
-
   // Header
   let y = drawPayslipLetterhead(doc, header, logoBase64, ps.month);
 
@@ -305,6 +287,24 @@ function generateSlipOnPage(
     Math.min(y, pageH - 10),
     { align: "center" },
   );
+
+  // Watermark — drawn last, on top of all content, with very low opacity
+  doc.saveGraphicsState();
+  doc.setGState(new (doc as any).GState({ opacity: 0.06 }));
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(48);
+  doc.setTextColor(90, 90, 90);
+  doc.text(
+    "TPSSSECURITY",
+    pageW / 2, pageH / 2,
+    { align: "center", angle: 45 },
+  );
+  if (isSandbox) {
+    doc.setFontSize(40);
+    doc.setTextColor(200, 0, 0);
+    doc.text("SANDBOX", pageW / 2, pageH / 2 + 25, { align: "center", angle: 45 });
+  }
+  doc.restoreGraphicsState();
 }
 
 export default function Payslip() {
