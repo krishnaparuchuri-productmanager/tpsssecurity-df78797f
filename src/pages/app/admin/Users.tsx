@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { UserPlus, Loader2 } from "lucide-react";
@@ -33,6 +37,9 @@ export default function UsersAdmin() {
   const [newRole, setNewRole] = useState<AppRole | "">("");
   const [newPhone, setNewPhone] = useState("");
 
+  const [pendingRoleChange, setPendingRoleChange] = useState<{ user: Row; newRole: AppRole } | null>(null);
+  const [savingRole, setSavingRole] = useState(false);
+
   async function load() {
     setRows(null);
     const [{ data: profiles }, { data: roles }] = await Promise.all([
@@ -44,12 +51,27 @@ export default function UsersAdmin() {
   }
   useEffect(() => { load(); }, []);
 
-  async function setRole(userId: string, role: AppRole) {
-    await supabase.from("user_roles").delete().eq("user_id", userId);
-    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Role updated");
-    load();
+  async function confirmRoleChange() {
+    if (!pendingRoleChange) return;
+    const { user: target, newRole } = pendingRoleChange;
+    setSavingRole(true);
+    try {
+      await supabase.from("user_roles").delete().eq("user_id", target.id);
+      const { error } = await supabase.from("user_roles").insert({ user_id: target.id, role: newRole });
+      if (error) throw error;
+      const { data: { user: actor } } = await supabase.auth.getUser();
+      await supabase.from("audit_logs").insert({
+        user_id: actor?.id, action: "ROLE_CHANGE", table_name: "user_roles", record_id: target.id,
+        old_values: { role: target.role }, new_values: { role: newRole },
+      });
+      toast.success("Role updated");
+      setPendingRoleChange(null);
+      load();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSavingRole(false);
+    }
   }
 
   async function toggleActive(userId: string, active: boolean) {
@@ -142,7 +164,7 @@ export default function UsersAdmin() {
                 <td className="py-2 px-3 font-medium">{r.full_name || "—"}</td>
                 <td className="py-2 px-3">{r.email}</td>
                 <td className="py-2 px-3">
-                  <Select value={r.role ?? ""} onValueChange={(v) => setRole(r.id, v as AppRole)} disabled={r.id === me?.id}>
+                  <Select value={r.role ?? ""} onValueChange={(v) => setPendingRoleChange({ user: r, newRole: v as AppRole })} disabled={r.id === me?.id}>
                     <SelectTrigger className="w-[180px]"><SelectValue placeholder="Assign role" /></SelectTrigger>
                     <SelectContent>
                       {(Object.keys(ROLE_LABELS) as AppRole[]).map((r2) => <SelectItem key={r2} value={r2}>{ROLE_LABELS[r2]}</SelectItem>)}
@@ -191,6 +213,27 @@ export default function UsersAdmin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!pendingRoleChange} onOpenChange={(open) => !open && setPendingRoleChange(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change role?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRoleChange && (
+                <>Change <strong>{pendingRoleChange.user.full_name || pendingRoleChange.user.email}</strong>'s role
+                  from <strong>{pendingRoleChange.user.role ? ROLE_LABELS[pendingRoleChange.user.role] : "no role"}</strong> to{" "}
+                  <strong>{ROLE_LABELS[pendingRoleChange.newRole]}</strong>? This takes effect immediately.</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={savingRole}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRoleChange} disabled={savingRole}>
+              {savingRole ? "Saving…" : "Confirm"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
