@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { getCompanyHeader, jsPDF, autoTable } from "@/lib/reportPdf";
 import type { CompanyHeader } from "@/lib/reportPdf";
 import { formatINRForPdf as formatINR } from "@/lib/format";
@@ -309,7 +308,6 @@ function generateSlipOnPage(
 
 export default function Payslip() {
   const { isSandbox } = useEnvironment();
-  const company = useCompanyProfile();
 
   const [paysheets, setPaysheets] = useState<any[]>([]);
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
@@ -402,24 +400,10 @@ export default function Payslip() {
 
       const header = await getCompanyHeader();
 
-      let logoBase64: string | null = null;
-      if (company?.logo_url) {
-        try {
-          const resp = await fetch(company.logo_url);
-          const blob = await resp.blob();
-          logoBase64 = await new Promise<string>((res, rej) => {
-            const reader = new FileReader();
-            reader.onload = () => res(reader.result as string);
-            reader.onerror = rej;
-            reader.readAsDataURL(blob);
-          });
-        } catch { /* proceed without logo */ }
-      }
-
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       emps.forEach((emp: any, idx: number) => {
         if (idx > 0) doc.addPage();
-        generateSlipOnPage(doc, emp, ps, header, logoBase64, isSandbox);
+        generateSlipOnPage(doc, emp, ps, header, header.logoBase64 ?? null, isSandbox);
       });
 
       const clientName = ((ps.clients as any)?.client_name ?? "Client").replace(/\s+/g, "_");
