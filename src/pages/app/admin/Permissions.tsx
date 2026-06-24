@@ -17,7 +17,7 @@ const LABELS: Record<Action, string> = {
 };
 
 const ROLE_LABELS: Record<string, string> = {
-  ceo_admin: "CEO / Admin", coo_ops: "COO / Operations", accountant: "Accountant",
+  ceo_admin: "CEO", coo_ops: "COO / Operations", accountant: "Accountant",
 };
 
 // UI-layer grouping only — no DB schema change. Unmapped screens fall into "Other".

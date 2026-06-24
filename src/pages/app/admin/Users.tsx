@@ -18,7 +18,7 @@ import { UserPlus, Loader2 } from "lucide-react";
 interface Row { id: string; full_name: string; email: string; is_active: boolean; is_removed: boolean; phone: string | null; last_login: string | null; role: AppRole | null; }
 
 const ROLE_LABELS: Record<AppRole, string> = {
-  ceo_admin: "CEO / Admin",
+  ceo_admin: "CEO",
   coo_ops: "COO / Operations",
   accountant: "Accountant",
 };
