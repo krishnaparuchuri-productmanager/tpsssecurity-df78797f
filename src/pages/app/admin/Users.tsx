@@ -1,16 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
+import { UserPlus, Loader2 } from "lucide-react";
 
 interface Row { id: string; full_name: string; email: string; is_active: boolean; last_login: string | null; role: AppRole | null; }
+
+const ROLE_LABELS: Record<AppRole, string> = {
+  ceo_admin: "CEO / Admin",
+  coo_ops: "COO / Operations",
+  accountant: "Accountant",
+};
 
 export default function UsersAdmin() {
   const { user: me } = useAuth();
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState<AppRole | "">("");
+  const [newPhone, setNewPhone] = useState("");
 
   async function load() {
     setRows(null);
@@ -38,26 +59,85 @@ export default function UsersAdmin() {
     load();
   }
 
+  async function createUser() {
+    if (!newName.trim() || !newEmail.trim() || !newRole) {
+      toast.error("Name, email, and role are required");
+      return;
+    }
+    setCreating(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: { full_name: newName.trim(), email: newEmail.trim(), role: newRole, phone: newPhone.trim() || undefined },
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Invite sent to ${newEmail.trim()}`);
+      setAddOpen(false);
+      setNewName(""); setNewEmail(""); setNewRole(""); setNewPhone("");
+      load();
+    } catch (e) {
+      toast.error((e as Error).message || "Failed to create user");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  const filtered = useMemo(() => {
+    if (!rows) return null;
+    return rows.filter((r) => {
+      if (search && !`${r.full_name} ${r.email}`.toLowerCase().includes(search.toLowerCase())) return false;
+      if (roleFilter !== "all" && r.role !== roleFilter) return false;
+      if (statusFilter !== "all" && (statusFilter === "active") !== r.is_active) return false;
+      return true;
+    });
+  }, [rows, search, roleFilter, statusFilter]);
+
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-app-navy">User Management</h1>
-        <p className="text-sm text-app-muted">
-          To create a new user: open <strong>Cloud → Users → Add User</strong>, then assign their role here.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-app-navy">User Management</h1>
+          <p className="text-sm text-app-muted">Invite new users and manage roles and access.</p>
+        </div>
+        <Button className="bg-app-navy hover:bg-app-navy/90" onClick={() => setAddOpen(true)}>
+          <UserPlus className="h-4 w-4 mr-2" /> Add User
+        </Button>
       </div>
+
+      <div className="flex flex-wrap gap-3 items-center">
+        <Input placeholder="Search by name or email…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filter by role" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="bg-white border border-app-border rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
           <thead><tr className="text-left border-b border-app-border text-app-muted">
             <th className="py-2 px-3">Name</th><th className="py-2 px-3">Email</th>
-            <th className="py-2 px-3">Role</th><th className="py-2 px-3">Status</th><th className="py-2 px-3">Actions</th>
+            <th className="py-2 px-3">Role</th><th className="py-2 px-3">Status</th>
+            <th className="py-2 px-3">Last Login</th><th className="py-2 px-3">Actions</th>
           </tr></thead>
           <tbody>
-            {rows === null ? Array.from({ length: 3 }).map((_, i) => (
-              <tr key={i}><td colSpan={5} className="p-2"><Skeleton className="h-8 w-full" /></td></tr>
-            )) : rows.length === 0 ? (
-              <tr><td colSpan={5} className="py-12 text-center text-muted-foreground">No users yet</td></tr>
-            ) : rows.map((r) => (
+            {filtered === null ? Array.from({ length: 3 }).map((_, i) => (
+              <tr key={i}><td colSpan={6} className="p-2"><Skeleton className="h-8 w-full" /></td></tr>
+            )) : filtered.length === 0 ? (
+              <tr><td colSpan={6} className="py-12 text-center text-muted-foreground">No users found</td></tr>
+            ) : filtered.map((r) => (
               <tr key={r.id} className="border-b border-app-border/60">
                 <td className="py-2 px-3 font-medium">{r.full_name || "—"}</td>
                 <td className="py-2 px-3">{r.email}</td>
@@ -65,15 +145,14 @@ export default function UsersAdmin() {
                   <Select value={r.role ?? ""} onValueChange={(v) => setRole(r.id, v as AppRole)} disabled={r.id === me?.id}>
                     <SelectTrigger className="w-[180px]"><SelectValue placeholder="Assign role" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ceo_admin">CEO / Admin</SelectItem>
-                      <SelectItem value="coo_ops">COO / Operations</SelectItem>
-                      <SelectItem value="accountant">Accountant</SelectItem>
+                      {(Object.keys(ROLE_LABELS) as AppRole[]).map((r2) => <SelectItem key={r2} value={r2}>{ROLE_LABELS[r2]}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </td>
                 <td className="py-2 px-3">
                   {r.is_active ? <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge> : <Badge variant="secondary">Inactive</Badge>}
                 </td>
+                <td className="py-2 px-3 text-xs text-muted-foreground">{r.last_login ? new Date(r.last_login).toLocaleString() : "—"}</td>
                 <td className="py-2 px-3">
                   <button className="text-xs text-app-saffron hover:underline disabled:opacity-50" disabled={r.id === me?.id}
                     onClick={() => toggleActive(r.id, r.is_active)}>
@@ -85,6 +164,33 @@ export default function UsersAdmin() {
           </tbody>
         </table>
       </div>
+
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add User</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Full Name *</Label><Input value={newName} onChange={(e) => setNewName(e.target.value)} /></div>
+            <div><Label>Email *</Label><Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} /></div>
+            <div>
+              <Label>Role *</Label>
+              <Select value={newRole} onValueChange={(v) => setNewRole(v as AppRole)}>
+                <SelectTrigger><SelectValue placeholder="Select role" /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div><Label>Phone (optional)</Label><Input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} /></div>
+            <p className="text-xs text-muted-foreground">An invite email will be sent to set their password. Their role is assigned immediately.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)} disabled={creating}>Cancel</Button>
+            <Button onClick={createUser} disabled={creating} className="bg-app-navy hover:bg-app-navy/90">
+              {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Send Invite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
