@@ -58,7 +58,7 @@ export function drawWatermark(doc: jsPDF, _companyName: string, isSandbox: boole
   const ph = doc.internal.pageSize.getHeight();
 
   doc.saveGraphicsState();
-  doc.setGState(new (doc as any).GState({ opacity: 0.06 }));
+  doc.setGState(new (doc as any).GState({ opacity: 0.15 }));
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(48);

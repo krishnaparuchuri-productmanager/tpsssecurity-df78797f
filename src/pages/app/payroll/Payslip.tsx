@@ -290,7 +290,7 @@ function generateSlipOnPage(
 
   // Watermark — drawn last, on top of all content, with very low opacity
   doc.saveGraphicsState();
-  doc.setGState(new (doc as any).GState({ opacity: 0.06 }));
+  doc.setGState(new (doc as any).GState({ opacity: 0.15 }));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(48);
   doc.setTextColor(90, 90, 90);
