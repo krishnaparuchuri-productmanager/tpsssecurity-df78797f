@@ -142,10 +142,10 @@ function generateSlipOnPage(
 
   // Watermark — drawn first, with real transparency, so content renders opaquely on top
   doc.saveGraphicsState();
-  doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+  doc.setGState(new (doc as any).GState({ opacity: 0.18 }));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(50);
-  doc.setTextColor(120, 120, 120);
+  doc.setTextColor(90, 90, 90);
   doc.text(
     (header.company_name || "TPSS").replace(/\s+/g, "").toUpperCase(),
     pageW / 2, pageH / 2,

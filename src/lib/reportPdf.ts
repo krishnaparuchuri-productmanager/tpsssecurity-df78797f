@@ -58,11 +58,11 @@ export function drawWatermark(doc: jsPDF, companyName: string, isSandbox: boolea
   const ph = doc.internal.pageSize.getHeight();
 
   doc.saveGraphicsState();
-  doc.setGState(new (doc as any).GState({ opacity: 0.08 }));
+  doc.setGState(new (doc as any).GState({ opacity: 0.18 }));
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(52);
-  doc.setTextColor(120, 120, 120);
+  doc.setTextColor(90, 90, 90);
   doc.text(companyName.replace(/\s+/g, "").toUpperCase(), pw / 2, ph / 2, { align: "center", angle: 45 });
   if (isSandbox) {
     doc.setFontSize(62);
