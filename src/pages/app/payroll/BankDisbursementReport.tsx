@@ -10,7 +10,7 @@ import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCompanyHeader, jsPDF, autoTable } from "@/lib/reportPdf";
 import type { CompanyHeader } from "@/lib/reportPdf";
-import { formatINR } from "@/lib/format";
+import { formatINRForPdf as formatINR } from "@/lib/format";
 import { FileText, Loader2, AlertCircle } from "lucide-react";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ function generatePDF(
 
   autoTable(doc, {
     startY: y,
-    head: [["#", "Employee Name", "Account Number", "IFSC", "Bank", "Net Salary (₹)", "Payment Reference", "Remarks"]],
+    head: [["#", "Employee Name", "Account Number", "IFSC", "Bank", "Net Salary (Rs.)", "Payment Reference", "Remarks"]],
     body: tableRows,
     theme: "striped",
     headStyles: { fillColor: [10, 22, 40] as [number,number,number], textColor: 255, fontSize: 7.5 },

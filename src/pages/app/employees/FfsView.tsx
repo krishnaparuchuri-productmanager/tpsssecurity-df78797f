@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download } from "lucide-react";
-import { formatINR, formatDate } from "@/lib/format";
+import { formatINR, formatINRForPdf, formatDate } from "@/lib/format";
 import { getCompanyHeader, drawLetterhead, drawWatermark, jsPDF, autoTable } from "@/lib/reportPdf";
 
 function inWords(amount: number): string {
@@ -76,18 +76,18 @@ export default function FfsView() {
 
     // Earnings table
     const earningsRows: [string, string][] = [
-      ["Earned Wages Pending", formatINR(f.earned_wages_pending)],
-      ["Leave Encashment", formatINR(f.leave_encashment_amount)],
-      ["Bonus", formatINR(f.bonus_amount)],
+      ["Earned Wages Pending", formatINRForPdf(f.earned_wages_pending)],
+      ["Leave Encashment", formatINRForPdf(f.leave_encashment_amount)],
+      ["Bonus", formatINRForPdf(f.bonus_amount)],
     ];
     if (Number(f.gratuity_amount) > 0) {
-      earningsRows.push([`Gratuity (${f.gratuity_years_of_service} yrs service)`, formatINR(f.gratuity_amount)]);
+      earningsRows.push([`Gratuity (${f.gratuity_years_of_service} yrs service)`, formatINRForPdf(f.gratuity_amount)]);
     }
-    earningsRows.push(["TOTAL EARNINGS", formatINR(f.total_earnings)]);
+    earningsRows.push(["TOTAL EARNINGS", formatINRForPdf(f.total_earnings)]);
 
     autoTable(doc, {
       startY: y,
-      head: [["EARNINGS", "Amount (₹)"]],
+      head: [["EARNINGS", "Amount (Rs.)"]],
       body: earningsRows,
       theme: "plain",
       styles: { fontSize: 9, cellPadding: 2 },
@@ -105,19 +105,19 @@ export default function FfsView() {
 
     // Deductions table
     const dedRows: [string, string][] = [
-      ["Advance Outstanding", formatINR(f.advance_outstanding)],
+      ["Advance Outstanding", formatINRForPdf(f.advance_outstanding)],
     ];
     if (Number(f.canteen_deduction) > 0) {
-      dedRows.push(["Canteen Dues", formatINR(f.canteen_deduction)]);
+      dedRows.push(["Canteen Dues", formatINRForPdf(f.canteen_deduction)]);
     }
     if (Number(f.other_deductions) > 0) {
-      dedRows.push([f.other_deductions_label || "Other Deductions", formatINR(f.other_deductions)]);
+      dedRows.push([f.other_deductions_label || "Other Deductions", formatINRForPdf(f.other_deductions)]);
     }
-    dedRows.push(["TOTAL DEDUCTIONS", formatINR(f.total_deductions_ffs)]);
+    dedRows.push(["TOTAL DEDUCTIONS", formatINRForPdf(f.total_deductions_ffs)]);
 
     autoTable(doc, {
       startY: y,
-      head: [["DEDUCTIONS", "Amount (₹)"]],
+      head: [["DEDUCTIONS", "Amount (Rs.)"]],
       body: dedRows,
       theme: "plain",
       styles: { fontSize: 9, cellPadding: 2 },
@@ -137,7 +137,7 @@ export default function FfsView() {
     doc.setDrawColor(10, 22, 40); doc.setLineWidth(0.6); doc.line(14, y, 196, y); y += 6;
     doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(10, 22, 40);
     doc.text("NET PAYABLE", 14, y);
-    doc.text(formatINR(f.net_payable), 196, y, { align: "right" });
+    doc.text(formatINRForPdf(f.net_payable), 196, y, { align: "right" });
     y += 6;
     doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.setTextColor(80);
     doc.text(`Amount in words: ${inWords(f.net_payable)}`, 14, y);

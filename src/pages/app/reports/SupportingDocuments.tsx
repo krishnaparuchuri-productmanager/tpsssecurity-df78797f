@@ -11,7 +11,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { getCompanyHeader, jsPDF, autoTable } from "@/lib/reportPdf";
 import type { CompanyHeader } from "@/lib/reportPdf";
-import { formatINR } from "@/lib/format";
+import { formatINRForPdf as formatINR } from "@/lib/format";
 import { FileText, Loader2 } from "lucide-react";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
-import { formatINR, formatDate } from "@/lib/format";
+import { formatINRForPdf as formatINR, formatDate } from "@/lib/format";
 import { activity } from "@/lib/activity";
 import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { addExcelBranding } from "@/lib/excelBranding";
@@ -177,7 +177,7 @@ export default function AnnualSummary() {
       const totalCompl = d.compliance.reduce((s, c) => s + Number(c.total_paid), 0);
 
       autoTable(doc, { startY: y + 2,
-        head: [["P&L Summary", "Amount (₹)"]],
+        head: [["P&L Summary", "Amount (Rs.)"]],
         body: [
           ["Total Billing", formatINR(totalBilling)],
           ["Total Received", formatINR(totalReceived)],

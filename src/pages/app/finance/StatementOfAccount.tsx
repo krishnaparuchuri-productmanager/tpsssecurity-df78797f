@@ -101,7 +101,7 @@ export default function StatementOfAccount() {
     if (client.gst_number) doc.text(`GST: ${client.gst_number}`, 14, 38);
     autoTable(doc, {
       startY: 44,
-      head: [["Date", "Particulars", "Ref", "Debit (₹)", "Credit (₹)", "Balance (₹)"]],
+      head: [["Date", "Particulars", "Ref", "Debit (Rs.)", "Credit (Rs.)", "Balance (Rs.)"]],
       body: lines.map((l) => [
         formatDate(l.date), l.particulars, l.ref,
         l.debit ? l.debit.toFixed(2) : "",
