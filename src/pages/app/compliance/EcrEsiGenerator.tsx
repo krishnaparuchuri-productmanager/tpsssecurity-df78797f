@@ -14,11 +14,11 @@ import { addExcelBranding } from "@/lib/excelBranding";
 
 interface PaysheetRow {
   id: string; month: string;
-  paysheet_lines: Array<{
+  paysheet_employees: Array<{
     employee_id: string; uan_number: string | null; esi_number: string | null;
-    employee_name: string; gross_wages: number; epf_wages: number; epf_employee: number;
-    epf_employer: number; eps_employer: number; esi_wages: number; esi_employee: number;
-    esi_employer: number; days_worked: number;
+    employee_name: string; payable_gross: number; epf_wages: number; epf_employee_deduction: number;
+    epf_employer_contribution: number; esi_wages: number; esi_employee_deduction: number;
+    esi_employer_contribution: number; working_days: number; is_deleted: boolean;
   }> | null;
 }
 
@@ -33,12 +33,12 @@ export default function EcrEsiGenerator() {
   useEffect(() => {
     const m = `${year}-${String(month).padStart(2, "0")}`;
     supabase.from("paysheets")
-      .select("id, month, paysheet_lines(employee_id, employee_name, uan_number, esi_number, gross_wages, epf_wages, epf_employee, epf_employer, eps_employer, esi_wages, esi_employee, esi_employer, days_worked)")
+      .select("id, month, paysheet_employees(employee_id, employee_name, uan_number, esi_number, payable_gross, epf_wages, epf_employee_deduction, epf_employer_contribution, esi_wages, esi_employee_deduction, esi_employer_contribution, working_days, is_deleted)")
       .eq("month", m).eq("is_sandbox", isSandbox).eq("is_deleted", false)
       .then(({ data }) => setPaysheets((data ?? []) as unknown as PaysheetRow[]));
   }, [year, month, isSandbox]);
 
-  const allLines = paysheets.flatMap((p) => p.paysheet_lines ?? []);
+  const allLines = paysheets.flatMap((p) => (p.paysheet_employees ?? []).filter((e) => !e.is_deleted));
 
   function downloadEcrText() {
     if (allLines.length === 0) return toast.error("No paysheet lines for this month");
@@ -51,12 +51,12 @@ export default function EcrEsiGenerator() {
         const epfWages = Math.round(Number(l.epf_wages));
         const epsWages = Math.min(epfWages, 15000);
         const edliWages = epsWages;
-        const epfEe = Math.round(Number(l.epf_employee));
-        const eps = Math.round(Number(l.eps_employer));
-        const epfErDiff = Math.max(0, Math.round(Number(l.epf_employer)) - eps);
-        const ncpDays = Math.max(0, 30 - Math.round(Number(l.days_worked)));
+        const epfEe = Math.round(Number(l.epf_employee_deduction));
+        const eps = Math.round(epsWages * 0.0833);
+        const epfErDiff = Math.max(0, Math.round(Number(l.epf_employer_contribution)) - eps);
+        const ncpDays = Math.max(0, 30 - Math.round(Number(l.working_days)));
         return [
-          l.uan_number, l.employee_name, Math.round(Number(l.gross_wages)),
+          l.uan_number, l.employee_name, Math.round(Number(l.payable_gross)),
           epfWages, epsWages, edliWages, epfEe, eps, epfErDiff, ncpDays, 0,
         ].join("#~#");
       });
@@ -74,7 +74,7 @@ export default function EcrEsiGenerator() {
       .filter((l) => (l.esi_number || "").trim().length > 0)
       .map((l) => ({
         "IP Number": l.esi_number, "IP Name": l.employee_name,
-        "No of Days": Math.round(Number(l.days_worked)),
+        "No of Days": Math.round(Number(l.working_days)),
         "Total Monthly Wages": Math.round(Number(l.esi_wages)),
         "Reason Code (numeric only)": "", "Last Working Day": "",
       }));
@@ -85,8 +85,8 @@ export default function EcrEsiGenerator() {
     XLSX.writeFile(wb, `ESI_Challan_${year}-${String(month).padStart(2, "0")}.xlsx`);
   }
 
-  const epfTotal = allLines.reduce((s, l) => s + Number(l.epf_employee) + Number(l.epf_employer), 0);
-  const esiTotal = allLines.reduce((s, l) => s + Number(l.esi_employee) + Number(l.esi_employer), 0);
+  const epfTotal = allLines.reduce((s, l) => s + Number(l.epf_employee_deduction) + Number(l.epf_employer_contribution), 0);
+  const esiTotal = allLines.reduce((s, l) => s + Number(l.esi_employee_deduction) + Number(l.esi_employer_contribution), 0);
 
   return (
     <div className="space-y-4">
