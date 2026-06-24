@@ -372,11 +372,11 @@ export default function Payslip() {
     (async () => {
       const { data } = await supabase
         .from("paysheet_employees")
-        .select("employee_id, employee_name")
+        .select("id, employee_name")
         .eq("paysheet_id", ps.id)
         .eq("is_deleted", false)
         .order("employee_name");
-      setEmpList((data ?? []).map((e: any) => ({ id: e.employee_id, name: e.employee_name })));
+      setEmpList((data ?? []).map((e: any) => ({ id: e.id, name: e.employee_name })));
       setSelEmp("all");
     })();
   }, [selMonth]);
@@ -394,7 +394,7 @@ export default function Payslip() {
         .eq("paysheet_id", ps.id)
         .eq("is_deleted", false)
         .order("employee_name");
-      if (selEmp !== "all") query = query.eq("employee_id", selEmp);
+      if (selEmp !== "all") query = query.eq("id", selEmp);
 
       const { data: emps, error } = await query;
       if (error) throw error;
