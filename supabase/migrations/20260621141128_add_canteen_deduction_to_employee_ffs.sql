@@ -1,0 +1,1 @@
+ALTER TABLE public.employee_ffs ADD COLUMN IF NOT EXISTS canteen_deduction NUMERIC(12,2) NOT NULL DEFAULT 0;

@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS canteen_enabled BOOLEAN NOT NULL DEFAULT false;

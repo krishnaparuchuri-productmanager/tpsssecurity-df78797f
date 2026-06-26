@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS public.cron_secrets (
+  name text PRIMARY KEY,
+  value text NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.cron_secrets ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cron_secrets FROM PUBLIC, anon, authenticated;
