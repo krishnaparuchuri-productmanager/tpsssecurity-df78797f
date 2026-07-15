@@ -318,10 +318,13 @@ export default function LeadForm() {
           )}
           <div>
             <Label>Assign To</Label>
-            <Select value={assignedTo} onValueChange={setAssignedTo}>
+            <Select
+              value={assignedTo || "__none__"}
+              onValueChange={(v) => setAssignedTo(v === "__none__" ? "" : v)}
+            >
               <SelectTrigger className="mt-1"><SelectValue placeholder="Unassigned" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+                <SelectItem value="__none__">Unassigned</SelectItem>
                 {users.map((u) => <SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>)}
               </SelectContent>
             </Select>
