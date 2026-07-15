@@ -18,7 +18,7 @@ import {
 import { NavLink } from "@/components/NavLink";
 import {
   LayoutDashboard, Users, Building2, Wallet, BarChart3, Receipt, ShieldCheck,
-  Settings, FileText, UserCog, History, Briefcase, CheckCircle2,
+  Settings, FileText, UserCog, History, Briefcase, CheckCircle2, Target,
 } from "lucide-react";
 import TopBar from "./TopBar";
 import SandboxBanner from "./SandboxBanner";
@@ -124,6 +124,14 @@ const NAV: NavGroup[] = [
       { to: "/app/compliance", label: "Compliance Calendar", icon: ShieldCheck, screen: "compliance" },
       { to: "/app/compliance/payments", label: "Payments", icon: Wallet },
       { to: "/app/compliance/ecr", label: "ECR / ESI Challan", icon: FileText },
+    ],
+  },
+  {
+    label: "CRM",
+    items: [
+      { to: "/app/crm/dashboard", label: "CRM Dashboard", icon: Target, screen: "crm_dashboard" },
+      { to: "/app/crm/leads",     label: "Leads Pipeline", icon: Briefcase, screen: "crm_leads" },
+      { to: "/app/crm/leads/new", label: "New Lead",       icon: Target, screen: "crm_leads" },
     ],
   },
   {

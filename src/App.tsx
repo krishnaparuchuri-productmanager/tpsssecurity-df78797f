@@ -76,6 +76,10 @@ import Payslip from "@/pages/app/payroll/Payslip";
 import BankDisbursementReport from "@/pages/app/payroll/BankDisbursementReport";
 import SupportingDocuments from "@/pages/app/reports/SupportingDocuments";
 import TpssAccountsAdmin from "@/pages/app/admin/TpssAccountsAdmin";
+import CrmDashboard from "@/pages/app/crm/CrmDashboard";
+import LeadsList from "@/pages/app/crm/LeadsList";
+import LeadForm from "@/pages/app/crm/LeadForm";
+import LeadDetail from "@/pages/app/crm/LeadDetail";
 
 const queryClient = new QueryClient();
 
@@ -206,6 +210,13 @@ const App = () => (
                   <Route element={<ProtectedRoute requireRoles={["ceo_admin", "coo_ops", "accountant"]} />}>
                     <Route path="reports/supporting-documents" element={<SupportingDocuments />} />
                   </Route>
+
+                  {/* CRM */}
+                  <Route path="crm/dashboard" element={<CrmDashboard />} />
+                  <Route path="crm/leads" element={<LeadsList />} />
+                  <Route path="crm/leads/new" element={<LeadForm />} />
+                  <Route path="crm/leads/:id" element={<LeadDetail />} />
+                  <Route path="crm/leads/:id/edit" element={<LeadForm />} />
                 </Route>
               </Route>
 
