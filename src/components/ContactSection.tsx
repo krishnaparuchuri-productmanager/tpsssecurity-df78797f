@@ -153,7 +153,7 @@ export default function ContactSection() {
           <div className="bg-navy rounded-2xl p-8 shadow-xl">
             <h3 className="text-2xl font-bold text-white mb-2">Request a Quote</h3>
             <p className="text-white/70 text-sm mb-8">
-              Tell us about your security requirement and our team will get back to you within 4 hours.
+              Tell us about your security requirement and our team will get back to you as quickly as possible.
             </p>
 
             {submitted ? (
