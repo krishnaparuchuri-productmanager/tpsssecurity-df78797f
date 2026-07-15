@@ -1,6 +1,12 @@
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseSandbox = createClient(
+  "https://femkwbgjvsdnxnihptiu.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbWt3YmdqdnNkbnhuaWhwdGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTcwMjIsImV4cCI6MjA5NzA5MzAyMn0.2XhdyDSKLTju3Kg5kxRM0LBrkamD6pWq8-zo9J1ud8Y"
+);
 
 const REQUIREMENT_OPTIONS = ["Security", "Housekeeping", "Others"];
 const CONTACT_MODES = ["Call", "Email", "WhatsApp", "Visit"];
@@ -99,6 +105,11 @@ export default function ContactSection() {
     };
 
     const { error } = await supabase
+      .from("website_lead_submissions")
+      .insert({ payload, validation_status: "received" });
+
+    // Mirror to sandbox DB so sandbox portal also receives the lead
+    await supabaseSandbox
       .from("website_lead_submissions")
       .insert({ payload, validation_status: "received" });
 
