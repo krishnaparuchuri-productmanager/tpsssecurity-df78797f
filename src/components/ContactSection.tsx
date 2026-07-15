@@ -2,7 +2,7 @@ import { Phone, Mail, MapPin, Clock, Send, CheckCircle2, AlertCircle } from "luc
 import { useRef, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const REQUIREMENT_OPTIONS = ["Security Guards", "ASO", "Housekeeping", "Other"];
+const REQUIREMENT_OPTIONS = ["Security", "Housekeeping", "Others"];
 const CONTACT_MODES = ["Call", "Email", "WhatsApp", "Visit"];
 
 interface FormState {
@@ -12,7 +12,6 @@ interface FormState {
   email: string;
   location: string;
   requirement_category: string;
-  no_of_guards: string;
   requirement_notes: string;
   preferred_contact_mode: string;
   consent: boolean;
@@ -21,7 +20,7 @@ interface FormState {
 
 const EMPTY: FormState = {
   contact_person_name: "", company_name: "", phone: "", email: "",
-  location: "", requirement_category: "", no_of_guards: "",
+  location: "", requirement_category: "",
   requirement_notes: "", preferred_contact_mode: "", consent: false, honeypot: "",
 };
 
@@ -94,7 +93,6 @@ export default function ContactSection() {
       email: form.email.trim() || null,
       location: form.location.trim(),
       requirement_category: form.requirement_category,
-      no_of_guards: form.no_of_guards.trim() || null,
       requirement_notes: form.requirement_notes.trim() || null,
       preferred_contact_mode: form.preferred_contact_mode || null,
       submitted_at: new Date().toISOString(),
@@ -261,21 +259,6 @@ export default function ContactSection() {
                     </select>
                     {errors.requirement_category && <p className="text-red-400 text-xs mt-1">{errors.requirement_category}</p>}
                   </div>
-
-                  {/* Guards count */}
-                  {form.requirement_category === "Security Guards" && (
-                    <div>
-                      <label className="text-white/80 text-sm block mb-1">Number of Guards Required</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={form.no_of_guards}
-                        onChange={(e) => set("no_of_guards", e.target.value)}
-                        placeholder="e.g. 10"
-                        className="w-full rounded-lg px-3 py-2 text-sm bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
-                      />
-                    </div>
-                  )}
 
                   {/* Preferred contact mode */}
                   <div>
