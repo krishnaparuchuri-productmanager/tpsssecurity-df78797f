@@ -211,7 +211,7 @@ export default function ContactSection() {
                     <input
                       type="tel"
                       value={form.phone}
-                      onChange={(e) => set("phone", e.target.value.replace(/[^0-9+\s\-()\[\]]/g, ""))}
+                      onChange={(e) => set("phone", e.target.value.replace(/[^0-9+\s\-()\[\]]/g, "").slice(0, 10))}
                       placeholder="+91 98765 43210"
                       className="w-full rounded-lg px-3 py-2 text-sm bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-gold"
                     />

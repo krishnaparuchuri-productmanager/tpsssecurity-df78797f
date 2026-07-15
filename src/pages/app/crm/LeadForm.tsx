@@ -222,11 +222,11 @@ export default function LeadForm() {
           </div>
           <div>
             <Label>Phone *</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\s\-()\[\]]/g, ""))} placeholder="+91 98765 43210" className="mt-1" />
+            <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\s\-()\[\]]/g, "").slice(0, 10))} placeholder="+91 98765 43210" className="mt-1" />
           </div>
           <div>
             <Label>Alternate Phone</Label>
-            <Input value={altPhone} onChange={(e) => setAltPhone(e.target.value.replace(/[^0-9+\s\-()\[\]]/g, ""))} placeholder="Optional" className="mt-1" />
+            <Input value={altPhone} onChange={(e) => setAltPhone(e.target.value.replace(/[^0-9+\s\-()\[\]]/g, "").slice(0, 10))} placeholder="Optional" className="mt-1" />
           </div>
           <div>
             <Label>Email</Label>
