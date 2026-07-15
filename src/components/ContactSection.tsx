@@ -161,7 +161,7 @@ export default function ContactSection() {
                 <CheckCircle2 className="text-gold" size={56} />
                 <h4 className="text-xl font-bold text-white">Thank you for reaching out!</h4>
                 <p className="text-white/70 text-sm max-w-sm">
-                  We've received your enquiry and our team will contact you within 4 hours.
+                  We've received your enquiry and our team will contact you as quickly as possible.
                   You can also call us directly at <a href="tel:+919550214234" className="text-gold underline">+91 95502 14234</a>.
                 </p>
               </div>
