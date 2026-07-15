@@ -41,10 +41,9 @@ const STATUSES = [
 ];
 
 const REQ_CATEGORIES = [
-  { value: "security_guards", label: "Security Guards" },
-  { value: "aso",             label: "ASO" },
-  { value: "housekeeping",    label: "Housekeeping" },
-  { value: "other",           label: "Other" },
+  { value: "security",     label: "Security (Guards & ASOs)" },
+  { value: "housekeeping", label: "Housekeeping" },
+  { value: "other",        label: "Other" },
 ];
 
 const CONTACT_MODES = [
@@ -223,11 +222,11 @@ export default function LeadForm() {
           </div>
           <div>
             <Label>Phone *</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" className="mt-1" />
+            <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\s\-()\[\]]/g, ""))} placeholder="+91 98765 43210" className="mt-1" />
           </div>
           <div>
             <Label>Alternate Phone</Label>
-            <Input value={altPhone} onChange={(e) => setAltPhone(e.target.value)} placeholder="Optional" className="mt-1" />
+            <Input value={altPhone} onChange={(e) => setAltPhone(e.target.value.replace(/[^0-9+\s\-()\[\]]/g, ""))} placeholder="Optional" className="mt-1" />
           </div>
           <div>
             <Label>Email</Label>
