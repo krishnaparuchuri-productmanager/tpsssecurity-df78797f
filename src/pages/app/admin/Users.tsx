@@ -156,7 +156,19 @@ export default function UsersAdmin() {
         body: { full_name: newName.trim(), email: newEmail.trim(), role: newRole, phone: newPhone.trim() || undefined },
         headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
       });
-      if (error) throw error;
+      if (error) {
+        // Non-2xx: the function's JSON body carries the real reason — surface it
+        // instead of supabase-js's generic "Edge Function returned a non-2xx status code".
+        const body = await (error as { context?: Response }).context?.json?.().catch(() => null);
+        const msg: string = body?.error ?? error.message;
+        if (/already been registered/i.test(msg)) {
+          throw new Error(`A user with the email ${newEmail.trim()} already exists. Use a different email address.`);
+        }
+        if (/invalid session|missing authorization/i.test(msg)) {
+          throw new Error("Your session has expired. Please sign out and sign in again, then retry.");
+        }
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
       toast.success(`Invite sent to ${newEmail.trim()}`);
       setAddOpen(false);
