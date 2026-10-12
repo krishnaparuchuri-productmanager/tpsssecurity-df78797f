@@ -8,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
+const EMPTY_SHIFT = { shift_name:"", shift_code:"", shift_start_time:"07:00", shift_end_time:"19:00", shift_hours:8, branch_id:"" };
+
 export default function ShiftsList() {
   const [rows, setRows] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
-  const [form, setForm] = useState({ shift_name:"", shift_code:"", shift_start_time:"07:00", shift_end_time:"19:00", shift_hours:8, branch_id:"" });
+  const [form, setForm] = useState(EMPTY_SHIFT);
 
   async function load() {
     const [{ data: s }, { data: b }] = await Promise.all([
@@ -26,7 +28,7 @@ export default function ShiftsList() {
     if (!form.shift_name || !form.branch_id) { toast.error("Name and branch required"); return; }
     const { error } = await supabase.from("shifts").insert(form);
     if (error) { toast.error(error.message); return; }
-    toast.success("Shift added"); load();
+    toast.success("Shift added"); setForm(EMPTY_SHIFT); load();
   }
 
   return (

@@ -144,6 +144,13 @@ export default function UsersAdmin() {
     }
   }
 
+  // Every way of closing the dialog (success, Cancel, X, Escape, outside click)
+  // clears the form so the next "Add User" starts blank.
+  function closeAddDialog() {
+    setAddOpen(false);
+    setNewName(""); setNewEmail(""); setNewRole(""); setNewPhone("");
+  }
+
   async function createUser() {
     if (!newName.trim() || !newEmail.trim() || !newRole) {
       toast.error("Name, email, and role are required");
@@ -171,8 +178,7 @@ export default function UsersAdmin() {
       }
       if (data?.error) throw new Error(data.error);
       toast.success(`Invite sent to ${newEmail.trim()}`);
-      setAddOpen(false);
-      setNewName(""); setNewEmail(""); setNewRole(""); setNewPhone("");
+      closeAddDialog();
       load();
     } catch (e) {
       toast.error((e as Error).message || "Failed to create user");
@@ -275,7 +281,7 @@ export default function UsersAdmin() {
         </table>
       </div>
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog open={addOpen} onOpenChange={(open) => (open ? setAddOpen(true) : closeAddDialog())}>
         <DialogContent>
           <DialogHeader><DialogTitle>Add User</DialogTitle></DialogHeader>
           <div className="space-y-3">
@@ -294,7 +300,7 @@ export default function UsersAdmin() {
             <p className="text-xs text-muted-foreground">An invite email will be sent to set their password. Their role is assigned immediately.</p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)} disabled={creating}>Cancel</Button>
+            <Button variant="outline" onClick={closeAddDialog} disabled={creating}>Cancel</Button>
             <Button onClick={createUser} disabled={creating} className="bg-app-navy hover:bg-app-navy/90">
               {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Send Invite
             </Button>

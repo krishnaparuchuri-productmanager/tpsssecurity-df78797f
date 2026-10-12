@@ -48,7 +48,8 @@ export default function InvoiceView() {
   } | null>(null);
   const [showPay, setShowPay] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
-  const [pay, setPay] = useState({ amount: 0, payment_date: new Date().toISOString().slice(0,10), mode: "NEFT", reference: "", bank: "", notes: "" });
+  const emptyPay = () => ({ amount: 0, payment_date: new Date().toISOString().slice(0,10), mode: "NEFT", reference: "", bank: "", notes: "" });
+  const [pay, setPay] = useState(emptyPay);
 
   async function load() {
     if (!id) return;
@@ -127,7 +128,7 @@ export default function InvoiceView() {
         <div className="ml-auto flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" /> Print</Button>
           {!isCancelled && Number(inv.outstanding_amount) > 0 && (
-            <Button onClick={() => setShowPay(true)} className="bg-app-navy text-white"><CreditCard className="h-4 w-4 mr-1" /> Record Payment</Button>
+            <Button onClick={() => { setPay(emptyPay()); setShowPay(true); }} className="bg-app-navy text-white"><CreditCard className="h-4 w-4 mr-1" /> Record Payment</Button>
           )}
           {!isCancelled && isCEO && (
             <Button variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => setShowCancel(true)}>

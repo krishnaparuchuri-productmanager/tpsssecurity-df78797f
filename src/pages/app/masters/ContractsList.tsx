@@ -12,12 +12,14 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 
+const emptyContract = () => ({ client_id:"", contract_start_date: new Date().toISOString().slice(0,10), contract_end_date:"", po_number:"", po_date:"", po_amount:"", notes:"" });
+
 export default function ContractsList() {
   const { isSandbox } = useEnvironment();
   const [rows, setRows] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ client_id:"", contract_start_date: new Date().toISOString().slice(0,10), contract_end_date:"", po_number:"", po_date:"", po_amount:"", notes:"" });
+  const [form, setForm] = useState(emptyContract);
   const [statusFilter, setStatusFilter] = useState("all");
 
   async function load() {
@@ -50,7 +52,7 @@ export default function ContractsList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-app-navy">Contracts</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(o)=>{ if (o) setForm(emptyContract()); setOpen(o); }}>
           <DialogTrigger asChild><Button className="bg-app-navy"><Plus className="h-4 w-4 mr-1" /> New Contract</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>New Contract</DialogTitle></DialogHeader>

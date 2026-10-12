@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { formatDate } from "@/lib/format";
 
+const emptyDeployment = () => ({ employee_id:"", client_id:"", shift_id:"", post_id:"", deployment_start_date: new Date().toISOString().slice(0,10), notes:"" });
+const emptyRelieve = () => ({ end: new Date().toISOString().slice(0,10), reason: "" });
+
 export default function DeploymentsList() {
   const { isSandbox } = useEnvironment();
   const [rows, setRows] = useState<any[]>([]);
@@ -19,9 +22,9 @@ export default function DeploymentsList() {
   const [clients, setClients] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ employee_id:"", client_id:"", shift_id:"", post_id:"", deployment_start_date: new Date().toISOString().slice(0,10), notes:"" });
+  const [form, setForm] = useState(emptyDeployment);
   const [relieveOpen, setRelieveOpen] = useState<string | null>(null);
-  const [relieveForm, setRelieveForm] = useState({ end: new Date().toISOString().slice(0,10), reason: "" });
+  const [relieveForm, setRelieveForm] = useState(emptyRelieve);
 
   async function load() {
     const [{ data: d }, { data: e }, { data: c }, { data: s }] = await Promise.all([
@@ -52,7 +55,7 @@ export default function DeploymentsList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-app-navy">Deployments</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(o)=>{ if (o) setForm(emptyDeployment()); setOpen(o); }}>
           <DialogTrigger asChild><Button className="bg-app-navy"><Plus className="h-4 w-4 mr-1" /> New Deployment</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Deploy Employee</DialogTitle></DialogHeader>
@@ -97,7 +100,7 @@ export default function DeploymentsList() {
                 <td className="p-2">{r.is_current ? <Badge className="bg-green-100 text-green-900">Active</Badge> : <Badge variant="outline">Ended</Badge>}</td>
                 <td className="p-2">
                   {r.is_current && (
-                    <Dialog open={relieveOpen===r.id} onOpenChange={(o)=>setRelieveOpen(o?r.id:null)}>
+                    <Dialog open={relieveOpen===r.id} onOpenChange={(o)=>{ if (o) setRelieveForm(emptyRelieve()); setRelieveOpen(o?r.id:null); }}>
                       <DialogTrigger asChild><Button size="sm" variant="outline">Relieve</Button></DialogTrigger>
                       <DialogContent>
                         <DialogHeader><DialogTitle>Relieve Employee</DialogTitle></DialogHeader>
