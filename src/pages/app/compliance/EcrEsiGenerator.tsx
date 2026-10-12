@@ -31,10 +31,12 @@ export default function EcrEsiGenerator() {
   const [paysheets, setPaysheets] = useState<PaysheetRow[]>([]);
 
   useEffect(() => {
-    const m = `${year}-${String(month).padStart(2, "0")}`;
+    // Match on month_date: the `month` label differs between imported ("2026-05")
+    // and app-created ("SEP-2026") paysheets. Statutory files use approved paysheets only.
+    const monthDate = `${year}-${String(month).padStart(2, "0")}-01`;
     supabase.from("paysheets")
       .select("id, month, paysheet_employees(employee_id, employee_name, uan_number, esi_number, payable_gross, epf_wages, epf_employee_deduction, epf_employer_contribution, esi_wages, esi_employee_deduction, esi_employer_contribution, working_days, is_deleted)")
-      .eq("month", m).eq("is_sandbox", isSandbox).eq("is_deleted", false)
+      .eq("month_date", monthDate).eq("status", "approved").eq("is_sandbox", isSandbox).eq("is_deleted", false)
       .then(({ data }) => setPaysheets((data ?? []) as unknown as PaysheetRow[]));
   }, [year, month, isSandbox]);
 

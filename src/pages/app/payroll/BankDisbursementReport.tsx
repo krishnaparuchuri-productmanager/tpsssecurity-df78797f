@@ -232,12 +232,14 @@ export default function BankDisbursementReport() {
 
     if (error) { toast.error(error.message); setLoading(false); return; }
 
-    // Keep only paysheets that have at least one approved (non-deleted) invoice
+    // Keep only paysheets whose invoice has been issued: invoices have no
+    // "approved" status, so any non-draft, non-cancelled invoice qualifies.
+    const ISSUED = ["sent", "partially_paid", "paid", "overdue"];
     const valid: EligibleSheet[] = [];
     for (const ps of data ?? []) {
       if (isFutureMonth((ps as any).month)) continue;
       const approvedInv = ((ps as any).invoices ?? []).find(
-        (inv: any) => inv.status === "approved" && !inv.is_deleted
+        (inv: any) => ISSUED.includes(inv.status) && !inv.is_deleted
       );
       if (!approvedInv) continue;
       valid.push({
@@ -368,8 +370,8 @@ export default function BankDisbursementReport() {
       <div>
         <h1 className="text-2xl font-bold text-app-navy">Bank Salary Disbursement Report</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Available only when both the paysheet and client invoice are in{" "}
-          <span className="font-medium">Approved</span> status.
+          Available only when the paysheet is <span className="font-medium">Approved</span> and its
+          client invoice has been <span className="font-medium">issued</span> (marked Sent or later, not cancelled).
           {isSandbox && " SANDBOX — generated PDFs will carry a SANDBOX watermark."}
         </p>
       </div>
@@ -383,8 +385,9 @@ export default function BankDisbursementReport() {
           <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
             <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
             <span>
-              No eligible months found. A month is available here only when both its paysheet{" "}
-              <strong>and</strong> its client invoice are in <strong>Approved</strong> status. Approve the invoice first.
+              No eligible months found. A month is available here only when its paysheet is{" "}
+              <strong>Approved</strong> <strong>and</strong> its client invoice has been <strong>issued</strong>{" "}
+              (Save &amp; Mark as Sent). Issue the invoice first.
             </span>
           </div>
         ) : (

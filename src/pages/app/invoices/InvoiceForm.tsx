@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -19,6 +19,21 @@ interface BillingLine {
   qty: number; description: string; sac_code: string;
   rate_per_month: number; working_days: number; no_of_duties: number; amount: number;
 }
+interface PaysheetTotals { total_net_salary: number; total_epf_employer: number; total_esi_employer: number; }
+
+// Deduction-row sources that take their value from the linked paysheet.
+// Client templates use the "paysheet_*" names; the built-in defaults use "auto_*".
+const PAYSHEET_SOURCE: Record<string, keyof PaysheetTotals> = {
+  auto_net_sal: "total_net_salary", paysheet_net_salary: "total_net_salary",
+  auto_pf: "total_epf_employer", paysheet_pf_employer: "total_epf_employer",
+  auto_esi: "total_esi_employer", paysheet_esi_employer: "total_esi_employer",
+};
+
+function fillFromPaysheet(rows: DeductionRow[], ps: PaysheetTotals | null): DeductionRow[] {
+  if (!ps) return rows;
+  return rows.map((d) => (PAYSHEET_SOURCE[d.source] ? { ...d, value: Number(ps[PAYSHEET_SOURCE[d.source]]) } : d));
+}
+
 interface DeductionRow {
   label: string; source: string; value: number; is_enabled: boolean;
 }
@@ -50,6 +65,8 @@ export default function InvoiceForm() {
   const [gstRcm, setGstRcm] = useState(false);
   const [gstPct, setGstPct] = useState(18);
   const [deductionRows, setDeductionRows] = useState<DeductionRow[]>([]);
+  // Latest linked-paysheet totals; applied whenever deduction rows are (re)loaded.
+  const paysheetTotals = useRef<PaysheetTotals | null>(null);
   const [invoiceNotes, setInvoiceNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -88,14 +105,14 @@ export default function InvoiceForm() {
       if (tpl?.template_rows) {
         const rows = (tpl.template_rows as unknown as Array<{ label: string; source: string; default_value?: number; is_enabled: boolean }>)
           .map((r) => ({ label: r.label, source: r.source, value: Number(r.default_value ?? 0), is_enabled: !!r.is_enabled }));
-        setDeductionRows(rows);
+        setDeductionRows(fillFromPaysheet(rows, paysheetTotals.current));
       } else {
-        setDeductionRows([
+        setDeductionRows(fillFromPaysheet([
           { label: "Net Salary", source: "auto_net_sal", value: 0, is_enabled: true },
           { label: "PF Employer (13%)", source: "auto_pf", value: 0, is_enabled: true },
           { label: "ESI Employer (3.25%)", source: "auto_esi", value: 0, is_enabled: true },
           { label: "Uniform Amount", source: "manual", value: 0, is_enabled: false },
-        ]);
+        ], paysheetTotals.current));
       }
     })();
   }, [clientId, clients]);
@@ -109,12 +126,13 @@ export default function InvoiceForm() {
         setClientId(ps.client_id);
         setMonth(ps.month);
         setMonthDate(ps.month_date);
-        setDeductionRows((cur) => cur.map((d) => {
-          if (d.source === "auto_net_sal") return { ...d, value: Number(ps.total_net_salary) };
-          if (d.source === "auto_pf") return { ...d, value: Number(ps.total_epf_employer) };
-          if (d.source === "auto_esi") return { ...d, value: Number(ps.total_esi_employer) };
-          return d;
-        }));
+        paysheetTotals.current = {
+          total_net_salary: Number(ps.total_net_salary),
+          total_epf_employer: Number(ps.total_epf_employer),
+          total_esi_employer: Number(ps.total_esi_employer),
+        };
+        // Rows may already be loaded (template arrived first) — fill them now too.
+        setDeductionRows((cur) => fillFromPaysheet(cur, paysheetTotals.current));
       }
     })();
   }, [paysheetId]);
