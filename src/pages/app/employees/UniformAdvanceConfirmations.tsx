@@ -27,12 +27,12 @@ interface ConfRow {
 
 export default function UniformAdvanceConfirmations() {
   const { isSandbox } = useEnvironment();
-  const { role } = useAuth();
+  const { hasRole } = useAuth();
   const [allRows, setAllRows] = useState<ConfRow[]>([]);
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [confirming, setConfirming] = useState<string | null>(null);
 
-  const canConfirm = role === "ceo_admin" || role === "coo_ops" || role === "accountant";
+  const canConfirm = hasRole("ceo_admin", "coo_ops", "accountant");
 
   async function load() {
     const { data, error } = await (supabase as any)

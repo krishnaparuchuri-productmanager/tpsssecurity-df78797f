@@ -1,7 +1,7 @@
 // Server-side role-checked paysheet export endpoint.
-// Verifies caller has CEO or COO role before returning paysheet rows for export.
+// Verifies caller has Super Admin, CEO or COO role before returning paysheet rows for export.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.104.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       .select("role")
       .eq("user_id", userId);
     const roleSet = new Set((roles ?? []).map((r) => r.role));
-    if (!roleSet.has("ceo_admin") && !roleSet.has("coo_ops")) {
+    if (!roleSet.has("super_admin") && !roleSet.has("ceo_admin") && !roleSet.has("coo_ops")) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

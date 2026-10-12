@@ -25,7 +25,7 @@ interface Cat { id: string; category_name: string; }
 
 export default function ExpensesV2List() {
   const { isSandbox } = useEnvironment();
-  const { role } = useAuth();
+  const { role, hasRole } = useAuth();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -36,7 +36,7 @@ export default function ExpensesV2List() {
   const [cats, setCats] = useState<Cat[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const canApprove = role === "ceo_admin" || role === "coo_ops";
+  const canApprove = hasRole("ceo_admin", "coo_ops");
 
   useEffect(() => {
     supabase.from("expense_categories").select("id, category_name").eq("is_active", true)

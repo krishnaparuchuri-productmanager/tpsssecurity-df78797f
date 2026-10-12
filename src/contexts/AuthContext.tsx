@@ -2,7 +2,14 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "ceo_admin" | "coo_ops" | "accountant";
+export type AppRole = "super_admin" | "ceo_admin" | "coo_ops" | "accountant";
+
+// super_admin is a superset of every other role: it passes any role gate and
+// every screen permission. Mirrors public.has_role() on the database side.
+export function roleAllows(role: AppRole | null, allowed: AppRole[]) {
+  if (!role) return false;
+  return role === "super_admin" || allowed.includes(role);
+}
 
 export interface UserProfile {
   id: string;
@@ -31,6 +38,9 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   can: (screen: string, action: keyof Omit<PermissionRow, "screen_name">) => boolean;
+  /** True when the current role is one of `allowed` (super_admin always passes). */
+  hasRole: (...allowed: AppRole[]) => boolean;
+  isSuperAdmin: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -125,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function can(screen: string, action: keyof Omit<PermissionRow, "screen_name">) {
+    if (role === "super_admin") return true;
     const row = permissions.find((p) => p.screen_name === screen);
     return !!row?.[action];
   }
@@ -135,7 +146,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, profile, role, permissions, loading, signIn, signOut, can, refresh }}
+      value={{
+        user, session, profile, role, permissions, loading, signIn, signOut, can,
+        hasRole: (...allowed: AppRole[]) => roleAllows(role, allowed),
+        isSuperAdmin: role === "super_admin",
+        refresh,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -176,7 +176,7 @@ export default function Permissions() {
             <Select value={selectedUser} onValueChange={setSelectedUser}>
               <SelectTrigger><SelectValue placeholder="Select a user" /></SelectTrigger>
               <SelectContent>
-                {users.map((u) => <SelectItem key={u.id} value={u.id}>{u.full_name || u.email} {u.role ? `(${ROLE_LABELS[u.role] ?? u.role})` : "(no role)"}</SelectItem>)}
+                {users.map((u) => <SelectItem key={u.id} value={u.id}>{u.full_name || u.email} {u.role ? `(${ROLE_LABELS[u.role] ?? (u.role === "super_admin" ? "Super Admin" : u.role)})` : "(no role)"}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

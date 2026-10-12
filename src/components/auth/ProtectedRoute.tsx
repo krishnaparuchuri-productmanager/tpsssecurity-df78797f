@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function ProtectedRoute({ requireRoles, requireScreen }: Props) {
-  const { user, role, profile, loading, can } = useAuth();
+  const { user, role, profile, loading, can, hasRole } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -48,7 +48,7 @@ export default function ProtectedRoute({ requireRoles, requireScreen }: Props) {
     );
   }
 
-  if (requireRoles && !requireRoles.includes(role)) {
+  if (requireRoles && !hasRole(...requireRoles)) {
     return <Navigate to="/app/dashboard" replace />;
   }
 

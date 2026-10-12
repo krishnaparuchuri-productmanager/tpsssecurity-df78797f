@@ -49,7 +49,7 @@ function readableActivity(action: string, table: string | null): string {
 }
 
 export default function Dashboard() {
-  const { profile, role } = useAuth();
+  const { profile, role, hasRole, isSuperAdmin } = useAuth();
   const { isSandbox } = useEnvironment();
   const [params, setParams] = useSearchParams();
   const branchId = params.get("branch") ?? "all";
@@ -158,8 +158,8 @@ export default function Dashboard() {
         .order("due_date");
       setUpcomingTasks((upcoming ?? []) as typeof upcomingTasks);
 
-      // Security: failed logins (CEO only)
-      if (role === "ceo_admin") {
+      // Security: failed logins (Super Admin only — reads audit_logs)
+      if (isSuperAdmin) {
         const since = new Date(Date.now() - 7 * 86400000).toISOString();
         const { count: fl } = await supabase
           .from("audit_logs")
@@ -190,7 +190,7 @@ export default function Dashboard() {
 
   const today = new Date().toISOString().slice(0, 10);
   const isAccountant = role === "accountant";
-  const canSeeApprovals = role === "ceo_admin" || role === "coo_ops";
+  const canSeeApprovals = hasRole("ceo_admin", "coo_ops");
 
   const CAT_COLORS: Record<string, string> = {
     EPF: "bg-blue-100 text-blue-800",
@@ -238,7 +238,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-app-navy">Welcome back, {profile?.full_name || profile?.email}</h1>
           <p className="text-sm text-app-muted">{isAccountant ? "Payroll uploads & monthly tasks" : "Operational overview"}</p>
         </div>
-        {role === "ceo_admin" && (
+        {hasRole("ceo_admin") && (
           <div className="min-w-[220px]">
             <Label className="text-xs">Branch</Label>
             <Select value={branchId} onValueChange={setBranch}>
@@ -352,7 +352,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {role === "ceo_admin" ? (
+          {isSuperAdmin ? (
             <Card className={`border-app-border ${failedLogins7d > 5 ? "border-red-300 bg-red-50" : ""}`}>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">

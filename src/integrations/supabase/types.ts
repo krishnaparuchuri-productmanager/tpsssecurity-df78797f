@@ -2496,7 +2496,7 @@ export type Database = {
       wipe_sandbox: { Args: never; Returns: undefined }
     }
     Enums: {
-      app_role: "ceo_admin" | "coo_ops" | "accountant"
+      app_role: "super_admin" | "ceo_admin" | "coo_ops" | "accountant"
       client_type_enum: "individual_huf" | "company_firm"
       invoice_status:
         | "draft"
@@ -2653,7 +2653,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["ceo_admin", "coo_ops", "accountant"],
+      app_role: ["super_admin", "ceo_admin", "coo_ops", "accountant"],
       client_type_enum: ["individual_huf", "company_firm"],
       invoice_status: [
         "draft",

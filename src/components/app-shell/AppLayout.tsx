@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { useIdleTimer } from "@/hooks/useIdleTimer";
 import { toast } from "sonner";
 import {
@@ -34,7 +34,7 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   screen?: string;
-  roles?: Array<"ceo_admin" | "coo_ops" | "accountant">;
+  roles?: AppRole[];
 }
 
 interface NavGroup {
@@ -137,12 +137,12 @@ const NAV: NavGroup[] = [
   {
     label: "Administration",
     items: [
-      { to: "/app/admin/users", label: "User Management", icon: UserCog, roles: ["ceo_admin"] },
-      { to: "/app/admin/permissions", label: "Role Permissions", icon: Settings, roles: ["ceo_admin"] },
-      { to: "/app/admin/audit-logs", label: "Audit Logs", icon: History, roles: ["ceo_admin"] },
-      { to: "/app/admin/activity-log", label: "Activity Log", icon: History, roles: ["ceo_admin"] },
+      { to: "/app/admin/users", label: "User Management", icon: UserCog, roles: ["super_admin"] },
+      { to: "/app/admin/permissions", label: "Role Permissions", icon: Settings, roles: ["super_admin"] },
+      { to: "/app/admin/audit-logs", label: "Audit Logs", icon: History, roles: ["super_admin"] },
+      { to: "/app/admin/activity-log", label: "Activity Log", icon: History, roles: ["super_admin"] },
       { to: "/app/admin/branch-summary", label: "Branch Summary", icon: Building2, roles: ["ceo_admin"] },
-      { to: "/app/admin/backup", label: "Backups", icon: History, roles: ["ceo_admin"] },
+      { to: "/app/admin/backup", label: "Backups", icon: History, roles: ["super_admin"] },
       { to: "/app/masters/expense-categories", label: "Expense Categories", icon: Settings, roles: ["ceo_admin"] },
       { to: "/app/masters/branches/manage", label: "Branches Management", icon: Building2, roles: ["ceo_admin"] },
       { to: "/app/admin/tpss-accounts", label: "TPSS Bank Accounts", icon: Wallet, roles: ["ceo_admin"] },
@@ -151,7 +151,7 @@ const NAV: NavGroup[] = [
 ];
 
 function AppSidebar() {
-  const { role, can } = useAuth();
+  const { can, hasRole } = useAuth();
   return (
     <Sidebar collapsible="icon" className="border-r border-app-border">
       <SidebarContent className="bg-app-navy text-white">
@@ -164,7 +164,7 @@ function AppSidebar() {
         </div>
         {NAV.map((group) => {
           const visible = group.items.filter((i) => {
-            if (i.roles && (!role || !i.roles.includes(role))) return false;
+            if (i.roles && !hasRole(...i.roles)) return false;
             if (i.screen && !can(i.screen, "can_view")) return false;
             return true;
           });

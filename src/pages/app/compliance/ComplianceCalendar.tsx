@@ -59,7 +59,7 @@ const STATUS_BADGE: Record<string, string> = {
 
 export default function ComplianceCalendar() {
   const { isSandbox } = useEnvironment();
-  const { role, can } = useAuth();
+  const { role, can, hasRole } = useAuth();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -73,7 +73,7 @@ export default function ComplianceCalendar() {
 
   const canCreate = can("compliance", "can_create");
   const canEdit = can("compliance", "can_edit");
-  const isAdmin = role === "ceo_admin" || role === "coo_ops";
+  const isAdmin = hasRole("ceo_admin", "coo_ops");
 
   useEffect(() => {
     const start = new Date(year, month - 1, 1).toISOString().slice(0, 10);

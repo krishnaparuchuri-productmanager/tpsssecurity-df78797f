@@ -35,8 +35,8 @@ export default function InvoiceView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isSandbox } = useEnvironment();
-  const { user, role } = useAuth();
-  const isCEO = role === "ceo_admin";
+  const { user, role, isSuperAdmin } = useAuth();
+  const isCEO = isSuperAdmin; // cancel / re-create are Super Admin only
   const [inv, setInv] = useState<Invoice | null>(null);
   const [company, setCompany] = useState<{
     company_name: string; pan_number: string | null; gst_number: string | null;

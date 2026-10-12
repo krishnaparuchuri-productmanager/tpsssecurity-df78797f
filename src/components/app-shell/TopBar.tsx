@@ -28,6 +28,7 @@ function formatTimer(ms: number) {
 }
 
 const ROLE_LABEL: Record<string, string> = {
+  super_admin: "Super Admin",
   ceo_admin: "CEO",
   coo_ops: "COO / Operations",
   accountant: "Accountant",

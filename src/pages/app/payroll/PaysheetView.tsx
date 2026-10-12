@@ -15,10 +15,10 @@ import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 export default function PaysheetView() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { hasRole, isSuperAdmin } = useAuth();
   const company = useCompanyProfile();
-  const canExportExcel = role === "ceo_admin" || role === "coo_ops";
-  const isCEO = role === "ceo_admin";
+  const canExportExcel = hasRole("ceo_admin", "coo_ops");
+  const isCEO = isSuperAdmin; // cancel / re-create are Super Admin only
   const [showCancel, setShowCancel] = useState(false);
   const [linkedInvoice, setLinkedInvoice] = useState<{ id: string; invoice_number: string; status: string } | null>(null);
   const [head, setHead] = useState<{

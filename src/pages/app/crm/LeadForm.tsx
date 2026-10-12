@@ -59,7 +59,7 @@ export default function LeadForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
-  const { user, role } = useAuth();
+  const { user, hasRole } = useAuth();
   const { isSandbox } = useEnvironment();
   const [users, setUsers] = useState<UserProfile[]>([]);
 
@@ -164,9 +164,9 @@ export default function LeadForm() {
         created_by_user_id: user?.id ?? null,
       });
 
-      // Notify ceo_admin users (skip if creator is already ceo_admin — they'll see it in leads)
-      if (role !== "ceo_admin") {
-        const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "ceo_admin");
+      // Notify ceo_admin/super_admin users (skip if creator is already one — they'll see it in leads)
+      if (!hasRole("ceo_admin")) {
+        const { data: admins } = await supabase.from("user_roles").select("user_id").in("role", ["super_admin", "ceo_admin"]);
         for (const a of admins ?? []) {
           await supabase.from("notifications").insert({
             user_id: a.user_id,

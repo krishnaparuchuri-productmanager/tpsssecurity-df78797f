@@ -28,9 +28,9 @@ const METRICS = [
 interface SeriesRow { month_label: string; month_start: string; value: number; }
 
 export default function MomAnalysis() {
-  const { role } = useAuth();
+  const { hasRole } = useAuth();
   const company = useCompanyProfile();
-  const canExport = role === "ceo_admin" || role === "coo_ops";
+  const canExport = hasRole("ceo_admin", "coo_ops");
   const [metric, setMetric] = useState("billing");
   const [branchId, setBranchId] = useState<string>("all");
   const [clientId, setClientId] = useState<string>("all");

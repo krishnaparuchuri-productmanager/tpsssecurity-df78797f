@@ -14,8 +14,8 @@ const PAYMENT_MODES = ["Cash", "Bank", "UPI", "Card"];
 
 export default function ExpenseV2Form() {
   const nav = useNavigate();
-  const { role } = useAuth();
-  const canDirectApprove = role === "ceo_admin" || role === "coo_ops";
+  const { hasRole } = useAuth();
+  const canDirectApprove = hasRole("ceo_admin", "coo_ops");
 
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);

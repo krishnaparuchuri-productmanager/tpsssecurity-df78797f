@@ -114,9 +114,13 @@ const App = () => (
 
                   <Route element={<ProtectedRoute requireRoles={["ceo_admin"]} />}>
                     <Route path="masters/company-profile" element={<CompanyProfile />} />
+                  </Route>
+                  <Route element={<ProtectedRoute requireRoles={["super_admin"]} />}>
                     <Route path="admin/users" element={<UsersAdmin />} />
                     <Route path="admin/permissions" element={<Permissions />} />
                     <Route path="admin/audit-logs" element={<AuditLogs />} />
+                    <Route path="admin/backup" element={<BackupAdmin />} />
+                    <Route path="admin/activity-log" element={<ActivityLog />} />
                   </Route>
 
                   {/* Payroll - Phase 2 */}
@@ -187,8 +191,6 @@ const App = () => (
                   <Route element={<ProtectedRoute requireRoles={["ceo_admin"]} />}>
                     <Route path="masters/expense-categories" element={<ExpenseCategoriesAdmin />} />
                     <Route path="masters/branches/manage" element={<BranchesAdmin />} />
-                    <Route path="admin/backup" element={<BackupAdmin />} />
-                    <Route path="admin/activity-log" element={<ActivityLog />} />
                     <Route path="admin/branch-summary" element={<BranchSummary />} />
                     <Route path="admin/tpss-accounts" element={<TpssAccountsAdmin />} />
                   </Route>

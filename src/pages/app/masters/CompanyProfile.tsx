@@ -37,9 +37,9 @@ const EMPTY: ProfileForm = {
 };
 
 export default function CompanyProfile() {
-  const { role } = useAuth();
+  const { isSuperAdmin } = useAuth();
   const { isSandbox } = useEnvironment();
-  const isCEO = role === "ceo_admin";
+  const isCEO = isSuperAdmin; // environment card + sandbox wipe are Super Admin only
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [id, setId] = useState<string | null>(null);
@@ -174,7 +174,7 @@ export default function CompanyProfile() {
         </Button>
       </div>
 
-      {/* Environment Card - CEO only — read-only, driven by deployment URL */}
+      {/* Environment Card - Super Admin only — read-only, driven by deployment URL */}
       {isCEO && (
         <div className="bg-white border border-app-border rounded-lg p-6 space-y-4">
           <h2 className="font-semibold text-app-navy">Environment</h2>

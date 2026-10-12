@@ -29,7 +29,7 @@ interface ClientRow {
 }
 
 export default function ClientsList() {
-  const { can, role } = useAuth();
+  const { can, hasRole } = useAuth();
   const [rows, setRows] = useState<ClientRow[] | null>(null);
   const [search, setSearch] = useState("");
   const [serviceFilter, setServiceFilter] = useState<string>("all");
@@ -165,7 +165,7 @@ export default function ClientsList() {
                             <Link to={`/app/masters/clients/${r.id}/edit`}><Pencil className="h-4 w-4" /></Link>
                           </Button>
                         )}
-                        {role === "ceo_admin" && (
+                        {hasRole("ceo_admin") && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button size="sm" variant="ghost" title={r.is_active ? "Deactivate client" : "Activate client"}>
