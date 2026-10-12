@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye } from "lucide-react";
+import { Plus, Eye, Pencil } from "lucide-react";
 import { formatINR, formatDate } from "@/lib/format";
 import Paginator from "@/components/Paginator";
 
@@ -76,7 +76,10 @@ export default function InvoicesList() {
                   <td className="p-2 text-right tabular-nums">{isCancelled ? "—" : formatINR(Number(r.outstanding_amount))}</td>
                   <td className="p-2"><Badge className={STATUS_BADGE[status]}>{status}</Badge></td>
                   <td className="p-2">
-                    <Link to={`/app/invoices/${r.id}/view`}><Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button></Link>
+                    <Link to={`/app/invoices/${r.id}/view`}><Button size="sm" variant="ghost" title="View"><Eye className="h-4 w-4" /></Button></Link>
+                    {r.status === "draft" && (
+                      <Link to={`/app/invoices/${r.id}/edit`}><Button size="sm" variant="ghost" title="Edit draft"><Pencil className="h-4 w-4" /></Button></Link>
+                    )}
                   </td>
                 </tr>
               );

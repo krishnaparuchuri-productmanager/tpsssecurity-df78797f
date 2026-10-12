@@ -67,6 +67,9 @@ export default function InvoiceForm() {
   const [deductionRows, setDeductionRows] = useState<DeductionRow[]>([]);
   // Latest linked-paysheet totals; applied whenever deduction rows are (re)loaded.
   const paysheetTotals = useRef<PaysheetTotals | null>(null);
+  // When editing, the saved invoice's client: its own lines/taxes/deductions
+  // must not be replaced by the client defaults unless the user switches client.
+  const savedClientId = useRef<string | null>(null);
   const [invoiceNotes, setInvoiceNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -81,6 +84,7 @@ export default function InvoiceForm() {
   // On client change → load billing lines + deduction template
   useEffect(() => {
     if (!clientId) return;
+    if (savedClientId.current === clientId) return;
     const c = clients.find((x) => x.id === clientId);
     if (c) {
       setGstApplicable(!!c.gst_applicable);
@@ -132,10 +136,11 @@ export default function InvoiceForm() {
           total_esi_employer: Number(ps.total_esi_employer),
         };
         // Rows may already be loaded (template arrived first) — fill them now too.
-        setDeductionRows((cur) => fillFromPaysheet(cur, paysheetTotals.current));
+        // A saved invoice keeps its own (possibly adjusted) deduction values.
+        if (!isEdit) setDeductionRows((cur) => fillFromPaysheet(cur, paysheetTotals.current));
       }
     })();
-  }, [paysheetId]);
+  }, [paysheetId, isEdit]);
 
   // Load existing invoice
   useEffect(() => {
@@ -143,6 +148,7 @@ export default function InvoiceForm() {
     (async () => {
       const { data } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
       if (data) {
+        savedClientId.current = data.client_id;
         setClientId(data.client_id);
         setPaysheetId(data.paysheet_id);
         setInvoiceDate(data.invoice_date);

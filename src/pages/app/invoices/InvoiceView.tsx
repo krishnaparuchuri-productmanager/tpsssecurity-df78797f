@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, CreditCard, Printer, Ban, RefreshCw } from "lucide-react";
+import { ArrowLeft, CreditCard, Printer, Ban, RefreshCw, Pencil } from "lucide-react";
 import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
@@ -127,6 +127,9 @@ export default function InvoiceView() {
         <Badge className={isCancelled ? "bg-gray-200 text-gray-600 line-through" : ""}>{inv.status}</Badge>
         <div className="ml-auto flex gap-2 flex-wrap">
           <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" /> Print</Button>
+          {inv.status === "draft" && (
+            <Button variant="outline" onClick={() => navigate(`/app/invoices/${inv.id}/edit`)}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
+          )}
           {!isCancelled && Number(inv.outstanding_amount) > 0 && (
             <Button onClick={() => { setPay(emptyPay()); setShowPay(true); }} className="bg-app-navy text-white"><CreditCard className="h-4 w-4 mr-1" /> Record Payment</Button>
           )}

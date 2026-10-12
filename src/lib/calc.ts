@@ -191,7 +191,8 @@ export function calcInvoicePreview(opts: {
     0
   );
   const margin = r2(receivable - deductions);
-  const outstanding = r2(margin - (opts.amountReceived || 0));
+  // What the client still owes is the receivable; net margin is internal profit.
+  const outstanding = r2(receivable - (opts.amountReceived || 0));
   return {
     billing_amount: r2(billing),
     tds_amount: tds,
