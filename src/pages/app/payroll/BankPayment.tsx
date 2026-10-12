@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +104,6 @@ function StatusBadge({ status }: { status: string }) {
 
 function NewPaymentTab({ tpssAccounts }: { tpssAccounts: TpssAccount[] }) {
   const { isSandbox } = useEnvironment();
-  const { user } = useAuth();
 
   type PsMeta = {
     id: string;
@@ -328,15 +326,14 @@ function NewPaymentTab({ tpssAccounts }: { tpssAccounts: TpssAccount[] }) {
 
       const ts = now.toISOString().replace(/[-:.TZ]/g, "").slice(0, 15);
       const monthTag = selectedMonth.replace(/\s+/g, "_");
-      buildPaymentExcel(payRows, monthTag, isSandbox, ts);
 
       const clientNames = [...new Set(dbRecords.map((r: any) => r.client_name))].join(", ");
       const batchNum = `${isSandbox ? "SB-" : ""}BATCH-${now
         .toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
 
-      const { data: batch, error: batchErr } = await (supabase as any)
-        .from("bank_payment_batches")
-        .insert({
+      // Batch + records + finalise in one server transaction: all or nothing.
+      const { error: rpcErr } = await supabase.rpc("record_payment_batch" as any, {
+        _batch: {
           batch_number: batchNum,
           month: selectedMonth,
           month_date: selectedMonthDate,
@@ -345,25 +342,15 @@ function NewPaymentTab({ tpssAccounts }: { tpssAccounts: TpssAccount[] }) {
           debit_account_number: selectedAccount!.account_number,
           total_employees: selectedCount,
           total_amount: totalSelected,
-          generated_by: user?.id,
           is_sandbox: isSandbox,
-        })
-        .select("id")
-        .single();
-
-      if (batchErr) throw batchErr;
-
-      const recordsWithBatch = dbRecords.map((r: any) => ({ ...r, batch_id: batch.id }));
-      const { error: recErr } = await (supabase as any)
-        .from("bank_payment_records")
-        .insert(recordsWithBatch);
-      if (recErr) throw recErr;
-
-      // Atomic update of all employees in this batch
-      const { error: rpcErr } = await supabase.rpc("finalise_payment_batch" as any, {
-        _batch_id: batch.id,
+        },
+        _records: dbRecords,
       });
       if (rpcErr) throw rpcErr;
+
+      // Only hand out the bank upload file once the batch is recorded, so a
+      // failed save can never leave the user with an unrecorded payment file.
+      buildPaymentExcel(payRows, monthTag, isSandbox, ts);
 
       localStorage.removeItem(draftKey(isSandbox, selectedMonthDate));
       setSelections({});
