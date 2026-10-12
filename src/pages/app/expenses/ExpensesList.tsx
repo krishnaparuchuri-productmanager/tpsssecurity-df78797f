@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Download } from "lucide-react";
-import { formatINR } from "@/lib/format";
+import { formatINR, localISODate } from "@/lib/format";
 
 const EXPENSE_CATS = ["epf_payment","esi_payment","gst_payment","pt_payment","staff_salary","salary_advance","admin_expense","vehicle_expense","other_expense"] as const;
 const CAT_LABEL: Record<string, string> = {
@@ -44,7 +44,7 @@ export default function ExpensesList() {
 
   useEffect(() => {
     const start = `${year}-${String(month).padStart(2, "0")}-01`;
-    const end = new Date(year, month, 0).toISOString().slice(0, 10);
+    const end = localISODate(new Date(year, month, 0));
     supabase
       .from("financial_ledger")
       .select("id, entry_date, voucher_number, category, particulars, client_id, debit_amount, reference_type")

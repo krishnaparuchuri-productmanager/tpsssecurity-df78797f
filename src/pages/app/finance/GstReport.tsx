@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
-import { formatINR, formatDate } from "@/lib/format";
+import { formatINR, formatDate, localISODate } from "@/lib/format";
 import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { addExcelBranding } from "@/lib/excelBranding";
 
@@ -31,7 +31,7 @@ export default function GstReport() {
 
   useEffect(() => {
     const start = `${year}-${String(month).padStart(2, "0")}-01`;
-    const end = new Date(year, month, 0).toISOString().slice(0, 10);
+    const end = localISODate(new Date(year, month, 0));
     supabase.from("invoices")
       .select("id, invoice_number, invoice_date, total_taxable_value, gst_amount, gst_percentage, total_invoice_value, gst_applicable, gst_rcm, client_id, clients(client_name, gst_number, state)")
       .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled").eq("gst_applicable", true)

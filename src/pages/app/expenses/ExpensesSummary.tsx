@@ -4,7 +4,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatINR } from "@/lib/format";
+import { formatINR, localISODate } from "@/lib/format";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const EXPENSE_CATS = ["epf_payment","esi_payment","gst_payment","pt_payment","staff_salary","salary_advance","admin_expense","vehicle_expense","other_expense"] as const;
@@ -24,8 +24,8 @@ export default function ExpensesSummary() {
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
-    const start = new Date(year, month - 12, 1).toISOString().slice(0, 10);
-    const end = new Date(year, month, 0).toISOString().slice(0, 10);
+    const start = localISODate(new Date(year, month - 12, 1));
+    const end = localISODate(new Date(year, month, 0));
     supabase
       .from("financial_ledger")
       .select("entry_date, category, debit_amount")

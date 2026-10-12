@@ -15,7 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Download } from "lucide-react";
-import { formatINR } from "@/lib/format";
+import { formatINR, localISODate } from "@/lib/format";
 
 const INCOME_CATS = ["client_billing", "payment_received", "other_income"];
 const EXPENSE_CATS = [
@@ -67,7 +67,7 @@ function ymLabel(ym: string) {
 function ymStart(ym: string) { return `${ym}-01`; }
 function ymEnd(ym: string) {
   const [y, m] = ym.split("-").map(Number);
-  return new Date(y, m, 0).toISOString().slice(0, 10);
+  return localISODate(new Date(y, m, 0));
 }
 
 interface Client { id: string; client_name: string }

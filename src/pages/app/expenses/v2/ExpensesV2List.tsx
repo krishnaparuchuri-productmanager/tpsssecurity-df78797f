@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Download, Check } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import { formatINR, formatDate } from "@/lib/format";
+import { formatINR, formatDate, localISODate } from "@/lib/format";
 
 interface Row {
   id: string; expense_number: string; expense_date: string;
@@ -45,7 +45,7 @@ export default function ExpensesV2List() {
 
   useEffect(() => {
     const start = `${year}-${String(month).padStart(2, "0")}-01`;
-    const end = new Date(year, month, 0).toISOString().slice(0, 10);
+    const end = localISODate(new Date(year, month, 0));
     supabase.from("expenses")
       .select("id, expense_number, expense_date, description, amount, payment_mode, status, reference_number, category_id")
       .gte("expense_date", start).lte("expense_date", end)

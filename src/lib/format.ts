@@ -33,6 +33,15 @@ export function formatDate(d: Date | string | null | undefined): string {
   return `${dd}-${mm}-${yyyy}`;
 }
 
+/**
+ * YYYY-MM-DD of a Date in the browser's local time zone.
+ * Use for dates built with `new Date(y, m, d)`: toISOString() converts to UTC,
+ * which in India (UTC+5:30) shifts local midnight back to the previous day.
+ */
+export function localISODate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function toISODate(d: Date | string | null | undefined): string | null {
   if (!d) return null;
   const date = typeof d === "string" ? new Date(d) : d;

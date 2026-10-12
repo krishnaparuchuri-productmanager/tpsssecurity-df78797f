@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { formatINR } from "@/lib/format";
+import { formatINR, localISODate } from "@/lib/format";
 
 const INCOME_CATS = ["client_billing", "payment_received", "other_income"];
 const EXPENSE_CATS = ["staff_salary", "epf_payment", "esi_payment", "gst_payment", "pt_payment", "salary_advance", "admin_expense", "vehicle_expense", "other_expense"];
@@ -41,7 +41,7 @@ export default function MonthlySummary() {
 
   useEffect(() => {
     const start = `${year}-${String(month).padStart(2,"0")}-01`;
-    const end = new Date(year, month, 0).toISOString().slice(0, 10);
+    const end = localISODate(new Date(year, month, 0));
     supabase.from("financial_ledger")
       .select("category, debit_amount, credit_amount")
       .gte("entry_date", start).lte("entry_date", end)

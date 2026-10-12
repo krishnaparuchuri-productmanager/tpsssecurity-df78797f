@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import ComplianceTaskDialog from "./ComplianceTaskDialog";
 import CompleteTaskDialog from "./CompleteTaskDialog";
-import { formatINR } from "@/lib/format";
+import { formatINR, localISODate } from "@/lib/format";
 
 export interface ComplianceTask {
   id: string;
@@ -76,10 +76,10 @@ export default function ComplianceCalendar() {
   const isAdmin = hasRole("ceo_admin", "coo_ops");
 
   useEffect(() => {
-    const start = new Date(year, month - 1, 1).toISOString().slice(0, 10);
-    const end = new Date(year, month + 1, 0).toISOString().slice(0, 10); // include next month for upcoming
+    const start = localISODate(new Date(year, month - 1, 1));
+    const end = localISODate(new Date(year, month + 1, 0)); // include next month for upcoming
     const upStart = new Date().toISOString().slice(0, 10);
-    const upEnd = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    const upEnd = localISODate(new Date(Date.now() + 30 * 86400000));
 
     const earliestStart = start < upStart ? start : upStart;
     const latestEnd = end > upEnd ? end : upEnd;
@@ -145,8 +145,8 @@ export default function ComplianceCalendar() {
   }
 
   async function seedYear() {
-    const from = new Date(year, month - 1, 1).toISOString().slice(0, 10);
-    const to = new Date(year + 1, month - 1, 0).toISOString().slice(0, 10);
+    const from = localISODate(new Date(year, month - 1, 1));
+    const to = localISODate(new Date(year + 1, month - 1, 0));
     const { data, error } = await supabase.rpc("seed_compliance_tasks", { _from: from, _to: to });
     if (error) return toast.error(error.message);
     toast.success(`Seeded ${data} task slots (existing kept)`);
