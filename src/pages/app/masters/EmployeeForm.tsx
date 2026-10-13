@@ -22,9 +22,9 @@ const optionalRegex = (re: RegExp, message: string) =>
 const schema = z.object({
   full_name: z.string().trim().min(1, "Full name is required").max(150, "Full name too long"),
   designation: z.string().min(1, "Designation is required"),
-  client_id: z.string().uuid().or(z.literal("")),
+  client_id: z.string().uuid("Select a valid client").or(z.literal("")),
   date_of_joining: z.string().min(1, "Date of joining is required"),
-  status: z.enum(["Active", "Relieved", "Absconded"]),
+  status: z.enum(["Active", "Relieved", "Absconded"], { errorMap: () => ({ message: "Select a status" }) }),
   aadhaar_number: optionalRegex(/^[0-9]{12}$/, "Aadhaar must be exactly 12 digits"),
   uan_number: optionalRegex(/^[0-9]{12}$/, "UAN must be exactly 12 digits"),
   esi_number: optionalRegex(/^[0-9]{17}$/, "ESI must be exactly 17 digits"),
@@ -112,14 +112,17 @@ export default function EmployeeForm() {
   // Load MW rates when client changes
   useEffect(() => {
     if (!form.client_id) { setClientRates([]); return; }
-    supabase.from("client_mw_rates").select("designation, basic, da, ta").eq("client_id", form.client_id).then(({ data }) => setClientRates((data ?? []) as Rate[]));
+    // Current wage rows from the client master (client_mw_rates is a legacy, empty table).
+    supabase.from("client_wage_config").select("designation, basic, da, ta")
+      .eq("client_id", form.client_id).eq("is_current", true)
+      .then(({ data }) => setClientRates((data ?? []) as Rate[]));
   }, [form.client_id]);
 
   // Auto-fill basic/da/ta when designation changes (only if user hasn't entered values yet — for new records)
   useEffect(() => {
     if (isEdit) return;
-    const match = clientRates.find((r) => r.designation.toUpperCase() === form.designation.toUpperCase());
-    if (match) setForm((f) => ({ ...f, basic: match.basic, da: match.da, ta: match.ta }));
+    const match = clientRates.find((r) => r.designation.trim().toUpperCase() === form.designation.trim().toUpperCase());
+    if (match) setForm((f) => ({ ...f, basic: Number(match.basic), da: Number(match.da), ta: Number(match.ta) }));
   }, [form.designation, clientRates, isEdit]);
 
   const payableGross = useMemo(() =>
@@ -135,9 +138,8 @@ export default function EmployeeForm() {
       bank_ifsc: form.bank_ifsc, bank_account_number: form.bank_account_number, mobile: form.mobile,
     });
     if (!parsed.success) {
-      const issue = parsed.error.issues[0];
-      const field = issue?.path?.join(".") ?? "field";
-      toast.error(`${field}: ${issue?.message ?? "Invalid input"}`);
+      // Messages name the field themselves; don't prefix internal column names.
+      toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
       return;
     }
     setSaving(true);
@@ -242,7 +244,7 @@ export default function EmployeeForm() {
         </Field>
       </Section>
 
-      <Section title="Salary Structure (auto-fills from client MW rates)">
+      <Section title="Salary Structure (auto-fills from the client's wage rates for this designation)">
         <Field label="Basic"><Input type="number" value={form.basic} onChange={(e) => setForm({ ...form, basic: Number(e.target.value) })} /></Field>
         <Field label="DA"><Input type="number" value={form.da} onChange={(e) => setForm({ ...form, da: Number(e.target.value) })} /></Field>
         <Field label="TA"><Input type="number" value={form.ta} onChange={(e) => setForm({ ...form, ta: Number(e.target.value) })} /></Field>

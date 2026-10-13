@@ -15,8 +15,8 @@ import { toISODate } from "@/lib/format";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 const schema = z.object({
-  client_name: z.string().trim().min(1, "Required").max(150),
-  service_type: z.enum(["Security", "Housekeeping", "Both"]),
+  client_name: z.string().trim().min(1, "Client name is required").max(150, "Client name is too long (max 150 characters)"),
+  service_type: z.enum(["Security", "Housekeeping", "Both"], { errorMap: () => ({ message: "Select a service type" }) }),
 });
 
 interface WageRow {
