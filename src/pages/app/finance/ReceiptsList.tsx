@@ -48,7 +48,7 @@ export default function ReceiptsList() {
     supabase.from("invoices")
       .select("id, invoice_number, outstanding_amount, client_id, clients(client_name)")
       .eq("is_sandbox", isSandbox).eq("is_deleted", false)
-      .neq("status", "cancelled").gt("outstanding_amount", 0)
+      .not("status", "in", "(cancelled,draft)").gt("outstanding_amount", 0)
       .order("invoice_date", { ascending: false })
       .then(({ data }) => setInvoices((data ?? []) as unknown as OutstandingInvoice[]));
     setInvoiceId("");
