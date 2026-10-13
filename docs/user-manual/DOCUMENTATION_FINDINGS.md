@@ -12,8 +12,8 @@
 | Fixed during documentation (A, FX-) | 6 | 4 | 3 | 0 | 13 |
 | Open findings now fixed (B → C) | 0 | 8 | 11 | 12 | 31 |
 | Open findings not changed (B → C) | 0 | 1 | 2 | 1 | 4 |
-| New findings fixed (D) | 0 | 3 | 3 | 4 | 10 |
-| New findings open (D) | 0 | 0 | 0 | 6 | 6 |
+| New findings fixed (D) | 0 | 3 | 3 | 10 | 16 |
+| New findings open (D) | 0 | 0 | 0 | 0 | 0 |
 
 ---
 
@@ -97,7 +97,7 @@ All fixes were applied to the sandbox, tested, applied to production and committ
 |---|---|---|---|
 | OF-01 | Fixed | Last active Super Admin cannot be demoted, deactivated or removed (server trigger + UI guard on own row) | `0e42791` |
 | OF-02 | Fixed | Sign-out is local to the browser; a revoked session is detected and sent to sign-in | `0e42791` |
-| OF-03 | Not changed | `.env` is tracked and may feed the production build; owner / devops to confirm Cloudflare variables first. Local risk mitigated by `.env.local` | — |
+| OF-03 | Not changed (owner action) | `.env` is tracked. Checked 13 Oct 2026 from the live bundles: the **sandbox site** is built with its own Cloudflare variables (sandbox project only); the **production site** uses the production URL and the same publishable key as `.env`, so it cannot be told whether its build reads Cloudflare variables or `.env`. Before changing `.env`, confirm in Cloudflare Pages → production project → Settings → Variables that `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` and `VITE_SUPABASE_PROJECT_ID` are set for Production. Local risk mitigated by `.env.local` | — |
 | OF-04 | Fixed | Bank Payment salary batches post a Staff Salary payment to the ledger | `ac8e7e6` |
 | OF-05 | Fixed | Reverse Receipt (Super Admin, reason ≥ 10): receipt marked reversed, ledger journal, invoice recalculated, audited | `a52acea` |
 | OF-06 | Fixed | Statement of Account shows a "TDS deducted by client" credit line; closing = what is owed | `a52acea` |
@@ -145,9 +145,9 @@ All fixes were applied to the sandbox, tested, applied to production and committ
 | NF-08 | Low | Payroll | `guard_paysheet_status` re-checked approval rules on every update of an approved paysheet | Fixed (only on transition to approved) | `c016ebf` |
 | NF-09 | Low | CRM | Leads list passed wrong props to the paginator (paging showed NaN) | Fixed | `8b1d126` |
 | NF-10 | Low | Invoices | IGST invoices printed the company location code as Place of Supply | Fixed | `c4a1af4` |
-| NF-11 | Low | Clients | Each client save stores a new version of every wage row even when unchanged | Open (history noise only) | — |
-| NF-12 | Low | Cash Book | With a From date the running balance starts at 0 (no opening balance) | Open | — |
-| NF-13 | Low | Annual Summary | Invoice / paysheet queries have no `is_sandbox` filter | Open | — |
-| NF-14 | Low | PDFs | Total-row amounts are left-aligned instead of right-aligned under their columns | Open (cosmetic) | — |
-| NF-15 | Low | Approval Queue | "Approve" label is gold on green (low contrast) | Open (cosmetic) | — |
-| NF-16 | Low | CRM | Lead Activity Timeline is not strictly in date order | Open (cosmetic) | — |
+| NF-11 | Low | Clients | Each client save stored a new version of every wage row even when unchanged | Fixed (only new or changed rows are versioned) | `054ac6f` |
+| NF-12 | Low | Cash Book | With a From date the running balance started at 0 (no opening balance) | Fixed (opening-balance row; running balance continues) | `054ac6f` |
+| NF-13 | Low | Annual Summary | Queries had no `is_sandbox` filter | Fixed (all five registers filtered by environment) | `054ac6f` |
+| NF-14 | Low | PDFs | Total-row amounts were left-aligned under right-aligned columns | Fixed (verified on rendered PDFs) | `054ac6f` |
+| NF-15 | Low | Approval Queue | "Approve" label was gold on green (low contrast) | Fixed (white on green) | `054ac6f` |
+| NF-16 | Low | CRM | Lead Activity Timeline was not in sequence (minute- / date-precision times) | Fixed (entry order, newest first) | `054ac6f` |

@@ -62,4 +62,6 @@ Process for every batch: sandbox DB first → test → production DB → commit 
 - [x] Synthetic lead LEAD-2026-0002 "Test Prospect (Synthetic)": detail, Log Activity, Add Quotation (TEST-QTN-001), Close Lead (Won) captured (crm/04–10)
 - [x] Re-captured changed screens (approval queue masked, invoices 04/05/09, receipts 04/05, GST report, statement + PDF, statutory PDFs 02–05, validation 11.4/14.2/14.3, sites, deployment site picker, cash book, company profile, dashboard, comparative, audit log, expense categories)
 - [x] USER_MANUAL.md v1.1, DOCUMENTATION_FINDINGS.md (sections C + D), FEATURE_TRACEABILITY.md updated; USER_MANUAL.pdf rebuilt (144 pages, 120 images, none broken)
-- [ ] Owner: decide on committing docs/user-manual/ (incl. PDF)
+- [x] Owner: decide on committing docs/user-manual/ (incl. PDF) → committed `ec567f1`
+- [x] NF-11…NF-16 low findings fixed (`054ac6f`); FEATURE_INVENTORY / ROLE_PERMISSION_MATRIX / GAPS_AND_ASSUMPTIONS updated
+- [ ] OF-03 owner action: confirm Cloudflare Pages production variables (sandbox site already uses its own; production site's source can't be told from the bundle)

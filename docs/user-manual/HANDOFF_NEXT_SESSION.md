@@ -5,7 +5,8 @@
 - Sandbox: company profile filled with fake GSTIN/PAN/PF/ESI/bank (OF-27); Test Client 1 set back to CGST+SGST (draft 004 stays IGST); CRM lead LEAD-2026-0002 (Won).
 - Docs: USER_MANUAL.md v1.1 (all fixed findings reflected; CRM worked example; new figures 12.1, 15.5, 20.3 (IGST draft), 21.4a, 24.14–24.20), DOCUMENTATION_FINDINGS.md sections C (status per OF) + D (NF-01…NF-16), FEATURE_TRACEABILITY.md, USER_MANUAL.pdf rebuilt (144 pages). Build script: `<scratchpad>/build_pdf.py` (recreate if missing).
 - Folder size 32.3 MB (screenshots 19.7 MB, PDF 12.4 MB). Unused: invoices/02-invoice-view-draft.png (superseded by 09).
-- **Remaining:** owner review; owner decides how to commit docs/user-manual/; optional low items NF-11…NF-16; OF-03 (.env / Cloudflare) owner action.
+- **Update (later the same day):** docs committed (`ec567f1`); NF-11…NF-16 fixed (`054ac6f`); supporting docs updated; PDF rebuilt.
+- **Remaining:** owner review; OF-03 owner action — in Cloudflare Pages → production project → Settings → Variables, confirm VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY / VITE_SUPABASE_PROJECT_ID are set for Production; then `.env` can be pointed at the sandbox (or untracked). Sandbox site already builds with its own variables (checked from its live bundle).
 
 ## ⭐⭐ START HERE — Session 5 (written 2026-10-13, end of session 4, usage ~82 %)
 

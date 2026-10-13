@@ -237,7 +237,7 @@ The **client code** (for example CLT-037) is assigned automatically when you sav
 ### Wage Configuration (one row per designation)
 Basic, DA, TA, Special allowance, Conveyance, Washing, Uniform, Weekly-off, **Effective From**, plus a second line: 4-hr OT, Bonus, Relieving, Leave wages, EPF Min Wages, ESI Min Wages.
 - Payroll uses **these rates** for each employee, matched by designation.
-- A new row with a later **Effective From** creates a new version and closes the previous one.
+- A new row with a later **Effective From** creates a new version and closes the previous one. Saving the client without changing a row does not create a new version.
 
 ### Invoice Billing Lines
 Description, SAC (default 998525), Unit label, **Rate / Month**, Order, Active. These pre-fill every invoice for the client.
@@ -786,11 +786,11 @@ On the list, choose **Year / Month**. Drafts show **Approve** (CEO / COO / Super
 *Figure 22.4 — "Expense approved & posted to ledger"*
 
 ### 22.3 Cash Book and Monthly Summary
-- **Finance › Cash Book** (Figure 22.5): ledger entries between two dates with a running balance and totals.
+- **Finance › Cash Book** (Figure 22.5): ledger entries between two dates with a running balance and totals. With a **From** date, the first row is the **opening balance** (all earlier entries) and the running balance continues from it.
 - **Finance › Monthly Summary** (Figure 22.6): income and expense breakdown for a month, with **Export Excel (CA-ready)**.
 
 ![Figure 22.5 — Cash Book](assets/screenshots/finance/01-cash-book.png)
-*Figure 22.5 — Cash Book from 01-09-2026: net ₹26,631.67. Totals (credits ₹83,900, debits ₹57,268.33) also include two ₹1,000 test receipts and their reversals, which cancel out*
+*Figure 22.5 — Cash Book from 01-09-2026: opening balance ₹17,998.20 (earlier sandbox entries), this period's net ₹26,631.67, closing ₹44,629.87. Totals (credits ₹83,900, debits ₹57,268.33) also include two ₹1,000 test receipts and their reversals, which cancel out*
 
 ![Figure 22.6 — Monthly Summary](assets/screenshots/finance/02-monthly-summary.png)
 *Figure 22.6 — Monthly Summary (October 2026)*
@@ -935,7 +935,7 @@ There is no "close month" or lock. Approved paysheets and receipts cannot be edi
 **Worked example — LEAD-2026-0002 "Test Prospect (Synthetic)"** (all details synthetic):
 1. **New Lead**: contact, company, phone, 4 guards, expected value ₹96,000 → **Create Lead** ("Lead LEAD-2026-0002 created", Figure 24.14). The lead opens in its detail page (Figure 24.15).
 2. **Log Activity**: activity type (Call Made), contact mode, **Discussion Notes\***, outcome, next action, next follow-up date → **Log Activity** ("Activity logged", Figure 24.16).
-3. **Add Quotation**: reference, date, value, status (Draft / Submitted / …), **Summary\*** → **Save Quotation** ("Quotation saved", Figure 24.17). Activity and quotation appear on the detail page (Figure 24.18).
+3. **Add Quotation**: reference, date, value, status (Draft / Submitted / …), **Summary\*** → **Save Quotation** ("Quotation saved", Figure 24.17). Activity and quotation appear on the detail page.
 4. **Close Lead**: **Won** or **Lost**, **reason\*** from the list, closure date, **Win Summary\*** (or Remarks for a loss), optional competitor and contributing factors → **Mark as Won** ("Lead marked as WON", Figures 24.19–24.20).
 
 Each step adds an entry to the lead's **Activity Timeline**.
@@ -952,14 +952,11 @@ Each step adds an entry to the lead's **Activity Timeline**.
 ![Figure 24.17 — Add Quotation](assets/screenshots/crm/07-add-quotation-dialog.png)
 *Figure 24.17 — Add Quotation*
 
-![Figure 24.18 — Detail with activity and quotation](assets/screenshots/crm/08-lead-detail-activity-quotation.png)
-*Figure 24.18 — Timeline and quotation on the lead*
-
 ![Figure 24.19 — Close Lead](assets/screenshots/crm/09-close-lead-dialog.png)
 *Figure 24.19 — Close Lead as Won*
 
 ![Figure 24.20 — Lead won](assets/screenshots/crm/10-lead-closed-won.png)
-*Figure 24.20 — Closed lead (Won) with reason and summary*
+*Figure 24.20 — Closed lead (Won) with reason, summary, quotation and the Activity Timeline (newest first)*
 
 **Interpreting mismatches:**
 - **Statement of Account** shows the TDS the client withholds as a separate credit line, so "Total Received" (cash) plus TDS equals what was billed and paid off.
@@ -1130,8 +1127,6 @@ Field tables appear in chapters 8 (users), 11 (clients), 13 (contracts), 14 (emp
 - Statutory rates and rules are built in, as decided by the owner. Verify the ECR / ESI files before upload (chapter 18.2).
 - Issued invoices are not posted to the ledger (it is a cash book).
 - Receipts cannot be edited (reverse and re-enter); approved expenses cannot be reversed.
-- Each client save stores a new version of its wage rows, even if nothing changed (history only).
-
 Details and severity: `DOCUMENTATION_FINDINGS.md`.
 
 ## 35. Support and escalation information

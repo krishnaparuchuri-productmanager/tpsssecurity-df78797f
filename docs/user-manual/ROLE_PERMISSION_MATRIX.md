@@ -86,18 +86,22 @@ V = View, C = Create, E = Edit, D = Delete, A = Approve, X = Export. Values from
 | Edit Role Permissions | ✓ | — | — | — | |
 | Read audit logs, activity log, backups | ✓ | — | — | — | |
 | Wipe sandbox / change environment config | ✓ | — | — | — | Sandbox only |
-| Cancel invoice | ✓ | — | — | — | Reason ≥ 10 chars; blocked while receipts exist |
+| Cancel invoice | ✓ | — | — | — | Reason ≥ 10 chars; blocked while receipts exist (reverse them first) |
+| Reverse receipt | ✓ | — | — | — | `reverse_payment()`; reason ≥ 10 chars; posts a ledger journal, recalculates the invoice, audited |
 | Re-create cancelled invoice / paysheet | ✓ | — | — | — | Only once per cancelled record |
 | Cancel paysheet | ✓ | — | — | — | Reason ≥ 10 chars; linked invoice must be cancelled first or cascaded |
 | Create paysheet (draft) | ✓ | ✓ | — | ✓ | Insert policy allows Accountant + CEO only |
-| Approve / reject paysheet | ✓ | ✓ | ✓ | — | Only *submitted*; COO cannot approve own submission; reject reason 10–200 |
+| Approve / reject paysheet | ✓ | ✓ | ✓ | — | Only *submitted*; COO cannot approve own submission; reject reason 10–200. These checks run only when a paysheet becomes approved |
 | Edit submitted/approved paysheet | ✓ | ✓ | ✓ | — | Accountant blocked once submitted |
 | Request advance | ✓ | ✓ | — | ✓ | Advance limit enforced |
 | Approve / reject advance | ✓ | ✓ | ✓ | — | Cannot approve own request (unless CEO) |
 | Cancel advance | own / CEO+ | ✓ | own | own | |
 | Save / submit FFS | ✓ | ✓ | ✓ | ✓ | |
 | Approve FFS | ✓ | ✓ | ✓ | — | Cannot approve own (unless CEO); sets employee Relieved |
-| Create deployment / relieve / contract / renew | ✓ | ✓ | ✓ | — | |
+| Create deployment / relieve / contract / renew | ✓ | ✓ | ✓ | — | Deployment may name a client site |
+| Add / activate / deactivate client sites | ✓ | ✓ | ✓ | — | `client_posts` RLS (CEO/COO; Super Admin counts as CEO); sites are never deleted |
+| Edit client billing lines | ✓ | ✓ | per Role Permissions (clients edit/create) | per Role Permissions | `replace_client_billing_lines()` checks the same permission |
+| Delete branch | ✓ | ✓ | ✓ | — | `soft_delete_branch()`; refused while clients or employees are linked |
 | Create / edit invoice | ✓ | ✓ | ✓ | ✓ | |
 | Record receipt (payment) | ✓ | ✓ | ✓ | ✓ | Amount > 0, ≤ outstanding |
 | Record expense | ✓ | ✓ | ✓ | ✓ | |
@@ -106,9 +110,9 @@ V = View, C = Create, E = Edit, D = Delete, A = Approve, X = Export. Values from
 | Seed compliance calendar | ✓ | ✓ | ✓ | — | |
 | Bank payment batch | ✓ | ✓ | ✓ | ✓ | |
 | Manage expense categories | ✓ | ✓ | — | — | |
-| Manage TPSS bank accounts | ✓ | ✓ | — | — | Accountant can view |
+| Manage TPSS bank accounts | ✓ | ✓ | — | — | Accountant can view; IFSC format checked |
 
 ## 6. Restrictions on one's own account
 
 - Users can read and update their **own** profile row; only Super Admin can edit others.
-- Neither the User Management screen nor the server stops a user from changing **their own** role, deactivating or removing **themselves**. With a single Super Admin this can lock everyone out of administration (recovery would need direct database access). See GAPS_AND_ASSUMPTIONS.md, G-12.
+- The **last active Super Admin** cannot be demoted, deactivated or removed (server trigger `guard_last_super_admin`), and the User Management screen does not let you change your own row. (Fixed 13 Oct 2026, OF-01; previously this could lock everyone out — GAPS_AND_ASSUMPTIONS.md, G-12.)
