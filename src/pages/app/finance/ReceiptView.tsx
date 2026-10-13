@@ -15,7 +15,6 @@ export default function ReceiptView() {
   const navigate = useNavigate();
   const { isSuperAdmin } = useAuth();
   const [showReverse, setShowReverse] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
   const [r, setR] = useState<{
     is_deleted: boolean;
     receipt_number: string; payment_date: string; amount: number; payment_mode: string;
@@ -25,29 +24,40 @@ export default function ReceiptView() {
   } | null>(null);
   const [company, setCompany] = useState<{ company_name: string; registered_address: string | null;
     phone: string | null; email: string | null; logo_url: string | null } | null>(null);
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     (async () => {
       const [{ data: p }, { data: c }] = await Promise.all([
         supabase.from("payments")
-          .select("is_deleted, receipt_number, payment_date, amount, payment_mode, reference_number, bank_name, clients(client_name), invoices(invoice_number, outstanding_amount)")
+          .select("is_deleted, invoice_id, receipt_number, payment_date, amount, payment_mode, reference_number, bank_name, clients(client_name), invoices(invoice_number, outstanding_amount)")
           .eq("id", id).maybeSingle(),
         supabase.from("company_profile").select("company_name, registered_address, phone, email, logo_url").maybeSingle(),
       ]);
       setR(p as unknown as typeof r);
+      setInvoiceId((p as { invoice_id?: string } | null)?.invoice_id ?? null);
       setCompany(c as unknown as typeof company);
+      setLoaded(true);
     })();
-  }, [id, reloadKey]);
+  }, [id]);
 
   async function reverse(reason: string) {
     const { error } = await supabase.rpc("reverse_payment" as never, { _id: id, _reason: reason } as never);
     if (error) { toast.error(error.message); return; }
     toast.success("Receipt reversed");
     setShowReverse(false);
-    setReloadKey((k) => k + 1);
+    // Reversed receipts are hidden by RLS (is_deleted), so go to the invoice instead of reloading.
+    navigate(invoiceId ? `/app/invoices/${invoiceId}/view` : "/app/finance/receipts");
   }
 
+  if (loaded && !r) return (
+    <div className="space-y-2 text-muted-foreground">
+      <p>This receipt was not found. It may have been reversed.</p>
+      <Button variant="outline" onClick={() => navigate("/app/finance/receipts")}>Back to Receipts</Button>
+    </div>
+  );
   if (!r || !company) return <div className="text-muted-foreground">Loading…</div>;
 
   return (

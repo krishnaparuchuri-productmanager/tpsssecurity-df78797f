@@ -86,7 +86,7 @@ export default function StatementOfAccount() {
     received: payments.reduce((s, p) => s + Number(p.amount), 0),
     tds: invoices.reduce((s, i) => s + Number(i.tds_amount || 0), 0),
     closing: lines.length ? lines[lines.length - 1].balance : 0,
-  }), [lines]);
+  }), [lines, invoices, payments]);
 
   function exportExcel() {
     const data = lines.map((l) => ({
