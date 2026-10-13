@@ -93,7 +93,7 @@ export default function Dashboard() {
       let dQ = supabase.from("employee_deployments").select("*", { count: "exact", head: true }).eq("is_current", true).eq("is_deleted", false).eq("is_sandbox", isSandbox);
       let invQ = supabase.from("invoices")
         .select("billing_amount, amount_received, outstanding_amount, net_margin")
-        .eq("is_sandbox", isSandbox).neq("status", "cancelled")
+        .eq("is_sandbox", isSandbox).not("status", "in", "(cancelled,draft)")
         .gte("month_date", monthStart).lte("month_date", monthEnd);
       let psQ = supabase.from("paysheets")
         .select("total_net_salary")
@@ -101,7 +101,7 @@ export default function Dashboard() {
         .gte("month_date", monthStart).lte("month_date", monthEnd);
       let inv6Q = supabase.from("invoices")
         .select("month_date, billing_amount, amount_received")
-        .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled")
+        .eq("is_sandbox", isSandbox).eq("is_deleted", false).not("status", "in", "(cancelled,draft)")
         .gte("month_date", sixStart);
       let pendQ = supabase.from("paysheets").select("*", { count: "exact", head: true })
         .eq("status", "submitted").eq("is_sandbox", isSandbox).eq("is_deleted", false);

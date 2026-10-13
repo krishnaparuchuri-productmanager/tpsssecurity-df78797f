@@ -72,6 +72,9 @@ export default function InvoiceForm() {
   // must not be replaced by the client defaults unless the user switches client.
   const savedClientId = useRef<string | null>(null);
   const [invoiceNotes, setInvoiceNotes] = useState("");
+  // Linked paysheet headcount by designation — shown as a hint for line quantities
+  // (designations don't map reliably to billing unit labels, so nothing is auto-filled).
+  const [headcount, setHeadcount] = useState<Array<[string, number]>>([]);
   const [saving, setSaving] = useState(false);
 
   // Load clients
@@ -127,7 +130,16 @@ export default function InvoiceForm() {
   useEffect(() => {
     if (!paysheetId) return;
     (async () => {
-      const { data: ps } = await supabase.from("paysheets").select("client_id, month, month_date, total_net_salary, total_epf_employer, total_esi_employer").eq("id", paysheetId).maybeSingle();
+      const [{ data: ps }, { data: emps }] = await Promise.all([
+        supabase.from("paysheets").select("client_id, month, month_date, total_net_salary, total_epf_employer, total_esi_employer").eq("id", paysheetId).maybeSingle(),
+        supabase.from("paysheet_employees").select("designation").eq("paysheet_id", paysheetId).eq("is_deleted", false),
+      ]);
+      const counts = new Map<string, number>();
+      (emps ?? []).forEach((e) => {
+        const d = (e.designation ?? "").trim() || "—";
+        counts.set(d, (counts.get(d) ?? 0) + 1);
+      });
+      setHeadcount([...counts.entries()].sort((a, b) => a[0].localeCompare(b[0])));
       if (ps) {
         setClientId(ps.client_id);
         setMonth(ps.month);
@@ -251,6 +263,11 @@ export default function InvoiceForm() {
             <Plus className="h-3 w-3 mr-1" /> Add Row
           </Button>
         </div>
+        {paysheetId && headcount.length > 0 && (
+          <p className="text-xs text-app-muted">
+            Paysheet headcount: {headcount.map(([d, n]) => `${d} ${n}`).join(" · ")} — set QTY on each line to match.
+          </p>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-app-muted">
