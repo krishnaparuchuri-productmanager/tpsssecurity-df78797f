@@ -64,4 +64,4 @@ Process for every batch: sandbox DB first → test → production DB → commit 
 - [x] USER_MANUAL.md v1.1, DOCUMENTATION_FINDINGS.md (sections C + D), FEATURE_TRACEABILITY.md updated; USER_MANUAL.pdf rebuilt (144 pages, 120 images, none broken)
 - [x] Owner: decide on committing docs/user-manual/ (incl. PDF) → committed `ec567f1`
 - [x] NF-11…NF-16 low findings fixed (`054ac6f`); FEATURE_INVENTORY / ROLE_PERMISSION_MATRIX / GAPS_AND_ASSUMPTIONS updated
-- [ ] OF-03 owner action: confirm Cloudflare Pages production variables (sandbox site already uses its own; production site's source can't be told from the bundle)
+- [ ] OF-03: **checked** — production Pages project has NO variables (builds from tracked .env); sandbox project sets URL + key. Next (needs owner OK, changes Cloudflare): add prod VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY to tpsssecurity-production → verify a deploy → then repoint/untrack .env
