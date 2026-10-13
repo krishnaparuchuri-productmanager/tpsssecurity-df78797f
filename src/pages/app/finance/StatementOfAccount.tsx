@@ -120,6 +120,8 @@ export default function StatementOfAccount() {
       ]),
       foot: [["", "Total", "", totals.debit.toFixed(2), totals.credit.toFixed(2), totals.closing.toFixed(2)]],
       styles: { fontSize: 8 }, headStyles: { fillColor: [10, 22, 40] },
+      footStyles: { fillColor: [235, 240, 246], textColor: [10, 22, 40], fontStyle: "bold" },
+      columnStyles: { 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" } },
     });
     doc.save(`Statement_${client.client_code}_${from}_to_${to}.pdf`);
   }

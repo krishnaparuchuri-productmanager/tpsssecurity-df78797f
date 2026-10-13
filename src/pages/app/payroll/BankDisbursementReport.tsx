@@ -169,7 +169,7 @@ function generatePDF(
       7: { cellWidth: 27 },
     },
     foot: [["", `Total (${emps.length} employees)`, "", "", "", formatINR(totalAmt), "", ""]],
-    footStyles: { fillColor: [235, 240, 246] as [number,number,number], fontStyle: "bold", fontSize: 7.5 },
+    footStyles: { fillColor: [235, 240, 246] as [number,number,number], textColor: [10, 22, 40] as [number,number,number], fontStyle: "bold", fontSize: 7.5 },
     margin: { left: 10, right: 10 },
     didDrawPage: (data: any) => {
       // repeat watermark on each new page
