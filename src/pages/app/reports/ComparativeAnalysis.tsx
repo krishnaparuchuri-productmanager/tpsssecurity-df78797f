@@ -18,6 +18,10 @@ const LABEL: Record<string, string> = {
   billing: "Billing", received: "Received", outstanding: "Outstanding", employees: "Employee Count",
   epf: "EPF (Total)", esi: "ESI (Total)", net_salary: "Net Salary", expenses: "Total Expenses",
 };
+// Count metrics are shown as plain numbers, everything else as money.
+const COUNT_METRICS = new Set(["employees"]);
+const fmtMetric = (metric: string, v: number) =>
+  COUNT_METRICS.has(metric) ? v.toLocaleString("en-IN") : formatINR(v);
 
 interface MetricRow { metric: string; a: number; b: number; }
 
@@ -151,9 +155,9 @@ export default function ComparativeAnalysis() {
                 return (
                   <TableRow key={r.metric} className={highlight}>
                     <TableCell className="font-medium">{r.metric === "net_margin" ? "Net Margin" : LABEL[r.metric]}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatINR(r.a)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatINR(r.b)}</TableCell>
-                    <TableCell className={`text-right tabular-nums ${cls}`}>{formatINR(d)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{fmtMetric(r.metric, r.a)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{fmtMetric(r.metric, r.b)}</TableCell>
+                    <TableCell className={`text-right tabular-nums ${cls}`}>{fmtMetric(r.metric, d)}</TableCell>
                     <TableCell className={`text-right tabular-nums ${cls}`}>{p === null ? "—" : `${p.toFixed(1)}%`}</TableCell>
                   </TableRow>
                 );

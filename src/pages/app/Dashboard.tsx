@@ -178,10 +178,11 @@ export default function Dashboard() {
   }
 
   const kpis: KPI[] = [
-    { label: "Total Billing (Month)", value: formatINR(fin.billing), icon: Wallet },
-    { label: "Amount Received", value: formatINR(fin.received), icon: TrendingUp },
-    { label: "Outstanding Dues", value: formatINR(fin.outstanding), icon: AlertTriangle, to: "/app/finance/aging" },
-    { label: "Net Margin", value: formatINR(fin.margin), icon: TrendingUp },
+    // Invoice figures are for invoices of this billing month, not cash dates.
+    { label: "Total Billing (by billing month)", value: formatINR(fin.billing), icon: Wallet },
+    { label: "Received (by billing month)", value: formatINR(fin.received), icon: TrendingUp },
+    { label: "Outstanding (by billing month)", value: formatINR(fin.outstanding), icon: AlertTriangle, to: "/app/finance/aging" },
+    { label: "Net Margin (by billing month)", value: formatINR(fin.margin), icon: TrendingUp },
     { label: "Active Clients", value: String(counts?.clients ?? "—"), icon: Briefcase, to: "/app/masters/clients" },
     { label: "Active Employees", value: String(counts?.employees ?? "—"), icon: Users, to: "/app/masters/employees" },
     { label: "Active Deployments", value: String(counts?.deployments ?? "—"), icon: MapPin, to: "/app/masters/deployments" },
