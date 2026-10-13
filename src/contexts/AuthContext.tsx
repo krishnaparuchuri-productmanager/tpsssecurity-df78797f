@@ -99,6 +99,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // A session can be revoked server-side (password reset, admin action). The
+  // stored token still looks valid locally, so re-check with the server when
+  // the tab regains focus and every 5 minutes; if it is gone, sign out locally.
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    async function verify() {
+      const { error } = await supabase.auth.getUser();
+      if (!cancelled && error && /session/i.test(error.message)) {
+        await supabase.auth.signOut({ scope: "local" });
+        window.location.assign("/login");
+      }
+    }
+    const onFocus = () => { void verify(); };
+    window.addEventListener("focus", onFocus);
+    const timer = window.setInterval(verify, 5 * 60 * 1000);
+    return () => { cancelled = true; window.removeEventListener("focus", onFocus); window.clearInterval(timer); };
+  }, [session]);
+
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
@@ -126,7 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const device = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 240) : null;
       await supabase.rpc("log_activity", { _type: "logout", _page_url: null, _ip: null, _device: device, _details: null as never });
     } catch { /* ignore */ }
-    await supabase.auth.signOut();
+    // Local scope: signing out here must not end the user's other sessions.
+    await supabase.auth.signOut({ scope: "local" });
     setUser(null);
     setSession(null);
     setProfile(null);

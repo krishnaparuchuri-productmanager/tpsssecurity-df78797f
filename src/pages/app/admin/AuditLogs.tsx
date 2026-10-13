@@ -8,8 +8,11 @@ interface Log { id: string; action: string; table_name: string | null; record_id
 
 export default function AuditLogs() {
   const [rows, setRows] = useState<Log[] | null>(null);
+  const [names, setNames] = useState<Record<string, string>>({});
   useEffect(() => {
     supabase.from("audit_logs").select("id, action, table_name, record_id, user_id, created_at").order("created_at", { ascending: false }).limit(200).then(({ data }) => setRows((data ?? []) as Log[]));
+    supabase.from("user_profiles").select("id, full_name, email").then(({ data }) =>
+      setNames(Object.fromEntries((data ?? []).map((p) => [p.id, p.full_name || p.email]))));
   }, []);
   return (
     <div className="space-y-4">
@@ -31,7 +34,7 @@ export default function AuditLogs() {
                   <td className="py-2 px-3"><Badge variant="secondary">{r.action}</Badge></td>
                   <td className="py-2 px-3 font-mono text-xs">{r.table_name ?? "—"}</td>
                   <td className="py-2 px-3 font-mono text-[10px] text-muted-foreground">{r.record_id ?? "—"}</td>
-                  <td className="py-2 px-3 font-mono text-[10px] text-muted-foreground">{r.user_id ?? "—"}</td>
+                  <td className="py-2 px-3 text-xs" title={r.user_id ?? undefined}>{r.user_id ? (names[r.user_id] ?? r.user_id) : "—"}</td>
                 </tr>
               ))}
           </tbody>
