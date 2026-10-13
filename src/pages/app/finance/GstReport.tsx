@@ -1,3 +1,4 @@
+import { r2 } from "@/lib/calc";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -16,10 +17,26 @@ import { addExcelBranding } from "@/lib/excelBranding";
 interface Inv {
   id: string; invoice_number: string; invoice_date: string;
   total_taxable_value: number; gst_amount: number; gst_percentage: number;
-  total_invoice_value: number; gst_applicable: boolean; gst_rcm: boolean;
+  total_invoice_value: number; gst_applicable: boolean; gst_rcm: boolean; gst_type: string; billing_lines: unknown;
   client_id: string;
   clients: { client_name: string; gst_number: string | null; state: string } | null;
 }
+
+// IGST clients (other state) pay the whole GST as IGST; others split it CGST/SGST.
+function gstSplit(i: Inv) {
+  const gst = Number(i.gst_amount);
+  if (i.gst_type === "igst") return { cgst: 0, sgst: 0, igst: gst };
+  return { cgst: r2(gst / 2), sgst: r2(gst / 2), igst: 0 };
+}
+
+const sumUp = (list: Inv[]) => list.reduce((acc, i) => {
+  const s = gstSplit(i);
+  return {
+    taxable: acc.taxable + Number(i.total_taxable_value),
+    cgst: acc.cgst + s.cgst, sgst: acc.sgst + s.sgst, igst: acc.igst + s.igst,
+    total: acc.total + Number(i.total_invoice_value),
+  };
+}, { taxable: 0, cgst: 0, sgst: 0, igst: 0, total: 0 });
 
 export default function GstReport() {
   const { isSandbox } = useEnvironment();
@@ -33,7 +50,7 @@ export default function GstReport() {
     const start = `${year}-${String(month).padStart(2, "0")}-01`;
     const end = localISODate(new Date(year, month, 0));
     supabase.from("invoices")
-      .select("id, invoice_number, invoice_date, total_taxable_value, gst_amount, gst_percentage, total_invoice_value, gst_applicable, gst_rcm, client_id, clients(client_name, gst_number, state)")
+      .select("id, invoice_number, invoice_date, total_taxable_value, gst_amount, gst_percentage, total_invoice_value, gst_applicable, gst_rcm, gst_type, billing_lines, client_id, clients(client_name, gst_number, state)")
       .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled").eq("gst_applicable", true)
       .gte("invoice_date", start).lte("invoice_date", end)
       .order("invoice_date").then(({ data }) => setInvs((data ?? []) as unknown as Inv[]));
@@ -42,25 +59,22 @@ export default function GstReport() {
   const fwd = useMemo(() => invs.filter((i) => !i.gst_rcm), [invs]);
   const rcm = useMemo(() => invs.filter((i) => i.gst_rcm), [invs]);
 
-  const fwdTotals = useMemo(() => fwd.reduce((acc, i) => ({
-    taxable: acc.taxable + Number(i.total_taxable_value),
-    gst: acc.gst + Number(i.gst_amount),
-    total: acc.total + Number(i.total_invoice_value),
-  }), { taxable: 0, gst: 0, total: 0 }), [fwd]);
-  const rcmTotals = useMemo(() => rcm.reduce((acc, i) => ({
-    taxable: acc.taxable + Number(i.total_taxable_value),
-    gst: acc.gst + Number(i.gst_amount),
-    total: acc.total + Number(i.total_invoice_value),
-  }), { taxable: 0, gst: 0, total: 0 }), [rcm]);
+  const fwdTotals = useMemo(() => sumUp(fwd), [fwd]);
+  const rcmTotals = useMemo(() => sumUp(rcm), [rcm]);
 
   function exportExcel() {
     const wb = XLSX.utils.book_new();
-    const mkRows = (list: Inv[]) => list.map((i) => ({
-      "Invoice #": i.invoice_number, Date: i.invoice_date, Client: i.clients?.client_name ?? "",
-      "Client GSTIN": i.clients?.gst_number ?? "", "Place of Supply": i.clients?.state ?? "",
-      "Taxable Value": Number(i.total_taxable_value), "GST %": Number(i.gst_percentage),
-      "GST Amount": Number(i.gst_amount), "Invoice Total": Number(i.total_invoice_value),
-    }));
+    const mkRows = (list: Inv[]) => list.map((i) => {
+      const s = gstSplit(i);
+      return {
+        "Invoice #": i.invoice_number, Date: i.invoice_date, Client: i.clients?.client_name ?? "",
+        "Client GSTIN": i.clients?.gst_number ?? "", "Place of Supply": i.clients?.state ?? "",
+        "SAC": [...new Set(((i.billing_lines ?? []) as Array<{ sac_code?: string }>).map((l) => l.sac_code).filter(Boolean))].join(", "),
+        "Taxable Value": Number(i.total_taxable_value), "GST %": Number(i.gst_percentage),
+        "CGST": s.cgst, "SGST": s.sgst, "IGST": s.igst,
+        "GST Amount": Number(i.gst_amount), "Invoice Total": Number(i.total_invoice_value),
+      };
+    });
     const wsFwd = XLSX.utils.json_to_sheet(mkRows(fwd));
     if (company) addExcelBranding(wsFwd, company);
     XLSX.utils.book_append_sheet(wb, wsFwd, "GSTR-1");
@@ -68,7 +82,7 @@ export default function GstReport() {
     XLSX.writeFile(wb, `GST_${year}-${String(month).padStart(2, "0")}.xlsx`);
   }
 
-  function renderTable(list: Inv[], totals: { taxable: number; gst: number; total: number }) {
+  function renderTable(list: Inv[], totals: ReturnType<typeof sumUp>) {
     return (
       <Table>
         <TableHeader><TableRow>
@@ -76,12 +90,14 @@ export default function GstReport() {
           <TableHead>GSTIN</TableHead><TableHead>State</TableHead>
           <TableHead className="text-right">Taxable</TableHead>
           <TableHead className="text-right">GST %</TableHead>
-          <TableHead className="text-right">GST</TableHead>
+          <TableHead className="text-right">CGST</TableHead>
+          <TableHead className="text-right">SGST</TableHead>
+          <TableHead className="text-right">IGST</TableHead>
           <TableHead className="text-right">Total</TableHead>
         </TableRow></TableHeader>
         <TableBody>
-          {list.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-app-muted">No invoices</TableCell></TableRow>}
-          {list.map((i) => (
+          {list.length === 0 && <TableRow><TableCell colSpan={11} className="text-center text-app-muted">No invoices</TableCell></TableRow>}
+          {list.map((i) => { const s = gstSplit(i); return (
             <TableRow key={i.id}>
               <TableCell className="font-mono text-xs">{i.invoice_number}</TableCell>
               <TableCell>{formatDate(i.invoice_date)}</TableCell>
@@ -90,17 +106,21 @@ export default function GstReport() {
               <TableCell>{i.clients?.state ?? "—"}</TableCell>
               <TableCell className="text-right tabular-nums">{formatINR(Number(i.total_taxable_value))}</TableCell>
               <TableCell className="text-right tabular-nums">{Number(i.gst_percentage).toFixed(2)}%</TableCell>
-              <TableCell className="text-right tabular-nums">{formatINR(Number(i.gst_amount))}</TableCell>
+              <TableCell className="text-right tabular-nums">{formatINR(s.cgst)}</TableCell>
+              <TableCell className="text-right tabular-nums">{formatINR(s.sgst)}</TableCell>
+              <TableCell className="text-right tabular-nums">{formatINR(s.igst)}</TableCell>
               <TableCell className="text-right tabular-nums font-medium">{formatINR(Number(i.total_invoice_value))}</TableCell>
             </TableRow>
-          ))}
+          ); })}
         </TableBody>
         <TableFooter>
           <TableRow>
             <TableCell colSpan={5} className="font-bold">TOTAL</TableCell>
             <TableCell className="text-right tabular-nums font-bold">{formatINR(totals.taxable)}</TableCell>
             <TableCell></TableCell>
-            <TableCell className="text-right tabular-nums font-bold">{formatINR(totals.gst)}</TableCell>
+            <TableCell className="text-right tabular-nums font-bold">{formatINR(totals.cgst)}</TableCell>
+            <TableCell className="text-right tabular-nums font-bold">{formatINR(totals.sgst)}</TableCell>
+            <TableCell className="text-right tabular-nums font-bold">{formatINR(totals.igst)}</TableCell>
             <TableCell className="text-right tabular-nums font-bold">{formatINR(totals.total)}</TableCell>
           </TableRow>
         </TableFooter>
@@ -116,7 +136,7 @@ export default function GstReport() {
           <div className="flex flex-wrap gap-3 items-end">
             <div><Label>Year</Label><Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-24" /></div>
             <div><Label>Month</Label><Input type="number" min={1} max={12} value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-20" /></div>
-            <div className="ml-auto"><Button variant="outline" onClick={exportExcel}><Download className="h-4 w-4 mr-1" /> Export GSTR-1 + RCM</Button></div>
+            <div className="ml-auto"><Button variant="outline" onClick={exportExcel}><Download className="h-4 w-4 mr-1" /> Export GST summary (for GSTR-1)</Button></div>
           </div>
           <Tabs defaultValue="fwd">
             <TabsList>

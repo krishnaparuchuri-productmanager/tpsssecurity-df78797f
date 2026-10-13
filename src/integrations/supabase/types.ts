@@ -532,6 +532,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          gst_type: string
           address: string | null
           billing_frequency: string
           branch_id: string | null
@@ -566,6 +567,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          gst_type?: string
           address?: string | null
           billing_frequency?: string
           branch_id?: string | null
@@ -600,6 +602,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          gst_type?: string
           address?: string | null
           billing_frequency?: string
           branch_id?: string | null
@@ -1648,6 +1651,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          gst_type: string
           amount_in_words: string | null
           amount_receivable: number
           amount_received: number
@@ -1696,6 +1700,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          gst_type?: string
           amount_in_words?: string | null
           amount_receivable?: number
           amount_received?: number
@@ -1744,6 +1749,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          gst_type?: string
           amount_in_words?: string | null
           amount_receivable?: number
           amount_received?: number

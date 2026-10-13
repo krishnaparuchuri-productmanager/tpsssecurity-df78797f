@@ -18,7 +18,7 @@ import { addExcelBranding } from "@/lib/excelBranding";
 interface Client { id: string; client_name: string; client_code: string; gst_number: string | null; address: string | null; }
 interface Invoice {
   id: string; invoice_number: string; invoice_date: string; due_date: string | null;
-  total_invoice_value: number; amount_received: number; outstanding_amount: number;
+  total_invoice_value: number; tds_amount: number; amount_received: number; outstanding_amount: number;
 }
 interface Payment { id: string; invoice_id: string; receipt_number: string; payment_date: string; amount: number; payment_mode: string; }
 
@@ -44,7 +44,7 @@ export default function StatementOfAccount() {
   useEffect(() => {
     if (!clientId) { setInvoices([]); setPayments([]); return; }
     supabase.from("invoices")
-      .select("id, invoice_number, invoice_date, due_date, total_invoice_value, amount_received, outstanding_amount")
+      .select("id, invoice_number, invoice_date, due_date, total_invoice_value, tds_amount, amount_received, outstanding_amount")
       .eq("client_id", clientId).eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled")
       .gte("invoice_date", from).lte("invoice_date", to)
       .order("invoice_date").then(({ data }) => setInvoices((data ?? []) as Invoice[]));
@@ -59,10 +59,18 @@ export default function StatementOfAccount() {
 
   const lines: Line[] = useMemo(() => {
     const events: Array<{ date: string; debit: number; credit: number; particulars: string; ref: string }> = [];
-    invoices.forEach((i) => events.push({
-      date: i.invoice_date, debit: Number(i.total_invoice_value), credit: 0,
-      particulars: `Invoice ${i.invoice_number}`, ref: i.invoice_number,
-    }));
+    invoices.forEach((i) => {
+      events.push({
+        date: i.invoice_date, debit: Number(i.total_invoice_value), credit: 0,
+        particulars: `Invoice ${i.invoice_number}`, ref: i.invoice_number,
+      });
+      // The client withholds TDS and pays only the receivable; show it so the
+      // balance equals what is actually owed.
+      if (Number(i.tds_amount) > 0) events.push({
+        date: i.invoice_date, debit: 0, credit: Number(i.tds_amount),
+        particulars: "TDS deducted by client", ref: i.invoice_number,
+      });
+    });
     payments.forEach((p) => events.push({
       date: p.payment_date, debit: 0, credit: Number(p.amount),
       particulars: `Payment received (${p.payment_mode})`, ref: p.receipt_number,
@@ -75,8 +83,10 @@ export default function StatementOfAccount() {
   const totals = useMemo(() => ({
     debit: lines.reduce((s, l) => s + l.debit, 0),
     credit: lines.reduce((s, l) => s + l.credit, 0),
+    received: payments.reduce((s, p) => s + Number(p.amount), 0),
+    tds: invoices.reduce((s, i) => s + Number(i.tds_amount || 0), 0),
     closing: lines.length ? lines[lines.length - 1].balance : 0,
-  }), [lines]);
+  }), [lines, invoices, payments]);
 
   function exportExcel() {
     const data = lines.map((l) => ({
@@ -139,7 +149,7 @@ export default function StatementOfAccount() {
             <>
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-app-surface p-3 rounded border border-app-border"><div className="text-xs text-app-muted">Total Billed</div><div className="text-xl font-bold tabular-nums">{formatINR(totals.debit)}</div></div>
-                <div className="bg-app-surface p-3 rounded border border-app-border"><div className="text-xs text-app-muted">Total Received</div><div className="text-xl font-bold tabular-nums text-green-700">{formatINR(totals.credit)}</div></div>
+                <div className="bg-app-surface p-3 rounded border border-app-border"><div className="text-xs text-app-muted">Total Received</div><div className="text-xl font-bold tabular-nums text-green-700">{formatINR(totals.received)}</div>{totals.tds > 0 && <div className="text-xs text-app-muted">+ TDS {formatINR(totals.tds)}</div>}</div>
                 <div className="bg-app-surface p-3 rounded border border-app-border"><div className="text-xs text-app-muted">Closing Balance</div><div className={`text-xl font-bold tabular-nums ${totals.closing > 0 ? "text-red-700" : "text-green-700"}`}>{formatINR(totals.closing)}</div></div>
               </div>
 

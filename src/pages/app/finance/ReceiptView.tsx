@@ -2,14 +2,21 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, Undo2 } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { CancelDialog } from "@/components/CancelDialog";
+import { Badge } from "@/components/ui/badge";
 import tpssLogo from "@/assets/tpss-logo-portal.jpg";
 import { formatDate, formatINR } from "@/lib/format";
 
 export default function ReceiptView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isSuperAdmin } = useAuth();
+  const [showReverse, setShowReverse] = useState(false);
   const [r, setR] = useState<{
+    is_deleted: boolean;
     receipt_number: string; payment_date: string; amount: number; payment_mode: string;
     reference_number: string | null; bank_name: string | null;
     clients: { client_name: string } | null;
@@ -17,21 +24,40 @@ export default function ReceiptView() {
   } | null>(null);
   const [company, setCompany] = useState<{ company_name: string; registered_address: string | null;
     phone: string | null; email: string | null; logo_url: string | null } | null>(null);
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     (async () => {
       const [{ data: p }, { data: c }] = await Promise.all([
         supabase.from("payments")
-          .select("receipt_number, payment_date, amount, payment_mode, reference_number, bank_name, clients(client_name), invoices(invoice_number, outstanding_amount)")
+          .select("is_deleted, invoice_id, receipt_number, payment_date, amount, payment_mode, reference_number, bank_name, clients(client_name), invoices(invoice_number, outstanding_amount)")
           .eq("id", id).maybeSingle(),
         supabase.from("company_profile").select("company_name, registered_address, phone, email, logo_url").maybeSingle(),
       ]);
       setR(p as unknown as typeof r);
+      setInvoiceId((p as { invoice_id?: string } | null)?.invoice_id ?? null);
       setCompany(c as unknown as typeof company);
+      setLoaded(true);
     })();
   }, [id]);
 
+  async function reverse(reason: string) {
+    const { error } = await supabase.rpc("reverse_payment" as never, { _id: id, _reason: reason } as never);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Receipt reversed");
+    setShowReverse(false);
+    // Reversed receipts are hidden by RLS (is_deleted), so go to the invoice instead of reloading.
+    navigate(invoiceId ? `/app/invoices/${invoiceId}/view` : "/app/finance/receipts");
+  }
+
+  if (loaded && !r) return (
+    <div className="space-y-2 text-muted-foreground">
+      <p>This receipt was not found. It may have been reversed.</p>
+      <Button variant="outline" onClick={() => navigate("/app/finance/receipts")}>Back to Receipts</Button>
+    </div>
+  );
   if (!r || !company) return <div className="text-muted-foreground">Loading…</div>;
 
   return (
@@ -39,7 +65,13 @@ export default function ReceiptView() {
       <div className="flex items-center gap-2 print:hidden">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="text-xl font-bold text-app-navy">{r.receipt_number}</h1>
+        {r.is_deleted && <Badge variant="destructive">Reversed</Badge>}
         <Button className="ml-auto" variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" /> Print</Button>
+        {isSuperAdmin && !r.is_deleted && (
+          <Button variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => setShowReverse(true)}>
+            <Undo2 className="h-4 w-4 mr-1" /> Reverse Receipt
+          </Button>
+        )}
       </div>
 
       <div className="bg-white border-2 border-app-navy rounded-lg p-6">
@@ -78,6 +110,14 @@ export default function ReceiptView() {
           <div className="mt-6 text-app-muted">Authorised Signatory</div>
         </div>
       </div>
+      <CancelDialog
+        open={showReverse}
+        onOpenChange={setShowReverse}
+        title={`Reverse receipt ${r.receipt_number}?`}
+        description="The receipt is marked reversed, an offsetting ledger entry is posted and the invoice balance is restored. This cannot be undone."
+        confirmLabel="Confirm Reversal"
+        onConfirm={(reason) => reverse(reason)}
+      />
     </div>
   );
 }
