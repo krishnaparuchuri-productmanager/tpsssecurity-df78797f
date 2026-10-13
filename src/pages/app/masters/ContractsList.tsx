@@ -41,9 +41,10 @@ export default function ContractsList() {
   function expiryBadge(end: string | null) {
     if (!end) return <Badge variant="outline">Open-ended</Badge>;
     const d = (new Date(end).getTime() - Date.now()) / 86400000;
-    if (d < 0) return <Badge className="bg-red-100 text-red-900">🔴 Expired</Badge>;
-    if (d < 30) return <Badge className="bg-yellow-100 text-yellow-900">🟡 {Math.ceil(d)}d</Badge>;
-    return <Badge className="bg-green-100 text-green-900">🟢 Active</Badge>;
+    // Outline variant: the default variant switches to the navy primary colour on hover.
+    if (d < 0) return <Badge variant="outline" className="border-red-300 bg-red-50 text-red-800 hover:bg-red-50">Expired</Badge>;
+    if (d < 30) return <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-50">Expires in {Math.ceil(d)}d</Badge>;
+    return <Badge variant="outline" className="border-green-300 bg-green-50 text-green-800 hover:bg-green-50">Active</Badge>;
   }
 
   const filtered = rows.filter(r => statusFilter === "all" || r.status === statusFilter);

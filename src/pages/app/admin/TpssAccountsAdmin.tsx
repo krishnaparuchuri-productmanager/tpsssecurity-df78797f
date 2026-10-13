@@ -38,7 +38,11 @@ export default function TpssAccountsAdmin() {
       toast.error("Account name, number, and IFSC are required");
       return;
     }
-    setSaving(true);
+    // IFSC: 4 letters (bank), 0, then 6 letters/digits (branch) — e.g. SBIN0001234
+    if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(form.ifsc_code.trim().toUpperCase())) {
+      toast.error("IFSC must be 11 characters: 4 letters, 0, then 6 letters or digits (e.g. SBIN0001234)");
+      return;
+    }    setSaving(true);
     const { error } = await (supabase as any).from("tpss_bank_accounts").insert({
       account_name: form.account_name.trim(),
       account_number: form.account_number.trim(),
