@@ -99,7 +99,9 @@ export default function LeadDetail() {
         .eq("id", id).single(),
       supabase.from("crm_lead_activities")
         .select("*").eq("lead_id", id).eq("is_deleted", false)
-        .order("activity_datetime", { ascending: false }),
+        // Entry order: activity_datetime is minute-precision (dialog) or date-only (closure),
+        // so sorting on it put entries out of sequence.
+        .order("created_at", { ascending: false }),
       supabase.from("crm_lead_quotations")
         .select("*").eq("lead_id", id).eq("is_deleted", false)
         .order("created_at", { ascending: false }),

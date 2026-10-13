@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { alignFootAmounts } from "@/lib/pdfFoot";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { Button } from "@/components/ui/button";
@@ -118,7 +119,8 @@ export default function StatementOfAccount() {
         l.credit ? l.credit.toFixed(2) : "",
         l.balance.toFixed(2),
       ]),
-      foot: [["", "Total", "", totals.debit.toFixed(2), totals.credit.toFixed(2), totals.closing.toFixed(2)]],
+      foot: [["", "Total", "", totals.debit.toFixed(2), totals.credit.toFixed(2), totals.closing.toFixed(2)]],
+      didParseCell: alignFootAmounts,
       styles: { fontSize: 8 }, headStyles: { fillColor: [10, 22, 40] },
       footStyles: { fillColor: [235, 240, 246], textColor: [10, 22, 40], fontStyle: "bold" },
       columnStyles: { 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" } },

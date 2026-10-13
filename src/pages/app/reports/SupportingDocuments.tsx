@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { alignFootAmounts } from "@/lib/pdfFoot";
 import JSZip from "jszip";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -158,7 +159,8 @@ function buildSalaryRegister(
     startY: y,
     head: [["#", "Employee Name", "Designation", "Duties", "Earned Wages", "EPF Emp", "ESI Emp", "PT", "Advance", "Unif. Adv", "Canteen", "Net Pay"]],
     body: rows,
-    foot: [["", `Total (${emps.length})`, "", "", formatINR(sum("earned_wages")), formatINR(sum("epf_employee_deduction")), formatINR(sum("esi_employee_deduction")), formatINR(sum("pt_deduction")), formatINR(sum("advance_deduction")), formatINR(sum("uniform_advance_deduction")), formatINR(sum("canteen_total")), formatINR(sum("final_net_salary"))]],
+    foot: [["", `Total (${emps.length})`, "", "", formatINR(sum("earned_wages")), formatINR(sum("epf_employee_deduction")), formatINR(sum("esi_employee_deduction")), formatINR(sum("pt_deduction")), formatINR(sum("advance_deduction")), formatINR(sum("uniform_advance_deduction")), formatINR(sum("canteen_total")), formatINR(sum("final_net_salary"))]],
+    didParseCell: alignFootAmounts,
     theme: "striped",
     headStyles: { fillColor: [10, 22, 40] as [number,number,number], textColor: 255, fontSize: 7 },
     footStyles: { fillColor: [235, 240, 246] as [number,number,number], textColor: [10, 22, 40] as [number,number,number], fontStyle: "bold", fontSize: 7 },
@@ -214,7 +216,8 @@ function buildPFStatement(
     startY: y,
     head: [["#", "Employee Name", "UAN", "EPF Wages", "Employee (12%)", "Employer (13%)", "Total"]],
     body: rows,
-    foot: [["", `Total (${emps.length})`, "", formatINR(sum("epf_wages")), formatINR(totalEmp), formatINR(totalEmpr), formatINR(totalEmp + totalEmpr)]],
+    foot: [["", `Total (${emps.length})`, "", formatINR(sum("epf_wages")), formatINR(totalEmp), formatINR(totalEmpr), formatINR(totalEmp + totalEmpr)]],
+    didParseCell: alignFootAmounts,
     theme: "striped",
     headStyles: { fillColor: [10, 22, 40] as [number,number,number], textColor: 255, fontSize: 8 },
     footStyles: { fillColor: [235, 240, 246] as [number,number,number], textColor: [10, 22, 40] as [number,number,number], fontStyle: "bold", fontSize: 8 },
@@ -266,7 +269,8 @@ function buildESIStatement(
     startY: y,
     head: [["#", "Employee Name", "ESI No.", "ESI Wages", "Employee (0.75%)", "Employer (3.25%)", "Total"]],
     body: rows,
-    foot: [["", `Total (${emps.length})`, "", formatINR(sum("esi_wages")), formatINR(totalEmp), formatINR(totalEmpr), formatINR(totalEmp + totalEmpr)]],
+    foot: [["", `Total (${emps.length})`, "", formatINR(sum("esi_wages")), formatINR(totalEmp), formatINR(totalEmpr), formatINR(totalEmp + totalEmpr)]],
+    didParseCell: alignFootAmounts,
     theme: "striped",
     headStyles: { fillColor: [10, 22, 40] as [number,number,number], textColor: 255, fontSize: 8 },
     footStyles: { fillColor: [235, 240, 246] as [number,number,number], textColor: [10, 22, 40] as [number,number,number], fontStyle: "bold", fontSize: 8 },
@@ -315,7 +319,8 @@ function buildPTReport(
     startY: y,
     head: [["#", "Employee Name", "Designation", "Gross Earned", "PT Deducted"]],
     body: rows.length > 0 ? rows : [["—", "No employees with PT deduction", "", "", ""]],
-    foot: rows.length > 0 ? [["", `Total (${liable.length} employees)`, "", "", formatINR(totalPT)]] : undefined,
+    foot: rows.length > 0 ? [["", `Total (${liable.length} employees)`, "", "", formatINR(totalPT)]] : undefined,
+    didParseCell: alignFootAmounts,
     theme: "striped",
     headStyles: { fillColor: [10, 22, 40] as [number,number,number], textColor: 255, fontSize: 8 },
     footStyles: { fillColor: [235, 240, 246] as [number,number,number], textColor: [10, 22, 40] as [number,number,number], fontStyle: "bold", fontSize: 8 },

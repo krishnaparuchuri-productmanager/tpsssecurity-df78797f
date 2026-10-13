@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,10 @@ interface WageRow {
   payable_gross: number; epf_mw_wages: number; esi_mw_wages: number;
   effective_from: string;
 }
+
+const wageKeyOf = (designation: string) => designation.trim().toUpperCase();
+// Comparable signature of a wage row's values (id excluded).
+const wageSig = (w: WageRow) => JSON.stringify({ ...w, id: undefined, designation: wageKeyOf(w.designation) });
 
 const emptyWage: WageRow = {
   designation: "", basic: 0, da: 0, ta: 0,
@@ -105,6 +109,8 @@ export default function ClientForm() {
     canteen_enabled: false,
   });
   const [wages, setWages] = useState<WageRow[]>([{ ...emptyWage }]);
+  // Wage rows as loaded (by designation), so saving only versions rows that changed.
+  const loadedWages = useRef<Map<string, string>>(new Map());
   const [lines, setLines] = useState<BillingLine[]>([{ ...emptyLine }]);
   const [deductionTemplate, setDeductionTemplate] = useState<DeductionRow[]>(DEFAULT_DEDUCTION_ROWS);
   const [deductionTemplateId, setDeductionTemplateId] = useState<string | null>(null);
@@ -151,7 +157,7 @@ export default function ClientForm() {
         });
       }
       if (wg && wg.length > 0) {
-        setWages(wg.map((x) => ({
+        const loaded: WageRow[] = wg.map((x) => ({
           id: x.id, designation: x.designation,
           basic: Number(x.basic), da: Number(x.da), ta: Number(x.ta),
           spl_allowance: Number(x.spl_allowance), conveyance_allowance: Number(x.conveyance_allowance),
@@ -160,7 +166,9 @@ export default function ClientForm() {
           relieving_charges: Number(x.relieving_charges), leave_wages: Number(x.leave_wages),
           payable_gross: Number(x.payable_gross), epf_mw_wages: Number(x.epf_mw_wages), esi_mw_wages: Number(x.esi_mw_wages),
           effective_from: x.effective_from,
-        })));
+        }));
+        loadedWages.current = new Map(loaded.map((w) => [wageKeyOf(w.designation), wageSig(w)]));
+        setWages(loaded);
       }
       if (bl && bl.length > 0) {
         setLines(bl.map((x) => ({
@@ -236,8 +244,10 @@ export default function ClientForm() {
         await logAudit({ action: "CREATE", table: "clients", recordId: clientId, newValues: payload });
       }
 
-      // Wage config — insert new versions; trigger version_wage_config closes prior
-      const validWages = wages.filter((w) => w.designation.trim());
+      // Wage config — insert a new version only for new or changed rows;
+      // trigger version_wage_config closes the prior version.
+      const validWages = wages.filter((w) => w.designation.trim()
+        && loadedWages.current.get(wageKeyOf(w.designation)) !== wageSig(w));
       if (validWages.length > 0) {
         const { error } = await supabase.from("client_wage_config").insert(
           validWages.map((w) => ({

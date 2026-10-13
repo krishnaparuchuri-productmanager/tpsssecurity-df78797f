@@ -15,6 +15,7 @@ interface Row {
 export default function CashBook() {
   const { isSandbox } = useEnvironment();
   const [rows, setRows] = useState<Row[]>([]);
+  const [opening, setOpening] = useState(0);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
@@ -25,17 +26,22 @@ export default function CashBook() {
     if (from) q = q.gte("entry_date", from);
     if (to) q = q.lte("entry_date", to);
     q.order("entry_date", { ascending: true }).then(({ data }) => setRows((data ?? []) as unknown as Row[]));
+    // Opening balance = everything before the From date, so the running balance continues.
+    if (!from) { setOpening(0); return; }
+    supabase.from("financial_ledger").select("debit_amount, credit_amount")
+      .eq("is_sandbox", isSandbox).eq("is_deleted", false).lt("entry_date", from)
+      .then(({ data }) => setOpening((data ?? []).reduce((s, r) => s + Number(r.credit_amount) - Number(r.debit_amount), 0)));
   }, [isSandbox, from, to]);
 
   const { totalCredit, totalDebit, withBalance } = useMemo(() => {
-    let bal = 0; let c = 0; let d = 0;
+    let bal = opening; let c = 0; let d = 0;
     const out = rows.map((r) => {
       bal += Number(r.credit_amount) - Number(r.debit_amount);
       c += Number(r.credit_amount); d += Number(r.debit_amount);
       return { ...r, balance: bal };
     });
     return { totalCredit: c, totalDebit: d, withBalance: out };
-  }, [rows]);
+  }, [rows, opening]);
 
   return (
     <div className="space-y-4">
@@ -43,7 +49,7 @@ export default function CashBook() {
       <div className="grid grid-cols-3 gap-3">
         <Stat label="Total Credits" value={formatINR(totalCredit)} color="text-green-700" />
         <Stat label="Total Debits" value={formatINR(totalDebit)} color="text-red-700" />
-        <Stat label="Net Balance" value={formatINR(totalCredit - totalDebit)} color="text-app-navy" />
+        <Stat label={from ? "Closing Balance (incl. opening)" : "Net Balance"} value={formatINR(opening + totalCredit - totalDebit)} color="text-app-navy" />
       </div>
       <div className="flex gap-3 items-end">
         <div><Label>From</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
@@ -60,6 +66,13 @@ export default function CashBook() {
             </tr>
           </thead>
           <tbody>
+            {from && (
+              <tr className="border-t border-app-border bg-app-surface">
+                <td className="p-2">{formatDate(from)}</td>
+                <td className="p-2" colSpan={5}><span className="font-medium">Opening balance</span> (entries before this date)</td>
+                <td className="p-2 text-right tabular-nums font-semibold">{formatINR(opening)}</td>
+              </tr>
+            )}
             {withBalance.length === 0 ? (
               <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No ledger entries</td></tr>
             ) : withBalance.map((r) => (

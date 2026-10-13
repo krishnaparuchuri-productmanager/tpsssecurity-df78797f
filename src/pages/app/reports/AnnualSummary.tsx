@@ -11,6 +11,7 @@ import { activity } from "@/lib/activity";
 import { useCompanyProfile } from "@/hooks/useCompanyProfile";
 import { addExcelBranding } from "@/lib/excelBranding";
 import { drawLetterhead, getCompanyHeader, jsPDF, autoTable } from "@/lib/reportPdf";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 function fyOptions() {
   const now = new Date();
@@ -26,6 +27,7 @@ function fyOptions() {
 export default function AnnualSummary() {
   const opts = fyOptions();
   const company = useCompanyProfile();
+  const { isSandbox } = useEnvironment();
   const [fy, setFy] = useState(opts[0].value);
   const [branchId, setBranchId] = useState("all");
   const [branches, setBranches] = useState<{ id: string; branch_name: string }[]>([]);
@@ -42,15 +44,15 @@ export default function AnnualSummary() {
     const filterBranch = branchId === "all" ? null : branchId;
     const [invQ, payQ, expQ, compQ] = await Promise.all([
       supabase.from("invoices").select("invoice_number, month_date, invoice_date, billing_amount, gst_amount, tds_amount, total_invoice_value, amount_received, outstanding_amount, status, branch_id, client_id, clients(client_name)")
-        .gte("month_date", period.from).lte("month_date", period.to).eq("is_deleted", false).not("status", "in", "(cancelled,draft)")
+        .gte("month_date", period.from).lte("month_date", period.to).eq("is_sandbox", isSandbox).eq("is_deleted", false).not("status", "in", "(cancelled,draft)")
         .then((r) => filterBranch ? { ...r, data: (r.data ?? []).filter((x: { branch_id: string | null }) => x.branch_id === filterBranch) } : r),
       supabase.from("paysheets").select("paysheet_number, month, month_date, total_employees, total_earned_wages, total_epf_employee, total_epf_employer, total_esi_employee, total_esi_employer, total_pt_deduction, total_net_salary, client_id, clients(client_name)")
-        .gte("month_date", period.from).lte("month_date", period.to).eq("is_deleted", false).neq("status", "cancelled"),
+        .gte("month_date", period.from).lte("month_date", period.to).eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled"),
       supabase.from("expenses").select("expense_number, expense_date, amount, status, description, branch_id, expense_categories(category_name)")
-        .gte("expense_date", period.from).lte("expense_date", period.to).eq("is_deleted", false).eq("status", "approved")
+        .gte("expense_date", period.from).lte("expense_date", period.to).eq("is_sandbox", isSandbox).eq("is_deleted", false).eq("status", "approved")
         .then((r) => filterBranch ? { ...r, data: (r.data ?? []).filter((x: { branch_id: string | null }) => x.branch_id === filterBranch) } : r),
       supabase.from("compliance_payments").select("payment_type, payment_date, payment_month, amount, late_fee, interest, total_paid, challan_number, branch_id")
-        .gte("payment_date", period.from).lte("payment_date", period.to).eq("is_deleted", false)
+        .gte("payment_date", period.from).lte("payment_date", period.to).eq("is_sandbox", isSandbox).eq("is_deleted", false)
         .then((r) => filterBranch ? { ...r, data: (r.data ?? []).filter((x: { branch_id: string | null }) => x.branch_id === filterBranch) } : r),
     ]);
     return {
@@ -80,7 +82,7 @@ export default function AnnualSummary() {
       // 2. Payment register (receipts table)
       const { data: rcpt } = await supabase
         .from("payments").select("receipt_number, payment_date, amount, payment_mode, reference_number, invoices(invoice_number, clients(client_name))")
-        .gte("payment_date", period.from).lte("payment_date", period.to).eq("is_deleted", false);
+        .gte("payment_date", period.from).lte("payment_date", period.to).eq("is_sandbox", isSandbox).eq("is_deleted", false);
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(((rcpt ?? []) as Array<{ receipt_number: string; payment_date: string; amount: number; payment_mode: string; reference_number: string | null; invoices?: { invoice_number?: string; clients?: { client_name?: string } } }>).map((r) => ({
         Receipt: r.receipt_number, Date: r.payment_date, Invoice: r.invoices?.invoice_number ?? "",
         Client: r.invoices?.clients?.client_name ?? "", Amount: Number(r.amount),

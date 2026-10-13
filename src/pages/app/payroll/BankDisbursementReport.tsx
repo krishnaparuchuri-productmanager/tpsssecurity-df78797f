@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { alignFootAmounts } from "@/lib/pdfFoot";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -168,7 +169,8 @@ function generatePDF(
       6: { cellWidth: 50, font: "courier", fontSize: 6.5 },
       7: { cellWidth: 27 },
     },
-    foot: [["", `Total (${emps.length} employees)`, "", "", "", formatINR(totalAmt), "", ""]],
+    foot: [["", `Total (${emps.length} employees)`, "", "", "", formatINR(totalAmt), "", ""]],
+    didParseCell: alignFootAmounts,
     footStyles: { fillColor: [235, 240, 246] as [number,number,number], textColor: [10, 22, 40] as [number,number,number], fontStyle: "bold", fontSize: 7.5 },
     margin: { left: 10, right: 10 },
     didDrawPage: (data: any) => {

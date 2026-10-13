@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { alignFootAmounts } from "@/lib/pdfFoot";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,8 +105,9 @@ export default function ClientBillingHistory() {
         formatINR(Number(r.net_margin)), formatINR(Number(r.amount_received)),
         formatINR(Number(r.outstanding_amount)),
       ]),
-      foot: [["Totals", "", formatINR(totals.billing), formatINR(totals.gst), formatINR(totals.tds),
+      foot: [["Totals", "", formatINR(totals.billing), formatINR(totals.gst), formatINR(totals.tds),
               formatINR(totals.deductions), formatINR(totals.margin), formatINR(totals.received), formatINR(totals.outstanding)]],
+      didParseCell: alignFootAmounts,
       styles: { fontSize: 8 }, headStyles: { fillColor: [10, 22, 40] }, footStyles: { fillColor: [240, 240, 240], textColor: 20 },
     });
     const fname = `${clientName || "Client"}_BillingHistory_${from}_to_${to}.pdf`;
