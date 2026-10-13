@@ -223,7 +223,7 @@ export default function LeadsList() {
       </div>
 
       {filtered.length > PAGE_SIZE && (
-        <Paginator page={page} totalPages={Math.ceil(filtered.length / PAGE_SIZE)} onPageChange={setPage} />
+        <Paginator total={filtered.length} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
       )}
     </div>
   );

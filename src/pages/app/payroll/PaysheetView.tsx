@@ -101,7 +101,7 @@ export default function PaysheetView() {
             <Printer className="h-4 w-4 mr-1" /> Print / PDF
           </Button>
           {canExportExcel && (
-            <Button variant="outline" onClick={() => downloadPaysheetExcel(head, emps, company)}>
+            <Button variant="outline" onClick={() => downloadPaysheetExcel(head, emps as unknown as Parameters<typeof downloadPaysheetExcel>[1], company)}>
               <Download className="h-4 w-4 mr-1" /> Excel
             </Button>
           )}

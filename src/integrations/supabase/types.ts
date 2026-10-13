@@ -180,6 +180,155 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_payment_batches: {
+        Row: {
+          batch_number: string
+          client_names: string | null
+          created_at: string | null
+          debit_account_id: string | null
+          debit_account_number: string | null
+          generated_by: string | null
+          id: string
+          is_sandbox: boolean
+          month: string
+          month_date: string
+          total_amount: number
+          total_employees: number
+        }
+        Insert: {
+          batch_number: string
+          client_names?: string | null
+          created_at?: string | null
+          debit_account_id?: string | null
+          debit_account_number?: string | null
+          generated_by?: string | null
+          id?: string
+          is_sandbox?: boolean
+          month: string
+          month_date: string
+          total_amount?: number
+          total_employees?: number
+        }
+        Update: {
+          batch_number?: string
+          client_names?: string | null
+          created_at?: string | null
+          debit_account_id?: string | null
+          debit_account_number?: string | null
+          generated_by?: string | null
+          id?: string
+          is_sandbox?: boolean
+          month?: string
+          month_date?: string
+          total_amount?: number
+          total_employees?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_payment_batches_debit_account_id_fkey"
+            columns: ["debit_account_id"]
+            isOneToOne: false
+            referencedRelation: "tpss_bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_payment_records: {
+        Row: {
+          amount_in_batch: number
+          amount_paid_prior: number
+          bank_account_number: string | null
+          bank_ifsc: string | null
+          batch_id: string
+          client_id: string | null
+          client_name: string | null
+          created_at: string | null
+          employee_id: string
+          employee_name: string
+          id: string
+          is_sandbox: boolean
+          month: string
+          net_payable: number
+          payment_identifier: string
+          paysheet_employee_id: string
+          paysheet_id: string
+        }
+        Insert: {
+          amount_in_batch: number
+          amount_paid_prior?: number
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          batch_id: string
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          employee_id: string
+          employee_name: string
+          id?: string
+          is_sandbox?: boolean
+          month: string
+          net_payable: number
+          payment_identifier?: string
+          paysheet_employee_id: string
+          paysheet_id: string
+        }
+        Update: {
+          amount_in_batch?: number
+          amount_paid_prior?: number
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          batch_id?: string
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          employee_id?: string
+          employee_name?: string
+          id?: string
+          is_sandbox?: boolean
+          month?: string
+          net_payable?: number
+          payment_identifier?: string
+          paysheet_employee_id?: string
+          paysheet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_payment_records_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "bank_payment_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_payment_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_payment_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_payment_records_paysheet_employee_id_fkey"
+            columns: ["paysheet_employee_id"]
+            isOneToOne: false
+            referencedRelation: "paysheet_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_payment_records_paysheet_id_fkey"
+            columns: ["paysheet_id"]
+            isOneToOne: false
+            referencedRelation: "paysheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           branch_address: string | null
@@ -466,6 +615,7 @@ export type Database = {
           relieving_charges: number
           spl_allowance: number
           ta: number
+          uniform_allowance: number
           updated_at: string
           washing_allowance: number
           weekly_off_allowance: number
@@ -495,6 +645,7 @@ export type Database = {
           relieving_charges?: number
           spl_allowance?: number
           ta?: number
+          uniform_allowance?: number
           updated_at?: string
           washing_allowance?: number
           weekly_off_allowance?: number
@@ -524,6 +675,7 @@ export type Database = {
           relieving_charges?: number
           spl_allowance?: number
           ta?: number
+          uniform_allowance?: number
           updated_at?: string
           washing_allowance?: number
           weekly_off_allowance?: number
@@ -532,10 +684,10 @@ export type Database = {
       }
       clients: {
         Row: {
-          gst_type: string
           address: string | null
           billing_frequency: string
           branch_id: string | null
+          canteen_enabled: boolean
           client_code: string
           client_name: string
           client_type: string
@@ -549,17 +701,24 @@ export type Database = {
           created_by: string | null
           deleted_at: string | null
           e_invoice_applicable: boolean
+          esi_applicable: boolean
+          esi_calc_method: string
           gst_applicable: boolean
           gst_number: string | null
           gst_percentage: number
           gst_rcm: boolean
+          gst_type: string
           id: string
           invoice_prefix: string | null
           is_active: boolean
           is_deleted: boolean
           is_sandbox: boolean
           notes: string | null
+          pf_applicable: boolean
+          pf_calc_method: string
           pt_applicable: boolean
+          service_charge_pct: number
+          service_charge_show_in_invoice: boolean
           service_type: string
           state: string
           tds_percentage: number
@@ -567,10 +726,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          gst_type?: string
           address?: string | null
           billing_frequency?: string
           branch_id?: string | null
+          canteen_enabled?: boolean
           client_code: string
           client_name: string
           client_type?: string
@@ -584,17 +743,24 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           e_invoice_applicable?: boolean
+          esi_applicable?: boolean
+          esi_calc_method?: string
           gst_applicable?: boolean
           gst_number?: string | null
           gst_percentage?: number
           gst_rcm?: boolean
+          gst_type?: string
           id?: string
           invoice_prefix?: string | null
           is_active?: boolean
           is_deleted?: boolean
           is_sandbox?: boolean
           notes?: string | null
+          pf_applicable?: boolean
+          pf_calc_method?: string
           pt_applicable?: boolean
+          service_charge_pct?: number
+          service_charge_show_in_invoice?: boolean
           service_type?: string
           state?: string
           tds_percentage?: number
@@ -602,10 +768,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          gst_type?: string
           address?: string | null
           billing_frequency?: string
           branch_id?: string | null
+          canteen_enabled?: boolean
           client_code?: string
           client_name?: string
           client_type?: string
@@ -619,17 +785,24 @@ export type Database = {
           created_by?: string | null
           deleted_at?: string | null
           e_invoice_applicable?: boolean
+          esi_applicable?: boolean
+          esi_calc_method?: string
           gst_applicable?: boolean
           gst_number?: string | null
           gst_percentage?: number
           gst_rcm?: boolean
+          gst_type?: string
           id?: string
           invoice_prefix?: string | null
           is_active?: boolean
           is_deleted?: boolean
           is_sandbox?: boolean
           notes?: string | null
+          pf_applicable?: boolean
+          pf_calc_method?: string
           pt_applicable?: boolean
+          service_charge_pct?: number
+          service_charge_show_in_invoice?: boolean
           service_type?: string
           state?: string
           tds_percentage?: number
@@ -919,6 +1092,280 @@ export type Database = {
           },
         ]
       }
+      crm_closure_reasons: {
+        Row: {
+          closure_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          reason_name: string
+          sort_order: number
+        }
+        Insert: {
+          closure_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          reason_name: string
+          sort_order?: number
+        }
+        Update: {
+          closure_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          reason_name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      crm_lead_activities: {
+        Row: {
+          activity_datetime: string
+          activity_type: string
+          contact_mode: string | null
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          is_deleted: boolean
+          is_internal: boolean
+          lead_id: string
+          next_action: string | null
+          next_followup_at: string | null
+          notes: string | null
+          outcome: string | null
+        }
+        Insert: {
+          activity_datetime?: string
+          activity_type: string
+          contact_mode?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_internal?: boolean
+          lead_id: string
+          next_action?: string | null
+          next_followup_at?: string | null
+          notes?: string | null
+          outcome?: string | null
+        }
+        Update: {
+          activity_datetime?: string
+          activity_type?: string
+          contact_mode?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_internal?: boolean
+          lead_id?: string
+          next_action?: string | null
+          next_followup_at?: string | null
+          notes?: string | null
+          outcome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_lead_quotations: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          is_deleted: boolean
+          lead_id: string
+          quotation_date: string
+          quotation_number: string | null
+          remarks: string | null
+          status: string
+          summary: string | null
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          lead_id: string
+          quotation_date?: string
+          quotation_number?: string | null
+          remarks?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          lead_id?: string
+          quotation_date?: string
+          quotation_number?: string | null
+          remarks?: string | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_lead_quotations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_leads: {
+        Row: {
+          address: string | null
+          alternate_phone: string | null
+          assigned_to_user_id: string | null
+          closure_client_dropped: boolean | null
+          closure_date: string | null
+          closure_no_response: boolean | null
+          closure_price_issue: boolean | null
+          closure_reason_id: string | null
+          closure_scope_mismatch: boolean | null
+          closure_summary: string | null
+          closure_type: string | null
+          company_name: string
+          contact_designation: string | null
+          contact_person_name: string
+          created_at: string
+          created_by_user_id: string | null
+          email: string | null
+          expected_business_value: number | null
+          expected_closure_date: string | null
+          first_response_due_at: string | null
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          is_sandbox: boolean
+          lead_number: string
+          location: string | null
+          lost_to_competitor: string | null
+          next_followup_at: string | null
+          no_of_guards: number | null
+          phone: string
+          preferred_contact_mode: string | null
+          priority: string
+          requirement_category: string | null
+          requirement_notes: string | null
+          source: string
+          status: string
+          updated_at: string
+          website_submission_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          alternate_phone?: string | null
+          assigned_to_user_id?: string | null
+          closure_client_dropped?: boolean | null
+          closure_date?: string | null
+          closure_no_response?: boolean | null
+          closure_price_issue?: boolean | null
+          closure_reason_id?: string | null
+          closure_scope_mismatch?: boolean | null
+          closure_summary?: string | null
+          closure_type?: string | null
+          company_name?: string
+          contact_designation?: string | null
+          contact_person_name?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          email?: string | null
+          expected_business_value?: number | null
+          expected_closure_date?: string | null
+          first_response_due_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          lead_number: string
+          location?: string | null
+          lost_to_competitor?: string | null
+          next_followup_at?: string | null
+          no_of_guards?: number | null
+          phone?: string
+          preferred_contact_mode?: string | null
+          priority?: string
+          requirement_category?: string | null
+          requirement_notes?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          website_submission_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          alternate_phone?: string | null
+          assigned_to_user_id?: string | null
+          closure_client_dropped?: boolean | null
+          closure_date?: string | null
+          closure_no_response?: boolean | null
+          closure_price_issue?: boolean | null
+          closure_reason_id?: string | null
+          closure_scope_mismatch?: boolean | null
+          closure_summary?: string | null
+          closure_type?: string | null
+          company_name?: string
+          contact_designation?: string | null
+          contact_person_name?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          email?: string | null
+          expected_business_value?: number | null
+          expected_closure_date?: string | null
+          first_response_due_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          is_sandbox?: boolean
+          lead_number?: string
+          location?: string | null
+          lost_to_competitor?: string | null
+          next_followup_at?: string | null
+          no_of_guards?: number | null
+          phone?: string
+          preferred_contact_mode?: string | null
+          priority?: string
+          requirement_category?: string | null
+          requirement_notes?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          website_submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_leads_closure_reason_id_fkey"
+            columns: ["closure_reason_id"]
+            isOneToOne: false
+            referencedRelation: "crm_closure_reasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_leads_website_submission_id_fkey"
+            columns: ["website_submission_id"]
+            isOneToOne: false
+            referencedRelation: "website_lead_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cron_secrets: {
         Row: {
           name: string
@@ -1119,6 +1566,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           bonus_amount: number
+          canteen_deduction: number
           client_id: string | null
           created_at: string
           created_by: string | null
@@ -1157,6 +1605,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           bonus_amount?: number
+          canteen_deduction?: number
           client_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -1195,6 +1644,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           bonus_amount?: number
+          canteen_deduction?: number
           client_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -1252,6 +1702,7 @@ export type Database = {
           bank_ifsc: string | null
           bank_name: string | null
           basic: number
+          bonus_amount: number
           branch_id: string | null
           client_id: string | null
           conveyance_allowance: number
@@ -1267,19 +1718,23 @@ export type Database = {
           epf_exempt: boolean
           esi_exempt: boolean
           esi_number: string | null
+          four_hour_ot_rate: number
           full_name: string
           id: string
           is_deleted: boolean
           is_new_joiner: boolean
           is_sandbox: boolean
+          leave_wages: number
           max_advance_limit: number
           mobile: string | null
           notes: string | null
           payable_gross: number | null
+          relieving_charges: number
           spl_allowance: number
           status: string
           ta: number
           uan_number: string | null
+          uniform_advance_balance: number
           updated_at: string
           washing_allowance: number
           weekly_off_allowance: number
@@ -1290,6 +1745,7 @@ export type Database = {
           bank_ifsc?: string | null
           bank_name?: string | null
           basic?: number
+          bonus_amount?: number
           branch_id?: string | null
           client_id?: string | null
           conveyance_allowance?: number
@@ -1305,19 +1761,23 @@ export type Database = {
           epf_exempt?: boolean
           esi_exempt?: boolean
           esi_number?: string | null
+          four_hour_ot_rate?: number
           full_name: string
           id?: string
           is_deleted?: boolean
           is_new_joiner?: boolean
           is_sandbox?: boolean
+          leave_wages?: number
           max_advance_limit?: number
           mobile?: string | null
           notes?: string | null
           payable_gross?: number | null
+          relieving_charges?: number
           spl_allowance?: number
           status?: string
           ta?: number
           uan_number?: string | null
+          uniform_advance_balance?: number
           updated_at?: string
           washing_allowance?: number
           weekly_off_allowance?: number
@@ -1328,6 +1788,7 @@ export type Database = {
           bank_ifsc?: string | null
           bank_name?: string | null
           basic?: number
+          bonus_amount?: number
           branch_id?: string | null
           client_id?: string | null
           conveyance_allowance?: number
@@ -1343,19 +1804,23 @@ export type Database = {
           epf_exempt?: boolean
           esi_exempt?: boolean
           esi_number?: string | null
+          four_hour_ot_rate?: number
           full_name?: string
           id?: string
           is_deleted?: boolean
           is_new_joiner?: boolean
           is_sandbox?: boolean
+          leave_wages?: number
           max_advance_limit?: number
           mobile?: string | null
           notes?: string | null
           payable_gross?: number | null
+          relieving_charges?: number
           spl_allowance?: number
           status?: string
           ta?: number
           uan_number?: string | null
+          uniform_advance_balance?: number
           updated_at?: string
           washing_allowance?: number
           weekly_off_allowance?: number
@@ -1539,7 +2004,15 @@ export type Database = {
           reference_type?: string | null
           voucher_number?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "financial_ledger_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_deduction_templates: {
         Row: {
@@ -1626,7 +2099,22 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoice_followups_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_followups_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_number_seq: {
         Row: {
@@ -1651,7 +2139,6 @@ export type Database = {
       }
       invoices: {
         Row: {
-          gst_type: string
           amount_in_words: string | null
           amount_receivable: number
           amount_received: number
@@ -1671,6 +2158,7 @@ export type Database = {
           gst_applicable: boolean
           gst_percentage: number
           gst_rcm: boolean
+          gst_type: string
           id: string
           invoice_date: string
           invoice_notes: string | null
@@ -1700,7 +2188,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          gst_type?: string
           amount_in_words?: string | null
           amount_receivable?: number
           amount_received?: number
@@ -1720,6 +2207,7 @@ export type Database = {
           gst_applicable?: boolean
           gst_percentage?: number
           gst_rcm?: boolean
+          gst_type?: string
           id?: string
           invoice_date?: string
           invoice_notes?: string | null
@@ -1749,7 +2237,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          gst_type?: string
           amount_in_words?: string | null
           amount_receivable?: number
           amount_received?: number
@@ -1769,6 +2256,7 @@ export type Database = {
           gst_applicable?: boolean
           gst_percentage?: number
           gst_rcm?: boolean
+          gst_type?: string
           id?: string
           invoice_date?: string
           invoice_notes?: string | null
@@ -1798,6 +2286,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_paysheet_id_fkey"
             columns: ["paysheet_id"]
@@ -1894,6 +2389,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
@@ -1905,9 +2407,14 @@ export type Database = {
       paysheet_employees: {
         Row: {
           advance_deduction: number
+          amount_paid: number
           anomaly_flags: Json
           basic: number
           bonus: number
+          canteen_price: number
+          canteen_quantity: number
+          canteen_subsidy: number
+          canteen_total: number
           conveyance_allowance: number
           created_at: string
           da: number
@@ -1934,12 +2441,15 @@ export type Database = {
           no_of_duties: number
           notes: string | null
           payable_gross: number
+          payment_status: string
           paysheet_id: string
           pt_deduction: number
           relieving_charges: number
           spl_allowance: number
           ta: number
           uan_number: string | null
+          uniform_advance_deduction: number
+          uniform_allowance: number
           updated_at: string
           washing_allowance: number
           weekly_off: number
@@ -1947,9 +2457,14 @@ export type Database = {
         }
         Insert: {
           advance_deduction?: number
+          amount_paid?: number
           anomaly_flags?: Json
           basic?: number
           bonus?: number
+          canteen_price?: number
+          canteen_quantity?: number
+          canteen_subsidy?: number
+          canteen_total?: number
           conveyance_allowance?: number
           created_at?: string
           da?: number
@@ -1976,12 +2491,15 @@ export type Database = {
           no_of_duties?: number
           notes?: string | null
           payable_gross?: number
+          payment_status?: string
           paysheet_id: string
           pt_deduction?: number
           relieving_charges?: number
           spl_allowance?: number
           ta?: number
           uan_number?: string | null
+          uniform_advance_deduction?: number
+          uniform_allowance?: number
           updated_at?: string
           washing_allowance?: number
           weekly_off?: number
@@ -1989,9 +2507,14 @@ export type Database = {
         }
         Update: {
           advance_deduction?: number
+          amount_paid?: number
           anomaly_flags?: Json
           basic?: number
           bonus?: number
+          canteen_price?: number
+          canteen_quantity?: number
+          canteen_subsidy?: number
+          canteen_total?: number
           conveyance_allowance?: number
           created_at?: string
           da?: number
@@ -2018,18 +2541,28 @@ export type Database = {
           no_of_duties?: number
           notes?: string | null
           payable_gross?: number
+          payment_status?: string
           paysheet_id?: string
           pt_deduction?: number
           relieving_charges?: number
           spl_allowance?: number
           ta?: number
           uan_number?: string | null
+          uniform_advance_deduction?: number
+          uniform_allowance?: number
           updated_at?: string
           washing_allowance?: number
           weekly_off?: number
           working_days?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "paysheet_employees_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "paysheet_employees_paysheet_id_fkey"
             columns: ["paysheet_id"]
@@ -2145,7 +2678,15 @@ export type Database = {
           total_pt_deduction?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "paysheets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -2239,6 +2780,125 @@ export type Database = {
           },
         ]
       }
+      tpss_bank_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          bank_name: string | null
+          created_at: string | null
+          id: string
+          ifsc_code: string
+          is_active: boolean
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          ifsc_code: string
+          is_active?: boolean
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          ifsc_code?: string
+          is_active?: boolean
+        }
+        Relationships: []
+      }
+      uniform_advance_confirmations: {
+        Row: {
+          balance_after: number | null
+          balance_before: number | null
+          client_id: string | null
+          client_name: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string | null
+          deduction_amount: number
+          employee_id: string
+          employee_name: string
+          id: string
+          is_sandbox: boolean
+          month: string
+          month_date: string
+          paysheet_employee_id: string
+          paysheet_id: string
+          status: string
+        }
+        Insert: {
+          balance_after?: number | null
+          balance_before?: number | null
+          client_id?: string | null
+          client_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          deduction_amount: number
+          employee_id: string
+          employee_name: string
+          id?: string
+          is_sandbox?: boolean
+          month: string
+          month_date: string
+          paysheet_employee_id: string
+          paysheet_id: string
+          status?: string
+        }
+        Update: {
+          balance_after?: number | null
+          balance_before?: number | null
+          client_id?: string | null
+          client_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          deduction_amount?: number
+          employee_id?: string
+          employee_name?: string
+          id?: string
+          is_sandbox?: boolean
+          month?: string
+          month_date?: string
+          paysheet_employee_id?: string
+          paysheet_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uniform_advance_confirmations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uniform_advance_confirmations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uniform_advance_confirmations_paysheet_employee_id_fkey"
+            columns: ["paysheet_employee_id"]
+            isOneToOne: false
+            referencedRelation: "paysheet_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uniform_advance_confirmations_paysheet_id_fkey"
+            columns: ["paysheet_id"]
+            isOneToOne: false
+            referencedRelation: "paysheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_activity_log: {
         Row: {
           activity_type: string
@@ -2279,7 +2939,9 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean
+          is_removed: boolean
           last_login: string | null
+          phone: string | null
           updated_at: string
         }
         Insert: {
@@ -2288,7 +2950,9 @@ export type Database = {
           full_name?: string
           id: string
           is_active?: boolean
+          is_removed?: boolean
           last_login?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Update: {
@@ -2297,7 +2961,9 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean
+          is_removed?: boolean
           last_login?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2320,6 +2986,27 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      website_lead_submissions: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          validation_status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          validation_status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          validation_status?: string
         }
         Relationships: []
       }
@@ -2357,11 +3044,16 @@ export type Database = {
         Returns: undefined
       }
       compute_ffs: { Args: { _payload: Json }; Returns: Json }
+      confirm_uniform_advance: { Args: { _id: string }; Returns: undefined }
       create_compliance_task: { Args: { _payload: Json }; Returns: string }
       create_contract: { Args: { _payload: Json }; Returns: string }
       create_deployment: { Args: { _payload: Json }; Returns: string }
       create_followup: { Args: { _payload: Json }; Returns: string }
       current_environment: { Args: never; Returns: string }
+      finalise_payment_batch: {
+        Args: { _batch_id: string }
+        Returns: undefined
+      }
       fy_string: { Args: { _d: string }; Returns: string }
       gen_advance_number: {
         Args: { _d: string; _sandbox: boolean }
@@ -2377,6 +3069,7 @@ export type Database = {
         Args: { _client_id: string; _invoice_date: string; _sandbox: boolean }
         Returns: string
       }
+      gen_lead_number: { Args: never; Returns: string }
       gen_paysheet_number: {
         Args: { _month_date: string; _sandbox: boolean }
         Returns: string
@@ -2460,10 +3153,18 @@ export type Database = {
           value: number
         }[]
       }
+      post_salary_batch_to_ledger: {
+        Args: { _batch_id: string }
+        Returns: undefined
+      }
       record_backup_log: { Args: { _payload: Json }; Returns: string }
       record_compliance_payment: { Args: { _payload: Json }; Returns: string }
       record_expense: { Args: { _payload: Json }; Returns: string }
       record_expense_v2: { Args: { _payload: Json }; Returns: string }
+      record_payment_batch: {
+        Args: { _batch: Json; _records: Json }
+        Returns: Json
+      }
       recreate_invoice: { Args: { _old_id: string }; Returns: string }
       recreate_paysheet: { Args: { _old_id: string }; Returns: string }
       reject_advance: {
@@ -2483,7 +3184,15 @@ export type Database = {
         Args: { _orders: Json }
         Returns: undefined
       }
+      replace_client_billing_lines: {
+        Args: { _client_id: string; _lines: Json }
+        Returns: undefined
+      }
       request_advance: { Args: { _payload: Json }; Returns: string }
+      reverse_payment: {
+        Args: { _id: string; _reason: string }
+        Returns: undefined
+      }
       run_compliance_daily_checks: { Args: never; Returns: Json }
       save_ffs: { Args: { _payload: Json }; Returns: string }
       save_paysheet: { Args: { _payload: Json }; Returns: string }
@@ -2491,6 +3200,7 @@ export type Database = {
         Args: { _from: string; _to: string }
         Returns: number
       }
+      soft_delete_branch: { Args: { _id: string }; Returns: undefined }
       update_compliance_task: {
         Args: { _id: string; _payload: Json }
         Returns: undefined
@@ -2502,7 +3212,7 @@ export type Database = {
       wipe_sandbox: { Args: never; Returns: undefined }
     }
     Enums: {
-      app_role: "super_admin" | "ceo_admin" | "coo_ops" | "accountant"
+      app_role: "ceo_admin" | "coo_ops" | "accountant" | "super_admin"
       client_type_enum: "individual_huf" | "company_firm"
       invoice_status:
         | "draft"
@@ -2547,12 +3257,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2576,11 +3286,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2601,11 +3311,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2626,11 +3336,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2643,11 +3353,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2659,7 +3369,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "ceo_admin", "coo_ops", "accountant"],
+      app_role: ["ceo_admin", "coo_ops", "accountant", "super_admin"],
       client_type_enum: ["individual_huf", "company_firm"],
       invoice_status: [
         "draft",

@@ -258,7 +258,7 @@ export default function ClientForm() {
 
       // Billing lines — replaced server-side (a browser soft delete is blocked by RLS)
       const validLines = lines.filter((l) => l.description.trim());
-      const { error: linesErr } = await supabase.rpc("replace_client_billing_lines" as never, {
+      const { error: linesErr } = await supabase.rpc("replace_client_billing_lines", {
         _client_id: clientId,
         _lines: validLines.map((l, idx) => ({
           description: l.description.trim(),
@@ -268,7 +268,7 @@ export default function ClientForm() {
           sort_order: l.sort_order || idx + 1,
           is_active: l.is_active,
         })),
-      } as never);
+      });
       if (linesErr) throw linesErr;
 
       // Deduction template

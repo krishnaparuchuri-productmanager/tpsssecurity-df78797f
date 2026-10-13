@@ -24,11 +24,13 @@ let _cache: Promise<CompanyProfile | null> | null = null;
 
 function fetchProfile() {
   if (!_cache) {
-    _cache = supabase
-      .from("company_profile")
-      .select("*")
-      .maybeSingle()
-      .then(({ data }) => data as CompanyProfile | null);
+    _cache = Promise.resolve(
+      supabase
+        .from("company_profile")
+        .select("*")
+        .maybeSingle()
+        .then(({ data }) => data as CompanyProfile | null),
+    );
   }
   return _cache;
 }

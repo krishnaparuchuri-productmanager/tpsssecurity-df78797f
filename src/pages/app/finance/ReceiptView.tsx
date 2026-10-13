@@ -44,7 +44,7 @@ export default function ReceiptView() {
   }, [id]);
 
   async function reverse(reason: string) {
-    const { error } = await supabase.rpc("reverse_payment" as never, { _id: id, _reason: reason } as never);
+    const { error } = await supabase.rpc("reverse_payment", { _id: id!, _reason: reason });
     if (error) { toast.error(error.message); return; }
     toast.success("Receipt reversed");
     setShowReverse(false);
