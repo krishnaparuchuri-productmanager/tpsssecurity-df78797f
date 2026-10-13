@@ -28,7 +28,7 @@ interface Invoice {
   service_period_from: string; service_period_to: string;
   cancelled_at: string | null; cancelled_by: string | null; cancellation_reason: string | null;
   replaced_by_id: string | null; replaces_id: string | null;
-  clients: { client_name: string; client_code: string; address: string | null; gst_number: string | null; service_charge_pct: number; service_charge_show_in_invoice: boolean } | null;
+  clients: { client_name: string; client_code: string; address: string | null; gst_number: string | null; state: string | null; service_charge_pct: number; service_charge_show_in_invoice: boolean } | null;
 }
 
 export default function InvoiceView() {
@@ -54,7 +54,7 @@ export default function InvoiceView() {
   async function load() {
     if (!id) return;
     const [{ data: i }, { data: c }] = await Promise.all([
-      supabase.from("invoices").select("*, clients(client_name, client_code, address, gst_number, service_charge_pct, service_charge_show_in_invoice)").eq("id", id).maybeSingle(),
+      supabase.from("invoices").select("*, clients(client_name, client_code, address, gst_number, state, service_charge_pct, service_charge_show_in_invoice)").eq("id", id).maybeSingle(),
       supabase.from("company_profile").select("*").maybeSingle(),
     ]);
     setInv(i as unknown as Invoice);
@@ -130,7 +130,7 @@ export default function InvoiceView() {
           {inv.status === "draft" && (
             <Button variant="outline" onClick={() => navigate(`/app/invoices/${inv.id}/edit`)}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
           )}
-          {!isCancelled && Number(inv.outstanding_amount) > 0 && (
+          {!isCancelled && inv.status !== "draft" && Number(inv.outstanding_amount) > 0 && (
             <Button onClick={() => { setPay(emptyPay()); setShowPay(true); }} className="bg-app-navy text-white"><CreditCard className="h-4 w-4 mr-1" /> Record Payment</Button>
           )}
           {!isCancelled && isCEO && (
@@ -196,7 +196,8 @@ export default function InvoiceView() {
           <div className="text-right">
             <div><strong>Invoice No:</strong> {inv.invoice_number}</div>
             <div><strong>Date:</strong> {formatDate(inv.invoice_date)}</div>
-            <div><strong>Place of Supply:</strong> AP</div>
+            {/* IGST = inter-state supply: place of supply is the client's state */}
+            <div><strong>Place of Supply:</strong> {inv.gst_type === "igst" ? (inv.clients?.state || "—") : "AP"}</div>
             <div><strong>Service Period:</strong> {formatDate(inv.service_period_from)} to {formatDate(inv.service_period_to)}</div>
           </div>
         </div>
