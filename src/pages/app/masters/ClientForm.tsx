@@ -13,6 +13,7 @@ import { Plus, Trash2, ArrowLeft, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { toISODate } from "@/lib/format";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { ClientSites } from "@/components/ClientSites";
 
 const schema = z.object({
   client_name: z.string().trim().min(1, "Client name is required").max(150, "Client name is too long (max 150 characters)"),
@@ -565,6 +566,17 @@ export default function ClientForm() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Sites / posts (OF-21) — saved immediately, needs a saved client */}
+      <div className="bg-white border border-app-border rounded-lg p-6 space-y-4">
+        <div>
+          <h2 className="font-semibold text-app-navy">Sites / Posts</h2>
+          <p className="text-xs text-app-muted">Where guards are posted for this client. Changes here save immediately; choose the site when deploying an employee.</p>
+        </div>
+        {isEdit && id
+          ? <ClientSites clientId={id} />
+          : <p className="text-sm text-app-muted">Save the client first, then open it again to add sites.</p>}
       </div>
 
       {/* Deduction Template */}

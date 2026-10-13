@@ -21,6 +21,7 @@ export default function DeploymentsList() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [shifts, setShifts] = useState<any[]>([]);
+  const [sites, setSites] = useState<{ id: string; post_name: string; unit_name: string | null }[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyDeployment);
   const [relieveOpen, setRelieveOpen] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export default function DeploymentsList() {
 
   async function load() {
     const [{ data: d }, { data: e }, { data: c }, { data: s }] = await Promise.all([
-      supabase.from("employee_deployments").select("*, employee:employees(full_name, employee_code), client:clients(client_name), shift:shifts(shift_name)")
+      supabase.from("employee_deployments").select("*, employee:employees(full_name, employee_code), client:clients(client_name), shift:shifts(shift_name), post:client_posts(post_name)")
         .eq("is_sandbox", isSandbox).eq("is_deleted", false).order("created_at", { ascending: false }),
       supabase.from("employees").select("id, full_name, employee_code").eq("status","Active").eq("is_sandbox", isSandbox).eq("is_deleted", false),
       supabase.from("clients").select("id, client_name").eq("is_sandbox", isSandbox).eq("is_deleted", false).eq("is_active", true),
@@ -37,6 +38,14 @@ export default function DeploymentsList() {
     setRows(d ?? []); setEmployees(e ?? []); setClients(c ?? []); setShifts(s ?? []);
   }
   useEffect(() => { load(); }, [isSandbox]);
+
+  // Active sites of the chosen client (OF-21)
+  useEffect(() => {
+    if (!form.client_id) { setSites([]); return; }
+    supabase.from("client_posts").select("id, post_name, unit_name")
+      .eq("client_id", form.client_id).eq("is_active", true).eq("is_deleted", false).order("post_name")
+      .then(({ data }) => setSites(data ?? []));
+  }, [form.client_id]);
 
   async function deploy() {
     if (!form.employee_id || !form.client_id || !form.shift_id) { toast.error("Fill required fields"); return; }
@@ -67,10 +76,20 @@ export default function DeploymentsList() {
                 </Select>
               </div>
               <div><Label>Client *</Label>
-                <Select value={form.client_id} onValueChange={v=>setForm({...form,client_id:v})}>
+                <Select value={form.client_id} onValueChange={v=>setForm({...form,client_id:v,post_id:""})}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>{clients.map(c => <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>)}</SelectContent>
                 </Select>
+              </div>
+              <div><Label>Site / Post</Label>
+                <Select value={form.post_id || "none"} onValueChange={v=>setForm({...form,post_id: v === "none" ? "" : v})} disabled={!form.client_id}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No specific site</SelectItem>
+                    {sites.map(s => <SelectItem key={s.id} value={s.id}>{s.post_name}{s.unit_name ? ` — ${s.unit_name}` : ""}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {form.client_id && sites.length === 0 && <p className="text-xs text-app-muted mt-1">This client has no sites yet — add them in the client master (Sites / Posts).</p>}
               </div>
               <div><Label>Shift *</Label>
                 <Select value={form.shift_id} onValueChange={v=>setForm({...form,shift_id:v})}>
@@ -87,13 +106,14 @@ export default function DeploymentsList() {
       </div>
       <Card><CardContent className="p-0 overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-app-surface text-left"><tr><th className="p-2">Employee</th><th className="p-2">Client</th><th className="p-2">Shift</th><th className="p-2">Start</th><th className="p-2">End</th><th className="p-2">Status</th><th className="p-2"></th></tr></thead>
+          <thead className="bg-app-surface text-left"><tr><th className="p-2">Employee</th><th className="p-2">Client</th><th className="p-2">Site</th><th className="p-2">Shift</th><th className="p-2">Start</th><th className="p-2">End</th><th className="p-2">Status</th><th className="p-2"></th></tr></thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">No deployments</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">No deployments</td></tr>}
             {rows.map(r => (
               <tr key={r.id} className="border-t">
                 <td className="p-2">{r.employee?.full_name}</td>
                 <td className="p-2">{r.client?.client_name}</td>
+                <td className="p-2">{r.post?.post_name ?? "—"}</td>
                 <td className="p-2">{r.shift?.shift_name}</td>
                 <td className="p-2">{formatDate(r.deployment_start_date)}</td>
                 <td className="p-2">{r.deployment_end_date ? formatDate(r.deployment_end_date) : "—"}</td>
