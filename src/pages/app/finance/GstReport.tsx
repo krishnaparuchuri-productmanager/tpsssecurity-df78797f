@@ -1,3 +1,4 @@
+import { r2 } from "@/lib/calc";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -16,7 +17,7 @@ import { addExcelBranding } from "@/lib/excelBranding";
 interface Inv {
   id: string; invoice_number: string; invoice_date: string;
   total_taxable_value: number; gst_amount: number; gst_percentage: number;
-  total_invoice_value: number; gst_applicable: boolean; gst_rcm: boolean;
+  total_invoice_value: number; gst_applicable: boolean; gst_rcm: boolean; gst_type: string; billing_lines: unknown;
   client_id: string;
   clients: { client_name: string; gst_number: string | null; state: string } | null;
 }
@@ -33,7 +34,7 @@ export default function GstReport() {
     const start = `${year}-${String(month).padStart(2, "0")}-01`;
     const end = localISODate(new Date(year, month, 0));
     supabase.from("invoices")
-      .select("id, invoice_number, invoice_date, total_taxable_value, gst_amount, gst_percentage, total_invoice_value, gst_applicable, gst_rcm, client_id, clients(client_name, gst_number, state)")
+      .select("id, invoice_number, invoice_date, total_taxable_value, gst_amount, gst_percentage, total_invoice_value, gst_applicable, gst_rcm, gst_type, billing_lines, client_id, clients(client_name, gst_number, state)")
       .eq("is_sandbox", isSandbox).eq("is_deleted", false).neq("status", "cancelled").eq("gst_applicable", true)
       .gte("invoice_date", start).lte("invoice_date", end)
       .order("invoice_date").then(({ data }) => setInvs((data ?? []) as unknown as Inv[]));
@@ -58,7 +59,11 @@ export default function GstReport() {
     const mkRows = (list: Inv[]) => list.map((i) => ({
       "Invoice #": i.invoice_number, Date: i.invoice_date, Client: i.clients?.client_name ?? "",
       "Client GSTIN": i.clients?.gst_number ?? "", "Place of Supply": i.clients?.state ?? "",
+      "SAC": [...new Set(((i.billing_lines ?? []) as Array<{ sac_code?: string }>).map((l) => l.sac_code).filter(Boolean))].join(", "),
       "Taxable Value": Number(i.total_taxable_value), "GST %": Number(i.gst_percentage),
+      "CGST": i.gst_type === "igst" ? 0 : r2(Number(i.gst_amount) / 2),
+      "SGST": i.gst_type === "igst" ? 0 : r2(Number(i.gst_amount) / 2),
+      "IGST": i.gst_type === "igst" ? Number(i.gst_amount) : 0,
       "GST Amount": Number(i.gst_amount), "Invoice Total": Number(i.total_invoice_value),
     }));
     const wsFwd = XLSX.utils.json_to_sheet(mkRows(fwd));
@@ -116,7 +121,7 @@ export default function GstReport() {
           <div className="flex flex-wrap gap-3 items-end">
             <div><Label>Year</Label><Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-24" /></div>
             <div><Label>Month</Label><Input type="number" min={1} max={12} value={month} onChange={(e) => setMonth(Number(e.target.value))} className="w-20" /></div>
-            <div className="ml-auto"><Button variant="outline" onClick={exportExcel}><Download className="h-4 w-4 mr-1" /> Export GSTR-1 + RCM</Button></div>
+            <div className="ml-auto"><Button variant="outline" onClick={exportExcel}><Download className="h-4 w-4 mr-1" /> Export GST summary (for GSTR-1)</Button></div>
           </div>
           <Tabs defaultValue="fwd">
             <TabsList>

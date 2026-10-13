@@ -85,6 +85,7 @@ export default function ClientForm() {
     gst_percentage: 18.0,
     gst_number: "",
     gst_rcm: false,
+    gst_type: "cgst_sgst" as "cgst_sgst" | "igst",
     invoice_prefix: "",
     service_charge_pct: 0,
     service_charge_show_in_invoice: false,
@@ -129,6 +130,7 @@ export default function ClientForm() {
           gst_percentage: Number(c.gst_percentage ?? 18),
           gst_number: c.gst_number ?? "",
           gst_rcm: !!c.gst_rcm,
+          gst_type: (c.gst_type === "igst" ? "igst" : "cgst_sgst") as "cgst_sgst" | "igst",
           invoice_prefix: c.invoice_prefix ?? "",
           service_charge_pct: Number(c.service_charge_pct ?? 0),
           service_charge_show_in_invoice: !!c.service_charge_show_in_invoice,
@@ -199,6 +201,7 @@ export default function ClientForm() {
         gst_percentage: form.gst_percentage,
         gst_number: form.gst_number || null,
         gst_rcm: form.gst_applicable ? form.gst_rcm : false,
+        gst_type: form.gst_type,
         invoice_prefix: form.invoice_prefix || null,
         service_charge_pct: form.service_charge_pct,
         service_charge_show_in_invoice: form.service_charge_show_in_invoice,
@@ -359,6 +362,15 @@ export default function ClientForm() {
                   <Switch checked={form.gst_rcm} onCheckedChange={(v) => setForm({ ...form, gst_rcm: v })} />
                   <span className="text-sm text-muted-foreground">{form.gst_rcm ? "Yes — recipient pays GST" : "No"}</span>
                 </div>
+              </Field>
+              <Field label="GST Type">
+                <Select value={form.gst_type} onValueChange={(v) => setForm({ ...form, gst_type: v as "cgst_sgst" | "igst" })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cgst_sgst">CGST + SGST (client in same state)</SelectItem>
+                    <SelectItem value="igst">IGST (client in another state)</SelectItem>
+                  </SelectContent>
+                </Select>
               </Field>
             </>
           )}

@@ -51,7 +51,7 @@ export default function InvoiceForm() {
 
   const [clients, setClients] = useState<Array<{ id: string; client_name: string; client_code: string;
     contact_email: string | null; address: string | null; gst_number: string | null;
-    gst_applicable: boolean; gst_rcm: boolean; gst_percentage: number;
+    gst_applicable: boolean; gst_rcm: boolean; gst_percentage: number; gst_type: string;
     tds_percentage: number; tds_rate: number; }>>([]);
   const [clientId, setClientId] = useState("");
   const [paysheetId, setPaysheetId] = useState<string | null>(paysheetParam);
@@ -63,6 +63,7 @@ export default function InvoiceForm() {
   const [tdsPct, setTdsPct] = useState(1);
   const [gstApplicable, setGstApplicable] = useState(false);
   const [gstRcm, setGstRcm] = useState(false);
+  const [gstType, setGstType] = useState<"cgst_sgst" | "igst">("cgst_sgst");
   const [gstPct, setGstPct] = useState(18);
   const [deductionRows, setDeductionRows] = useState<DeductionRow[]>([]);
   // Latest linked-paysheet totals; applied whenever deduction rows are (re)loaded.
@@ -89,6 +90,7 @@ export default function InvoiceForm() {
     if (c) {
       setGstApplicable(!!c.gst_applicable);
       setGstRcm(!!c.gst_rcm);
+      setGstType(c.gst_type === "igst" ? "igst" : "cgst_sgst");
       setGstPct(Number(c.gst_percentage ?? 18));
       setTdsPct(Number(c.tds_rate ?? c.tds_percentage ?? 1));
     }
@@ -156,6 +158,7 @@ export default function InvoiceForm() {
         setBillingLines(data.billing_lines as unknown as BillingLine[]);
         setTdsPct(Number(data.tds_percentage));
         setGstApplicable(!!data.gst_applicable); setGstRcm(!!data.gst_rcm);
+        setGstType(data.gst_type === "igst" ? "igst" : "cgst_sgst");
         setGstPct(Number(data.gst_percentage));
         setDeductionRows(data.deduction_rows as unknown as DeductionRow[]);
         setInvoiceNotes(data.invoice_notes ?? "");
@@ -188,7 +191,7 @@ export default function InvoiceForm() {
         month, month_date: monthDate, invoice_date: invoiceDate,
         billing_lines: billingLines as unknown as never,
         tds_percentage: tdsPct,
-        gst_applicable: gstApplicable, gst_rcm: gstRcm, gst_percentage: gstPct,
+        gst_applicable: gstApplicable, gst_rcm: gstRcm, gst_percentage: gstPct, gst_type: gstType,
         deduction_rows: deductionRows as unknown as never,
         invoice_notes: invoiceNotes || null,
         is_sandbox: isSandbox,

@@ -21,7 +21,7 @@ interface Invoice {
   id: string; invoice_number: string; invoice_date: string; due_date: string;
   month: string; client_id: string;
   billing_lines: unknown; billing_amount: number; gst_applicable: boolean; gst_rcm: boolean;
-  gst_percentage: number; gst_amount: number; tds_percentage: number; tds_amount: number;
+  gst_percentage: number; gst_amount: number; gst_type?: string; tds_percentage: number; tds_amount: number;
   total_invoice_value: number; amount_receivable: number; net_margin: number;
   amount_received: number; outstanding_amount: number; amount_in_words: string | null;
   deduction_rows: unknown; total_deductions: number; status: string;
@@ -240,8 +240,12 @@ export default function InvoiceView() {
             </tr>
             {inv.gst_applicable && !inv.gst_rcm && (
               <>
-                <tr><td colSpan={6} className="p-1 border text-right">CGST @ {Number(inv.gst_percentage)/2}%</td><td className="p-1 border text-right">{formatINR(Number(inv.gst_amount)/2)}</td></tr>
-                <tr><td colSpan={6} className="p-1 border text-right">SGST @ {Number(inv.gst_percentage)/2}%</td><td className="p-1 border text-right">{formatINR(Number(inv.gst_amount)/2)}</td></tr>
+                {inv.gst_type === "igst" ? (
+                  <tr><td colSpan={6} className="p-1 border text-right">IGST @ {Number(inv.gst_percentage)}%</td><td className="p-1 border text-right">{formatINR(Number(inv.gst_amount))}</td></tr>
+                ) : (<>
+                  <tr><td colSpan={6} className="p-1 border text-right">CGST @ {Number(inv.gst_percentage)/2}%</td><td className="p-1 border text-right">{formatINR(Number(inv.gst_amount)/2)}</td></tr>
+                  <tr><td colSpan={6} className="p-1 border text-right">SGST @ {Number(inv.gst_percentage)/2}%</td><td className="p-1 border text-right">{formatINR(Number(inv.gst_amount)/2)}</td></tr>
+                </>)}
               </>
             )}
             {inv.gst_applicable && inv.gst_rcm && (

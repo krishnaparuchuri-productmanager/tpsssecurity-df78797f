@@ -13,10 +13,11 @@ interface Props {
   description?: string;
   showCascade?: boolean;
   cascadeLabel?: string;
+  confirmLabel?: string;
   onConfirm: (reason: string, cascade: boolean) => Promise<void> | void;
 }
 
-export function CancelDialog({ open, onOpenChange, title, description, showCascade, cascadeLabel, onConfirm }: Props) {
+export function CancelDialog({ open, onOpenChange, title, description, showCascade, cascadeLabel, confirmLabel = "Confirm Cancel", onConfirm }: Props) {
   const [reason, setReason] = useState("");
   const [cascade, setCascade] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -51,7 +52,7 @@ export function CancelDialog({ open, onOpenChange, title, description, showCasca
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Back</Button>
           <Button variant="destructive" onClick={handle} disabled={!valid || busy}>
-            {busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} Confirm Cancel
+            {busy && <Loader2 className="h-4 w-4 mr-1 animate-spin" />} {confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
