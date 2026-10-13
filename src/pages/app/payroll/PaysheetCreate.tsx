@@ -255,8 +255,10 @@ export default function PaysheetCreate() {
     }), { employees: 0, earned: 0, epfEmp: 0, epfEmpr: 0, esiEmp: 0, esiEmpr: 0, pt: 0, net: 0, adv: 0, uniformAdv: 0, canteenTotal: 0, finalNet: 0 });
   }
 
+  // Counts only actionable flags (red/yellow); informational ones (new joiner)
+  // must not trigger the "Submit anyway?" prompt on the paysheet list.
   function totalAnomalies() {
-    return rows.reduce((s, r) => s + computeAnomalies(r).length, 0);
+    return rows.reduce((s, r) => s + computeAnomalies(r).filter((a) => a.level !== "blue").length, 0);
   }
 
   async function saveDraft(submit = false) {
@@ -441,11 +443,11 @@ export default function PaysheetCreate() {
                           </div>
                         )}
                       </td>
-                      <td className="p-1"><Input className="h-7 text-xs w-20" value={r.designation} onChange={(e) => updateRow(idx, { designation: e.target.value })} /></td>
-                      <td className="p-1"><Input className="h-7 text-xs w-24" value={r.uan_number ?? ""} onChange={(e) => updateRow(idx, { uan_number: e.target.value })} /></td>
-                      <td className="p-1"><Input className="h-7 text-xs w-24" value={r.esi_number ?? ""} onChange={(e) => updateRow(idx, { esi_number: e.target.value })} /></td>
-                      <td className="p-1"><Input className="h-7 text-xs w-16" type="number" value={r.basic} onChange={(e) => updateRow(idx, { basic: Number(e.target.value) })} /></td>
-                      <td className="p-1"><Input className="h-7 text-xs w-16" type="number" value={r.da} onChange={(e) => updateRow(idx, { da: Number(e.target.value) })} /></td>
+                      <td className="p-1"><Input className="h-7 text-xs w-28" value={r.designation} onChange={(e) => updateRow(idx, { designation: e.target.value })} /></td>
+                      <td className="p-1"><Input className="h-7 text-xs w-32" value={r.uan_number ?? ""} onChange={(e) => updateRow(idx, { uan_number: e.target.value })} /></td>
+                      <td className="p-1"><Input className="h-7 text-xs w-40" value={r.esi_number ?? ""} onChange={(e) => updateRow(idx, { esi_number: e.target.value })} /></td>
+                      <td className="p-1"><Input className="h-7 text-xs w-20" type="number" value={r.basic} onChange={(e) => updateRow(idx, { basic: Number(e.target.value) })} /></td>
+                      <td className="p-1"><Input className="h-7 text-xs w-20" type="number" value={r.da} onChange={(e) => updateRow(idx, { da: Number(e.target.value) })} /></td>
                       <td className="p-1"><Input className="h-7 text-xs w-16" type="number" value={r.ta} onChange={(e) => updateRow(idx, { ta: Number(e.target.value) })} /></td>
                       <td className="p-1 tabular-nums">{r.payable_gross}</td>
                       <td className="p-1"><Input className="h-7 text-xs w-14" type="number" value={r.working_days} onChange={(e) => updateRow(idx, { working_days: Number(e.target.value) })} /></td>

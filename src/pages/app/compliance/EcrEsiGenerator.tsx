@@ -9,8 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
-import { useCompanyProfile } from "@/hooks/useCompanyProfile";
-import { addExcelBranding } from "@/lib/excelBranding";
 
 interface PaysheetRow {
   id: string; month: string;
@@ -18,13 +16,12 @@ interface PaysheetRow {
     employee_id: string; uan_number: string | null; esi_number: string | null;
     employee_name: string; payable_gross: number; epf_wages: number; epf_employee_deduction: number;
     epf_employer_contribution: number; esi_wages: number; esi_employee_deduction: number;
-    esi_employer_contribution: number; working_days: number; is_deleted: boolean;
+    esi_employer_contribution: number; working_days: number; no_of_duties: number; is_deleted: boolean;
   }> | null;
 }
 
 export default function EcrEsiGenerator() {
   const { isSandbox } = useEnvironment();
-  const company = useCompanyProfile();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -35,7 +32,7 @@ export default function EcrEsiGenerator() {
     // and app-created ("SEP-2026") paysheets. Statutory files use approved paysheets only.
     const monthDate = `${year}-${String(month).padStart(2, "0")}-01`;
     supabase.from("paysheets")
-      .select("id, month, paysheet_employees(employee_id, employee_name, uan_number, esi_number, payable_gross, epf_wages, epf_employee_deduction, epf_employer_contribution, esi_wages, esi_employee_deduction, esi_employer_contribution, working_days, is_deleted)")
+      .select("id, month, paysheet_employees(employee_id, employee_name, uan_number, esi_number, payable_gross, epf_wages, epf_employee_deduction, epf_employer_contribution, esi_wages, esi_employee_deduction, esi_employer_contribution, working_days, no_of_duties, is_deleted)")
       .eq("month_date", monthDate).eq("status", "approved").eq("is_sandbox", isSandbox).eq("is_deleted", false)
       .then(({ data }) => setPaysheets((data ?? []) as unknown as PaysheetRow[]));
   }, [year, month, isSandbox]);
@@ -56,7 +53,8 @@ export default function EcrEsiGenerator() {
         const epfEe = Math.round(Number(l.epf_employee_deduction));
         const eps = Math.round(epsWages * 0.0833);
         const epfErDiff = Math.max(0, Math.round(Number(l.epf_employer_contribution)) - eps);
-        const ncpDays = Math.max(0, 30 - Math.round(Number(l.working_days)));
+        // NCP (non-contributing) days = days in the month not worked.
+        const ncpDays = Math.max(0, Math.round(Number(l.working_days)) - Math.round(Number(l.no_of_duties)));
         return [
           l.uan_number, l.employee_name, Math.round(Number(l.payable_gross)),
           epfWages, epsWages, edliWages, epfEe, eps, epfErDiff, ncpDays, 0,
@@ -76,13 +74,13 @@ export default function EcrEsiGenerator() {
       .filter((l) => (l.esi_number || "").trim().length > 0)
       .map((l) => ({
         "IP Number": l.esi_number, "IP Name": l.employee_name,
-        "No of Days": Math.round(Number(l.working_days)),
+        "No of Days": Math.round(Number(l.no_of_duties)),
         "Total Monthly Wages": Math.round(Number(l.esi_wages)),
         "Reason Code (numeric only)": "", "Last Working Day": "",
       }));
     const wb = XLSX.utils.book_new();
     const wsEsi = XLSX.utils.json_to_sheet(data);
-    if (company) addExcelBranding(wsEsi, company);
+    // No branding rows: the ESIC upload expects column headings on row 1.
     XLSX.utils.book_append_sheet(wb, wsEsi, "ESI");
     XLSX.writeFile(wb, `ESI_Challan_${year}-${String(month).padStart(2, "0")}.xlsx`);
   }

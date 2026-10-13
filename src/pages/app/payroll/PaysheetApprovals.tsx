@@ -83,10 +83,10 @@ export default function PaysheetApprovals() {
                 <td className="p-2 flex gap-1">
                   <Link to={`/app/payroll/${r.id}/view`}><Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button></Link>
                   <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700" onClick={() => approve(r.id, r.submitted_by)}>
-                    <Check className="h-4 w-4" />
+                    <Check className="h-4 w-4 mr-1" /> Approve
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => setReject({ id: r.id, reason: "" })}>
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4 mr-1" /> Reject
                   </Button>
                 </td>
               </tr>

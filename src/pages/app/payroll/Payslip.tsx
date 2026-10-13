@@ -500,6 +500,9 @@ export default function Payslip() {
                 <><FileText className="h-4 w-4 mr-2" /> Generate PDF</>
               )}
             </Button>
+            {(!selClient || !selMonth) && (
+              <p className="text-xs text-muted-foreground">Select a client and month to enable Generate PDF.</p>
+            )}
           </>
         )}
       </div>

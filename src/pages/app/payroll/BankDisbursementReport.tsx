@@ -36,10 +36,10 @@ function isFutureMonth(text: string): boolean {
   return d > new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
-function monthToYYYYMM(text: string): string {
-  const d = monthTextToDate(text);
-  if (!d) return "";
-  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`;
+// Bank-facing reference: paysheet number / employee code (e.g. PS-SEP2026-001/EMP-192).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function paymentRef(e: any): string {
+  return [e.ps?.paysheet_number, e.emp?.employee_code].filter(Boolean).join("/");
 }
 
 function downloadCSV(rows: string[][], filename: string) {
@@ -140,7 +140,6 @@ function generatePDF(
   y = (doc as any).lastAutoTable.finalY + 4;
 
   // employee table
-  const yyyymm = monthToYYYYMM(month);
   const tableRows = emps.map((e, idx) => [
     idx + 1,
     e.employee_name ?? "—",
@@ -148,7 +147,7 @@ function generatePDF(
     e.emp?.bank_ifsc ?? "—",
     e.emp?.bank_name ?? "—",
     formatINR(Number(e.final_net_salary ?? 0)),
-    `${e.paysheet_id?.slice(0, 8) ?? ""}/${yyyymm}/${e.employee_id?.slice(0, 8) ?? ""}`,
+    paymentRef(e),
     "",
   ]);
 
@@ -299,7 +298,7 @@ export default function BankDisbursementReport() {
       const paysheetIds = sheets.map((s) => s.id);
       const { data: emps, error } = await (supabase as any)
         .from("paysheet_employees")
-        .select("paysheet_id, employee_id, employee_name, final_net_salary, emp:employees!employee_id(bank_account_number, bank_ifsc, bank_name)")
+        .select("paysheet_id, employee_id, employee_name, final_net_salary, ps:paysheets!paysheet_id(paysheet_number), emp:employees!employee_id(employee_code, bank_account_number, bank_ifsc, bank_name)")
         .in("paysheet_id", paysheetIds)
         .eq("is_deleted", false)
         .order("employee_name");
@@ -328,7 +327,6 @@ export default function BankDisbursementReport() {
         .filter((c) => selClients.includes(c.id))
         .map((c) => c.name);
       const generatedBy = user?.email ?? "Portal User";
-      const yyyymm = monthToYYYYMM(selMonth);
       const tag = selMonth.replace(/\s+/g, "_");
 
       // Generate PDF
@@ -347,10 +345,11 @@ export default function BankDisbursementReport() {
           e.emp?.bank_ifsc ?? "",
           Number(e.final_net_salary ?? 0).toFixed(2),
           e.emp?.bank_name ?? "",
-          `${e.paysheet_id?.slice(0, 8) ?? ""}/${yyyymm}/${e.employee_id?.slice(0, 8) ?? ""}`,
+          paymentRef(e),
           "",
         ]);
       });
+      if (isSandbox) csvRows.push([], ["*** SANDBOX — NOT FOR REAL PAYMENT ***"]);
       downloadCSV(csvRows, `Bank_Disbursement_${tag}.csv`);
 
       toast.success(`Report generated — ${emps.length} employees, PDF + CSV downloaded`);
