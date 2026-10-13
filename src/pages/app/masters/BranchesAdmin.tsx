@@ -101,7 +101,7 @@ export default function BranchesAdmin() {
       return;
     }
     if (!confirm(`Delete branch "${b.branch_name}"?`)) return;
-    const { error } = await supabase.from("branches").update({ is_deleted: true, is_active: false }).eq("id", b.id);
+    const { error } = await supabase.rpc("soft_delete_branch" as never, { _id: b.id } as never);
     if (error) { toast.error(error.message); return; }
     activity.delete("branches", b.id);
     toast.success("Branch deleted"); load();

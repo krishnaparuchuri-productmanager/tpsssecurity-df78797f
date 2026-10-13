@@ -255,26 +255,20 @@ export default function ClientForm() {
         if (error) throw error;
       }
 
-      // Billing lines — soft delete then re-insert
-      if (isEdit) {
-        await supabase.from("client_billing_lines").update({ is_deleted: true }).eq("client_id", clientId);
-      }
+      // Billing lines — replaced server-side (a browser soft delete is blocked by RLS)
       const validLines = lines.filter((l) => l.description.trim());
-      if (validLines.length > 0) {
-        const { error } = await supabase.from("client_billing_lines").insert(
-          validLines.map((l, idx) => ({
-            client_id: clientId,
-            description: l.description.trim(),
-            sac_code: l.sac_code || null,
-            rate_per_month: l.rate_per_month,
-            unit_label: l.unit_label || "Guard",
-            sort_order: l.sort_order || idx + 1,
-            is_active: l.is_active,
-            is_sandbox: isSandbox,
-          }))
-        );
-        if (error) throw error;
-      }
+      const { error: linesErr } = await supabase.rpc("replace_client_billing_lines" as never, {
+        _client_id: clientId,
+        _lines: validLines.map((l, idx) => ({
+          description: l.description.trim(),
+          sac_code: l.sac_code || null,
+          rate_per_month: l.rate_per_month,
+          unit_label: l.unit_label || "Guard",
+          sort_order: l.sort_order || idx + 1,
+          is_active: l.is_active,
+        })),
+      } as never);
+      if (linesErr) throw linesErr;
 
       // Deduction template
       const tplJson = JSON.parse(JSON.stringify(deductionTemplate));
