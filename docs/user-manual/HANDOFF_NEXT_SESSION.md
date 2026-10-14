@@ -1,5 +1,27 @@
 # User Manual — Handoff for Next Session
 
+## 📋 NEXT SESSION (owner, 2026-10-14 morning) — do in this order
+1. **Finish production password-reset fix** (section below: SMTP → template → owner test → docs).
+2. **Reformat the user manual PDF** per owner brief (summary; full brief in the 2026-10-13 chat):
+   - Each major section (`##`) starts on a new page via explicit page break; no blank pages; consistent heading hierarchy; no stranded headings.
+   - Subsection order: heading → short purpose → numbered steps → screenshot → caption/note/expected result. Image right after the steps it illustrates, before the next subsection.
+   - Keep heading + steps + image + caption together (CSS `break-inside: avoid` on a wrapper per subsection/figure group; if a group can't fit, split at a logical step boundary and keep each step group with its image; mark "(continued)").
+   - Images: proportional resize, readable, not cropped, consistent alignment/caption style; keep duplicates only if not exact.
+   - **Table of contents** after the cover: every section + subsection, same numbering/titles, dot leaders, indentation, clickable links, REAL page numbers (two-pass build: render once, read heading page positions from the PDF, re-render TOC; verify).
+   - Writing: action-oriented numbered steps, consistent labels matching screenshots, mark prerequisites/notes/warnings/expected results; don't invent functionality — flag gaps; fix internal references.
+   - Final QC on the RENDERED PDF page by page (render pages to PNG and inspect): sections start new pages, no image split from its steps/caption, TOC page numbers correct, no blank pages.
+   - Deliverables: updated USER_MANUAL.md (editable source) + PDF; short change summary + unresolved issues. Note the PDF was renamed by owner to `TPSS Portal _USER_MANUAL.pdf` (uncommitted) — confirm the final file name.
+   - Build tool: `<scratchpad>/build_pdf.py` (Playwright + marked@12); recreate if the scratchpad is gone.
+   - **DONE 2026-10-14 (not yet committed — awaiting owner OK):** `USER_MANUAL.pdf` rebuilt, 145 pages, 71 TOC entries with page numbers read back from the rendered PDF (stable across both passes), no broken images; checked page by page on contact sheets. Tool: `<scratchpad>/build_pdf2.py <name>.pdf` (+ `qc_sheets.py` for contact sheets); delete `_toc_pages.json` after a build. CRM dialog screenshots 06/07/09 re-captured on synthetic LEAD-2026-0003 (left in sandbox as status "new"). Open: owner's renamed copy `TPSS Portal _USER_MANUAL.pdf` is the OLD layout — delete it or rename the new one; some pages are half empty where a group moved to the next page; no full editorial rewrite was done.
+
+## ⚠️ IN PROGRESS 2026-10-13 22:5x — password-reset fix (stopped at 5-hour limit)
+Cause: Zoho Mail's link scanner opens the Supabase reset link seconds after sending and uses the one-time token; the user's click then failed and landed on /login.
+- DONE code `78ab424` (live both sites): /reset-password shows "Continue to set new password" for `?token_hash=…&type=recovery` links (token used only on click) and a clear "Reset link not valid / Send a new link" screen for used/expired links.
+- DONE sandbox (femkwbgjvsdnxnihptiu): custom SMTP smtp.zoho.in:465, sender admin@tpsssecurity.com "TPSS Portal (Sandbox)" (owner pasted Zoho app password); Reset password template → subject "Reset your TPSS Portal password", link `{{ .SiteURL }}/reset-password?token_hash={{ .TokenHash }}&type=recovery`. **Owner tested end to end: works.** Expiry 3600 s (unchanged; owner wanted ≥ 5 min).
+- DONE production (ihmyqifzhwnxhiltafkn): Site URL → `https://portal.tpsssecurity.com`; Redirect URLs = pages.dev/** + `https://portal.tpsssecurity.com/**`; expiry 3600 s (unchanged).
+- DONE production 2026-10-14: (1) SMTP enabled, verified after reload (owner pasted the app password); (2) Reset password template saved, verified after reload (449 chars, token_hash link, no ConfirmationURL). Site URL confirmed `https://portal.tpsssecurity.com`. (3) owner tested a reset on portal.tpsssecurity.com: works; (4) NF-17 in DOCUMENTATION_FINDINGS + manual §7 reset steps. **Password-reset fix COMPLETE.**
+- (original TODO list, kept for reference:) (1) Auth → Emails → SMTP Settings: enable, sender admin@tpsssecurity.com, name "TPSS Portal", host smtp.zoho.in, port 465, username admin@tpsssecurity.com — OWNER pastes the Zoho app password and saves; (2) Reset password template: same subject/body as sandbox (template is locked until SMTP is on; edit via Monaco `executeEdits` then a real keystroke so the form registers, then Save; verify after reload); (3) owner tests a reset on portal.tpsssecurity.com; (4) note in DOCUMENTATION_FINDINGS (new NF) + manual ch. 7 (reset flow: "Continue to set new password").
+
 ## ⭐⭐⭐ STATUS 2026-10-13 (session 5): MANUAL v1.1 COMPLETE — only owner decisions remain
 - Code: all FIX_PLAN items done. OF-31 `8b1d126` (TS errors 142 → 0) also exposed + fixed: production lacked 4 `employees` columns (June migration never applied → employee create/edit failed in prod) and CRM paginator props. Prod/sandbox column fingerprints identical; functions identical except environment-specific `fn_website_submission_to_lead`.
 - Sandbox: company profile filled with fake GSTIN/PAN/PF/ESI/bank (OF-27); Test Client 1 set back to CGST+SGST (draft 004 stays IGST); CRM lead LEAD-2026-0002 (Won).

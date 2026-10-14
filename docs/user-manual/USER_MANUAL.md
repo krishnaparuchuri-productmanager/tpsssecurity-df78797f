@@ -96,7 +96,14 @@ Full comparison: `DEMO_PROD_DIFFERENCES.md`.
 ![Figure 7.1 — Sign-in page](assets/screenshots/login/01-login-blank.png)
 *Figure 7.1 — Sign-in page*
 
-**Forgot password:** click **Forgot password?**, enter your email and follow the link sent to you. The new password must be at least 8 characters, and both entries must match (Figure 7.2).
+**Forgot password:**
+
+1. Click **Forgot password?**, enter your email and send the request (Figure 7.2).
+2. Open the email "Reset your TPSS Portal password" from TPSS Portal and click **Reset password**.
+3. The portal opens. Click **Continue to set new password**.
+4. Enter the new password twice and save. It must be at least 8 characters, and both entries must match.
+
+The link works once and is valid for 1 hour. If the portal shows **Reset link not valid**, the link was already used or has expired: click **Send a new link** and use the newest email.
 
 ![Figure 7.2 — Reset password request](assets/screenshots/login/02-forgot-password.png)
 *Figure 7.2 — Reset password request*
@@ -938,7 +945,7 @@ There is no "close month" or lock. Approved paysheets and receipts cannot be edi
 3. **Add Quotation**: reference, date, value, status (Draft / Submitted / …), **Summary\*** → **Save Quotation** ("Quotation saved", Figure 24.17). Activity and quotation appear on the detail page.
 4. **Close Lead**: **Won** or **Lost**, **reason\*** from the list, closure date, **Win Summary\*** (or Remarks for a loss), optional competitor and contributing factors → **Mark as Won** ("Lead marked as WON", Figures 24.19–24.20).
 
-Each step adds an entry to the lead's **Activity Timeline**.
+Each step adds an entry to the lead's **Activity Timeline**. (The dialog screenshots, Figures 24.16, 24.17 and 24.19, were taken on a second synthetic lead, LEAD-2026-0003 "Test Prospect 2 (Synthetic)", because a closed lead no longer shows these buttons.)
 
 ![Figure 24.14 — New lead completed](assets/screenshots/crm/04-lead-new-completed.png)
 *Figure 24.14 — New Lead form filled in*
