@@ -32,7 +32,8 @@ test("S-05 core screens load without application errors (Super Admin) @smoke", a
     await expectAppShell(page);
     const landed = new URL(page.url()).pathname;
     if (landed !== path) problems.push(`${path}: redirected to ${landed}`);
-    if (await page.getByText(/page not found|404/i).first().isVisible().catch(() => false)) problems.push(`${path}: not found page`);
+    // The app's NotFound page (NotFound.tsx) — matched exactly, so a "404" inside listed data doesn't count.
+    if (await page.getByText("Oops! Page not found", { exact: true }).isVisible().catch(() => false)) problems.push(`${path}: not found page`);
     for (const e of await watch.errors()) problems.push(`${path}: ${e}`);
   }
 

@@ -15,7 +15,8 @@ const PAYMENT_MODES = ["Cash", "Bank", "UPI", "Card"];
 export default function ExpenseV2Form() {
   const nav = useNavigate();
   const { hasRole } = useAuth();
-  const canDirectApprove = hasRole("ceo_admin", "coo_ops");
+  // Recording as "approved" approves your own expense, which only a CEO (or Super Admin) may do.
+  const canDirectApprove = hasRole("ceo_admin");
 
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);

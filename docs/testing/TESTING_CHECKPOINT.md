@@ -8,8 +8,8 @@ Updated at the end of every phase. No secrets or business data here.
 |---|---|---|---|
 | 1 | Discovery and test plan (read-only) | Done 2026-10-16 | Reviewed |
 | 2 | Safe automation foundation | Done 2026-10-16 (commit c887c5f, local) | Approved |
-| 3 | Smoke and core-workflow suite | Done 2026-10-16, **awaiting review** (uncommitted) | Approved |
-| 4 | Functional and business-rule regression | Not started; blocked on rule questions 1–6 | — |
+| 3 | Smoke and core-workflow suite | Done 2026-10-16 (commit 487e7f4, local) | Approved |
+| 4 | Functional and business-rule regression | Workflows done 2026-10-16, **awaiting review** (uncommitted). Calculation assertions blocked on questions 1–6 | Approved |
 | 5 | Security and data isolation | Not started | — |
 | 6 | Reusable runner, optional pipeline | Not started | — |
 | 7 | Optional production read-only checks | Not started | Needs separate production approval |
@@ -40,6 +40,7 @@ Updated at the end of every phase. No secrets or business data here.
 | Command | What it runs |
 |---|---|
 | `npm run test:smoke` | Phase 3 smoke + workflow suite: API, then browser (sandbox) |
+| `npm run test:regression` | Phase 4: unit maths/exports + API payroll, invoices, receipts, advances, expenses, reports, export endpoint (sandbox) |
 | `npm run test:unit` | Unit tests (no network) |
 | `npm run test:api` | All API/database tests (sandbox) |
 | `npm run test:e2e` | All browser tests (private dev server on port 8090, sandbox) |
@@ -49,7 +50,15 @@ Updated at the end of every phase. No secrets or business data here.
 
 Settings live in `tests/.env.test.local` (gitignored). The template is `tests/.env.test.example`.
 
-## Last run (2026-10-16 22:17, Phase 3 final, all in this session)
+## Last run (2026-10-16, Phase 4 final, all in this session)
+
+| Suite | Passed | Failed | Todo | Notes |
+|---|---|---|---|---|
+| Unit (incl. payroll/invoice preview maths, Excel/CSV exports) | 42 | 0 | 7 | Todos = statutory rules awaiting owner (questions 1–6) |
+| API / database (all) | 56 | **4** | 5 | The 4 failures are app defects D-6, D-7, D-8, D-9 (tests left failing on purpose) |
+| Browser (all) | 28 | 0 | 0 | No page-content files saved |
+
+## Earlier run (2026-10-16 22:17, Phase 3 final)
 
 | Suite | Passed | Failed | Skipped | Notes |
 |---|---|---|---|---|
@@ -78,12 +87,17 @@ Supabase removes its role.** FND-07 now catches that; ask Claude to re-apply the
 
 Passwords (8+ characters, the login form's minimum) live only in `tests/.env.test.local`.
 
-## Test data left in sandbox (as of the last run)
+## Test data left in sandbox (counts after the Phase 4 runs, 2026-10-16)
 
-- 8 deactivated, run-tagged test clients (`… [T2026…]`), plus their 8 wage rows and billing lines.
-  Clients cannot be deleted by any role, so each `test:smoke` run adds **2** more.
-- 0 test employees (all deleted by cleanup).
+All run-tagged (`… [T2026…]`) and neutralised; none active:
+- 23 test clients (deactivated) with their wage rows/billing lines; 19 test employees (relieved).
+- 20 test paysheets and 35 test invoices, all **cancelled**; test receipts reversed (ledger nets to zero).
+- 4 approved ₹1 test expenses (₹4 in the ledger) and 4 approved ₹200 test advances with recovery
+  schedules (approved advances can't be cancelled by design).
+- In-app alerts: each submitted test paysheet alerts every active Super Admin/CEO/COO, including the
+  owner's account (30 alerts in 2 hours of runs); advance requests alert CEO/COO accounts.
 - Sign-in records of the QA accounts in the sandbox activity and audit logs.
+A regression run adds roughly: 4 clients, 6 employees, 8 paysheets, 12 invoices, 1 expense, 1 advance.
 
 ## Confirmed requirements
 
@@ -99,14 +113,38 @@ Passwords (8+ characters, the login form's minimum) live only in `tests/.env.tes
 6. GST, TDS base, IGST vs CGST+SGST.
 7. Whether CEO / Super Admin may approve their own submissions.
 8. Source of truth for permissions: the database table or `ROLE_PERMISSION_MATRIX.md`.
-9. How to handle accumulating deactivated test clients (see "Test data left in sandbox").
+9. How to handle accumulating test records and test alerts (see "Test data left in sandbox").
 10. Training hours, so test runs can be scheduled outside them.
+11. Should the database block a second paysheet for the same client + month? (screen only warns)
+
+## Confirmed by owner (2026-10-16)
+- Question 12: the database refuses receipts larger than the outstanding amount. Late payments in a new
+  financial year are recorded against the original invoice (no new invoice); covered by R-INV-09.
+- One-time sandbox clean-up of run-tagged test records and their alerts, after testing, before training.
 
 ## Known defects / findings
 
-Proven by tests: none in Phase 3 (all smoke checks pass).
+**Fix status (2026-10-16):** D-5, D-6, D-7, D-8, D-9 and the overpayment rule (question 12) are fixed
+in **sandbox** (migration `20261016200000_fix_d5_d7_d8_d9_overpayment.sql` + screen changes in
+PaysheetCreate, EmployeeForm, ExpenseV2Form). All tests pass: unit 42, API 62, browser 29. Production
+migration applied with owner approval and verified (function code and flag defaults identical to sandbox;
+production defaults now resolve to "production"). Code committed and pushed with the Phase 4 tests.
+
+Proven by tests (Phase 4; found before the fixes above):
+- **D-6 (High):** "Submit" on a brand-new paysheet is refused by the database: the screen inserts it as
+  "submitted", the insert rule only allows "draft" (error 42501). Users must save a draft first.
+- **D-7 (Medium):** "Approved (post to ledger now)" on New Expense always fails ("Only draft expenses can
+  be approved"), even for a CEO; the function saves as approved, then runs an approval that needs a draft.
+- **D-8 (Medium):** "Re-create" of a cancelled paysheet always fails: the function references a column
+  paysheets don't have (`branch_id`, error 42703) and omits a required one (`total_days_in_month`).
+- **D-9 (Low):** approving a non-existent paysheet id reports success (no change is made).
 
 Static (code/config review, not yet proven by a test):
+- **D-5 raised to High:** the paysheet screen also loads only employees with the current environment flag,
+  so in production, form-created employees (saved as sandbox) wouldn't appear when creating paysheets.
+- **Direct-write gaps for Phase 5:** any active user can update paysheet headers; staff roles can insert
+  ledger rows and edit invoices directly; a COO can set a paysheet to approved without the approval
+  function (skipping its side effects).
 - **D-1 (High, to confirm):** paysheet amounts are calculated in the browser and stored without
   server checks. The server function `save_paysheet` uses different rules and isn't used by the screens.
 - **D-5 (Medium):** the employee form doesn't set the sandbox flag, and the column defaults to true in
@@ -120,5 +158,5 @@ Static (code/config review, not yet proven by a test):
 
 ## Next proposed action
 
-Owner reviews Phase 3. Proposed Phase 4 (functional and business-rule regression) needs answers to
-questions 1–6 before calculation assertions can be written.
+Owner reviews Phase 4 (and decides on test-record cleanup before training). Proposed Phase 5:
+security and data-isolation suite. Calculation assertions for Phase 4 follow once questions 1–6 are answered.

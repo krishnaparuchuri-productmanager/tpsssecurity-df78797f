@@ -12,8 +12,11 @@ Plain-English guide for the business owner. The checkpoint file
 | Browser | The real app in a hidden Chrome window | Sandbox only | `npm run test:e2e` |
 | Foundation | The safety checks of all three kinds | Sandbox, read-only | `npm run test:foundation` |
 | Smoke | Sign-in/out, access control, core screens, client → employee workflow | Sandbox (creates tagged test records) | `npm run test:smoke` |
+| Regression | Payroll, invoices, receipts, advances, expenses, reports, exports | Sandbox (creates tagged test records, sends in-app alerts to admins) | `npm run test:regression` |
 
-Regression and security suites are added in later phases.
+The security suite is added in a later phase. Tests marked **todo** are waiting for the owner to confirm
+payroll and tax rules. A few regression tests **fail on purpose** because they prove known app defects
+(see the checkpoint, D-6 to D-9); they turn green once those defects are fixed.
 
 **The sandbox holds real client and employee data (kept for training).** Browser tests therefore save
 no screenshots, videos, traces or page text. Failure evidence is the error message and the test step.

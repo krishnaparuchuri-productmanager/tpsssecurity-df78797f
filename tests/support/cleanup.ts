@@ -11,8 +11,13 @@ import { hasRunTag, RUN_ID } from "./run-id";
 export interface TrackedRecord {
   table: string;
   id: string;
-  /** Column that holds the tagged label, re-checked before removal. */
+  /**
+   * Column that holds the tagged label, re-checked before removal. May be a related column
+   * (e.g. "clients(client_name)" for a paysheet whose own row has no free-text field).
+   */
   labelColumn: string;
+  /** Skip the undo when the record is already in this state (e.g. status = "cancelled"); one value or a list. */
+  alreadyDone?: { column: string; value: unknown };
   /** How to remove it. */
   undo:
     | { kind: "delete" }
@@ -27,6 +32,14 @@ export interface CleanupReport {
   kept: string[];
   refused: string[];
   failed: string[];
+}
+
+/** "client_name" → row.client_name; "clients(client_name)" → row.clients.client_name */
+function readLabel(row: Record<string, unknown>, labelColumn: string): string | null {
+  const rel = labelColumn.match(/^(\w+)\((\w+)\)$/);
+  if (!rel) return (row[labelColumn] as string | null) ?? null;
+  const parent = row[rel[1]] as Record<string, unknown> | null;
+  return (parent?.[rel[2]] as string | null) ?? null;
 }
 
 export class CleanupRegistry {
@@ -50,12 +63,13 @@ export class CleanupRegistry {
         report.kept.push(`${name} (${item.undo.reason})`);
         continue;
       }
-      const { data, error } = await client.from(item.table).select(item.labelColumn).eq("id", item.id).maybeSingle();
+      const columns = item.alreadyDone ? `${item.labelColumn}, ${item.alreadyDone.column}` : item.labelColumn;
+      const { data, error } = await client.from(item.table).select(columns).eq("id", item.id).maybeSingle();
       if (error) {
         report.failed.push(`${name}: could not re-read (${error.message})`);
         continue;
       }
-      const label = data ? (data as unknown as Record<string, string | null>)[item.labelColumn] : null;
+      const label = data ? readLabel(data as unknown as Record<string, unknown>, item.labelColumn) : null;
       if (!data) {
         report.removed.push(`${name} (already gone)`);
         continue;
@@ -63,6 +77,14 @@ export class CleanupRegistry {
       if (!hasRunTag(label, this.runId)) {
         report.refused.push(`${name}: label does not carry run tag ${this.runId}`);
         continue;
+      }
+      if (item.alreadyDone) {
+        const current = (data as unknown as Record<string, unknown>)[item.alreadyDone.column];
+        const done = Array.isArray(item.alreadyDone.value) ? item.alreadyDone.value.includes(current) : current === item.alreadyDone.value;
+        if (done) {
+          report.kept.push(`${name} (already ${String(current)} by the test)`);
+          continue;
+        }
       }
       const res =
         item.undo.kind === "delete"

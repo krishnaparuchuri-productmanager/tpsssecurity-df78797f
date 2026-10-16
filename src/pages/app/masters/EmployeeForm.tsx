@@ -12,6 +12,7 @@ import { logAudit } from "@/lib/audit";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { formatINR, toISODate } from "@/lib/format";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 const DESIGNATIONS = ["ASO", "S.GUARD", "WRITER", "SUPERVISOR", "FIELD OFFICER"];
 
@@ -39,6 +40,7 @@ interface Rate { designation: string; basic: number; da: number; ta: number; }
 export default function EmployeeForm() {
   const { id } = useParams();
   const isEdit = !!id;
+  const { isSandbox } = useEnvironment();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -178,7 +180,7 @@ export default function EmployeeForm() {
         await logAudit({ action: "UPDATE", table: "employees", recordId: id!, newValues: payload });
       } else {
         const { data: { user } } = await supabase.auth.getUser();
-        const { data, error } = await supabase.from("employees").insert({ ...payload, employee_code: "", created_by: user?.id }).select("id").single();
+        const { data, error } = await supabase.from("employees").insert({ ...payload, employee_code: "", created_by: user?.id, is_sandbox: isSandbox }).select("id").single();
         if (error) throw error;
         await logAudit({ action: "CREATE", table: "employees", recordId: data.id, newValues: payload });
       }

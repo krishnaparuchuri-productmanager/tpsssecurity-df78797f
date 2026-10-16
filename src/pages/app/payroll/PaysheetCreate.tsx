@@ -287,20 +287,24 @@ export default function PaysheetCreate() {
         total_advance_deductions: r2(t.adv),
         total_net_salary: r2(t.finalNet),
         anomaly_count: totalAnomalies(),
-        status: submit ? "submitted" as const : "draft" as const,
-        submitted_by: submit ? user?.id : null,
-        submitted_at: submit ? new Date().toISOString() : null,
         is_sandbox: isSandbox,
         created_by: user?.id,
       };
+      const statusPayload = {
+        status: submit ? "submitted" as const : "draft" as const,
+        submitted_by: submit ? user?.id : null,
+        submitted_at: submit ? new Date().toISOString() : null,
+      };
 
+      // A new paysheet is always created as a draft (the database only accepts drafts on insert);
+      // the employee rows are saved next, and the status is set last.
       let pid = paysheetId;
       if (pid) {
-        const { error } = await supabase.from("paysheets").update(headerPayload).eq("id", pid);
+        const { error } = await supabase.from("paysheets").update({ ...headerPayload, ...statusPayload }).eq("id", pid);
         if (error) throw error;
       } else {
         const { data, error } = await supabase.from("paysheets")
-          .insert(headerPayload as never).select("id").single();
+          .insert({ ...headerPayload, status: "draft" } as never).select("id").single();
         if (error) throw error;
         pid = data.id;
         setPaysheetId(pid);
@@ -338,7 +342,11 @@ export default function PaysheetCreate() {
         const { error } = await supabase.from("paysheet_employees").insert(empPayload as never);
         if (error) throw error;
       }
-      await logAudit({ action: submit ? "APPROVE" : "UPDATE", table: "paysheets", recordId: pid, newValues: { status: headerPayload.status } });
+      if (!paysheetId && submit) {
+        const { error } = await supabase.from("paysheets").update(statusPayload).eq("id", pid!);
+        if (error) throw error;
+      }
+      await logAudit({ action: submit ? "APPROVE" : "UPDATE", table: "paysheets", recordId: pid, newValues: { status: statusPayload.status } });
       toast.success(submit ? "Submitted for approval" : "Draft saved");
       if (submit) navigate("/app/payroll/list");
     } catch (e) {
