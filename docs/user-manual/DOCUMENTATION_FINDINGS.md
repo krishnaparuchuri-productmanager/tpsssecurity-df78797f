@@ -152,3 +152,19 @@ All fixes were applied to the sandbox, tested, applied to production and committ
 | NF-15 | Low | Approval Queue | "Approve" label was gold on green (low contrast) | Fixed (white on green) | `054ac6f` |
 | NF-16 | Low | CRM | Lead Activity Timeline was not in sequence (minute- / date-precision times) | Fixed (entry order, newest first) | `054ac6f` |
 | NF-17 | High | Login | Password-reset links failed and landed on the sign-in page: Zoho Mail's link scanner opened the one-time Supabase link first and used it up; production Site URL also pointed at the wrong address | Fixed: reset page asks the user to click "Continue to set new password" before the token is used, and shows "Reset link not valid / Send a new link" for used or expired links; both projects send through Zoho SMTP with a template linking to `/reset-password?token_hash=…`; production Site URL → portal.tpsssecurity.com. Owner tested sandbox and production | `78ab424` + Supabase settings (2026-10-14) |
+
+## E. Environment verification (16 Oct 2026)
+
+Read-only check of both environments: Supabase health and advisors, logs (24 h), cron jobs (7 d), backups, edge functions (sandbox probed without credentials: all 401; production deployed source reviewed), schema parity (columns, policies, triggers, FKs, grants identical), signed-out data access (16 tables, 0 rows), deployed bundles and domains. Signed-in journeys were **not** run (no session); production holds no clients, employees, paysheets or invoices yet.
+
+| ID | Severity | Area | Problem | Status | Commit |
+|---|---|---|---|---|---|
+| NF-18 | High | Website / DNS | `tpsssecurity.com` (no www) showed Cloudflare Error 1000 / HTTP 403: its A record pointed at an old host (`185.158.133.1`) | **Open** — owner to add `tpsssecurity.com` as a custom domain on Pages project `tpsssecurity-production` (Cloudflare replaces the A record with `CNAME @ → tpsssecurity-df78797f.pages.dev`). `admin.tpsssecurity.com` points at the same old host | — |
+| NF-19 | High | CRM | "New Website Lead" alerts went to `ceo_admin` only; production has no ceo_admin, so nobody was alerted | Fixed: alerts every active Super Admin and CEO (same audience as a manual lead); alert carries the lead id and environment flag | `7a56f91` |
+| NF-20 | Medium | CRM / data | Each website enquiry created a second, sandbox-flagged lead in production, and the contact form also copied real prospect details into the sandbox database | Fixed: one lead per enquiry in its own environment; form no longer writes to sandbox; the 3 duplicate production leads (LEAD-2026-0005/0007/0009) and their activities deleted (owner approved). Lead-trigger function now identical in both projects | `7a56f91` |
+| NF-21 | Medium | Website | Contact form failed ("Something went wrong") for anyone signed in to the portal in the same browser on the same site — insert policy allowed `anon` only | Fixed: website enquiries accepted from signed-out and signed-in visitors | this commit |
+| NF-22 | Low | Security | Supabase advisors (both): leaked-password protection off; 5 functions without fixed `search_path`; `pg_net` in `public`; `log_failed_login` callable signed-out (can flood the failed-login records the hourly security check reads) | Open | — |
+| NF-23 | Low | Quality | Only a placeholder automated test exists; ESLint reports 122 style errors (mostly `no-explicit-any`) | Open (ESLint no longer scans `.claude/`, `7a56f91`) | — |
+| NF-24 | Low | Cron | One hourly `security-alert-check` call hit pg_net's 5 s timeout (16 Oct 10:00 UTC) | Open (raise the cron call timeout) | — |
+
+Sandbox test leads from this check: LEAD-2026-0004/0005/0006 ("Test Prospect 3–5 (Synthetic)").

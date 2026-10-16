@@ -65,5 +65,8 @@ Process for every batch: sandbox DB first → test → production DB → commit 
 - [x] Owner: decide on committing docs/user-manual/ (incl. PDF) → committed `ec567f1`
 - [x] NF-11…NF-16 low findings fixed (`054ac6f`); FEATURE_INVENTORY / ROLE_PERMISSION_MATRIX / GAPS_AND_ASSUMPTIONS updated
 - [x] NF-17 password reset (Zoho link scanner used the one-time link): `78ab424` + Zoho SMTP and token_hash reset template in sandbox and production; owner tested both (2026-10-14); manual §7 updated
+- [x] NF-19/20/21 website leads: alert Super Admin + CEO, one lead per enquiry, no sandbox mirror, form works when signed in (`7a56f91` + policy migration) (2026-10-16)
+- [ ] NF-18 bare domain `tpsssecurity.com` → Pages custom domain (owner, Cloudflare)
+- [ ] NF-22–24 advisor warnings, automated tests, cron timeout (low)
 - [x] Manual PDF reformatted per owner brief (chapters on new pages, keep-together figure groups, TOC with verified page numbers) (2026-10-14)
 - [x] OF-03 (13 Oct 2026): production Pages project now has VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY (production values; key added by owner); tracked `.env` now points at the SANDBOX for local runs. Verified: a build variable overrides .env; live bundles checked after deploy

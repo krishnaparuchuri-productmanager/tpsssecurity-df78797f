@@ -1,5 +1,11 @@
 # User Manual — Handoff for Next Session
 
+## 🔎 2026-10-16 — environment verification + fixes (see DOCUMENTATION_FINDINGS §E)
+- Both environments healthy; schema identical; cron/backups OK; signed-out access returns nothing. Signed-in journeys NOT run (no session).
+- Fixed & live: NF-19 website-lead alerts → Super Admin + CEO; NF-20 one lead per enquiry, no sandbox mirror, 3 prod duplicates deleted (copy in session scratchpad only); NF-21 contact form works when signed in. Commits `7a56f91` + docs/policy commit. Migrations `20261016120000`, `20261016130000` applied to both projects.
+- **OPEN NF-18 (owner):** Cloudflare → Workers & Pages → tpsssecurity-production → Custom domains → Set up a custom domain → `tpsssecurity.com` → Activate (replaces A `185.158.133.1`). Auto-mode blocks Claude from DNS changes. Then verify `https://tpsssecurity.com` = 200. Decide what `admin.tpsssecurity.com` (same old IP) should be.
+- Open low items: NF-22 advisors (leaked-password protection, search_path, `log_failed_login` rate limit), NF-23 tests/lint, NF-24 cron timeout.
+
 ## 📋 NEXT SESSION (owner, 2026-10-14 morning) — do in this order
 1. **Finish production password-reset fix** (section below: SMTP → template → owner test → docs).
 2. **Reformat the user manual PDF** per owner brief (summary; full brief in the 2026-10-13 chat):
