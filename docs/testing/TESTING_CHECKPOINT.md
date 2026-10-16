@@ -136,7 +136,8 @@ A regression run adds roughly: 4 clients, 6 employees, 8 paysheets, 12 invoices,
 
 ## Phase 5 security fixes (2026-10-16)
 
-Migration `20261016220000_security_fixes_phase5.sql`, applied to **sandbox** (production pending owner approval):
+Migration `20261016220000_security_fixes_phase5.sql`, applied to sandbox and — with owner approval — production;
+verified identical afterwards (146 access rules, triggers, function grants and fixed functions match):
 S-1/S-2 paysheet direct-edit guard (no direct approve/reject/cancel; approved & cancelled locked; system fields
 protected; submit only in your own name) · S-4 invoice guard (amount received and payment statuses only via
 receipts/reversals/cancellation/overdue check; cancelled locked) · S-7 no direct ledger inserts · S-5/S-6 CRM rules
