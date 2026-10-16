@@ -10,7 +10,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:unit": "vitest run --config tests/vitest.unit.config.ts",
+    "test:api": "vitest run --config tests/vitest.api.config.ts",
+    "test:e2e": "playwright test",
+    "test:foundation": "vitest run --config tests/vitest.unit.config.ts foundation && vitest run --config tests/vitest.api.config.ts foundation && playwright test foundation",
+    "test:report": "node tests/support/open-report.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -72,6 +77,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",

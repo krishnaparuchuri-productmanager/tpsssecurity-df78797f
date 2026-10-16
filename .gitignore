@@ -27,3 +27,10 @@ dist-ssr
 .env.local
 .env.production
 .env.*.local
+
+# Automated tests — local settings, sign-in state and reports never committed
+tests/.env.test.local
+tests/.auth/
+tests/reports/
+playwright-report/
+test-results/
