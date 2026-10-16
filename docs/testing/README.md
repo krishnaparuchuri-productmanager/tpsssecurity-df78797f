@@ -14,7 +14,9 @@ Plain-English guide for the business owner. The checkpoint file
 | Smoke | Sign-in/out, access control, core screens, client → employee workflow | Sandbox (creates tagged test records) | `npm run test:smoke` |
 | Regression | Payroll, invoices, receipts, advances, expenses, reports, exports | Sandbox (creates tagged test records, sends in-app alerts to admins) | `npm run test:regression` |
 
-The security suite is added in a later phase. Tests marked **todo** are waiting for the owner to confirm
+| Security | Access rules per role, direct writes, deactivated users, backups, sign-out | Sandbox (direct-write tests create tagged records) | `npm run test:security` |
+
+Tests marked **todo** are waiting for the owner to confirm
 payroll and tax rules. A few regression tests **fail on purpose** because they prove known app defects
 (see the checkpoint, D-6 to D-9); they turn green once those defects are fixed.
 

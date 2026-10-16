@@ -50,7 +50,7 @@ describe.skipIf(!enabled)("R-PAY paysheet workflow @regression", () => {
     const viaFunction = await acct.rpc("approve_paysheet", { _id: id });
     expect(viaFunction.error?.message).toMatch(/Only CEO or COO/);
     const viaUpdate = await acct.from("paysheets").update({ status: "approved" }).eq("id", id);
-    expect(viaUpdate.error?.message).toMatch(/cannot (approve|be edited)/i);
+    expect(viaUpdate.error?.message).toMatch(/cannot (approve|be edited)|can only be set through the approval/i);
     expect(await status(id)).toBe("submitted");
   });
 
@@ -104,7 +104,7 @@ describe.skipIf(!enabled)("R-PAY paysheet workflow @regression", () => {
 
     // Cancelled paysheets can't be revived.
     const revive = await sup.from("paysheets").update({ status: "draft" }).eq("id", id);
-    expect(revive.error?.message).toMatch(/immutable/);
+    expect(revive.error?.message).toMatch(/immutable|can only be changed through Cancel \/ Re-create/);
   });
 
   it("R-PAY-06 recreate after cancellation creates a new draft linked to the old paysheet", async () => {

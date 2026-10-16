@@ -10,7 +10,7 @@ Updated at the end of every phase. No secrets or business data here.
 | 2 | Safe automation foundation | Done 2026-10-16 (commit c887c5f, local) | Approved |
 | 3 | Smoke and core-workflow suite | Done 2026-10-16 (commit 487e7f4, local) | Approved |
 | 4 | Functional and business-rule regression | Workflows done 2026-10-16, **awaiting review** (uncommitted). Calculation assertions blocked on questions 1–6 | Approved |
-| 5 | Security and data isolation | Not started | — |
+| 5 | Security and data isolation | Done 2026-10-16, **awaiting review** (uncommitted) | Approved |
 | 6 | Reusable runner, optional pipeline | Not started | — |
 | 7 | Optional production read-only checks | Not started | Needs separate production approval |
 
@@ -45,6 +45,7 @@ Updated at the end of every phase. No secrets or business data here.
 | `npm run test:api` | All API/database tests (sandbox) |
 | `npm run test:e2e` | All browser tests (private dev server on port 8090, sandbox) |
 | `npm run test:foundation` | Safety checks of all three kinds |
+| `npm run test:security` | Phase 5: security/isolation API tests + read-only smoke checks (sandbox; direct-write tests create tagged records) |
 | `npm run test:report` | Opens the latest browser report |
 | `npm test` | The original placeholder test (unchanged) |
 
@@ -132,6 +133,48 @@ A regression run adds roughly: 4 clients, 6 employees, 8 paysheets, 12 invoices,
 - Question 12: the database refuses receipts larger than the outstanding amount. Late payments in a new
   financial year are recorded against the original invoice (no new invoice); covered by R-INV-09.
 - One-time sandbox clean-up of run-tagged test records and their alerts, after testing, before training.
+
+## Phase 5 security fixes (2026-10-16)
+
+Migration `20261016220000_security_fixes_phase5.sql`, applied to **sandbox** (production pending owner approval):
+S-1/S-2 paysheet direct-edit guard (no direct approve/reject/cancel; approved & cancelled locked; system fields
+protected; submit only in your own name) · S-4 invoice guard (amount received and payment statuses only via
+receipts/reversals/cancellation/overdue check; cancelled locked) · S-7 no direct ledger inserts · S-5/S-6 CRM rules
+follow the permission table and require an active account · S-10/S-11/S-13 internal and scheduled functions no
+longer callable by signed-in users (service role keeps access) · S-12 storage write rules that opened every
+non-backup bucket removed. All checks apply only to direct user-session edits; the app's own steps are unaffected.
+After the fixes: unit 42 passed; API 81 passed, 1 failing on purpose (X-04-03 = D-1, needs formula answers);
+browser 29 passed. Sandbox cleaned again afterwards (0 tagged records). Open: S-3/D-1, S-8, S-9.
+
+## Phase 5 security findings (2026-10-16)
+
+Runtime-verified (automated tests with real QA sessions, failing until fixed):
+- **S-1 High** A COO can mark a submitted paysheet approved by editing it directly, skipping approve_paysheet
+  (advance deductions, notification, audit) — X-04-01.
+- **S-2 High** An approved paysheet's totals can still be edited — X-04-02.
+- **S-3 High (D-1 confirmed)** Paysheet rows with impossible amounts are stored as sent — X-04-03.
+- **S-4 High** An Accountant can mark an invoice paid (amount received, status) without any receipt — X-04-04.
+- **S-5 Medium** Deactivated users can read (and edit) CRM leads and lead activities — X-06-01.
+- **S-6 Medium** View-only roles (Accountant) can edit CRM leads; CRM rules allow any signed-in user — X-02b-01.
+Runtime-verified by role simulation with rollback (executed as the QA user's identity; nothing persisted):
+- **S-7 High** Accountant (and other staff roles) can insert arbitrary cash-book (ledger) entries directly.
+- S-8 Low COO/CEO can send in-app alerts to any user (by design for lead assignment; could mislead).
+- S-9 Low A CEO can create production-flagged records inside the sandbox database (separate DBs, low impact).
+Passed (runtime): receipts can't be edited/deleted directly; deactivated users can't request advances or record
+expenses, see no clients/employees/invoices/paysheets and can't reactivate themselves; users can't edit others'
+profiles, forge audit entries or alerts in others' names (Accountant), or change roles/permissions; backups:
+signed-out/Accountant/COO can't list, upload or download; sign-out (local and global) revokes the session.
+Static (code/config review only):
+- **S-10 High-risk, unverified** `generate_recovery_schedule` and `apply_advance_deductions_on_approve` are callable
+  by any signed-in user without role checks — repeat calls could duplicate recovery rows / double deductions.
+- S-11 Medium `record_backup_log` lets any user write fake backup entries; batch functions (mark_overdue_invoices,
+  auto_open_followups, run_compliance_daily_checks, mark_contract_status_and_notify) runnable by any user.
+- S-12 Medium (latent) Storage rules let anyone (incl. signed-out) upload/change/delete files in any bucket other
+  than "backups"; harmless today (only bucket), dangerous for any future bucket.
+- S-13 Low `get_user_role` reveals any user's role to any signed-in user.
+- S-14 Note `wipe_sandbox` is correctly limited to Super Admin in the sandbox database — so don't give trainees the
+  Super Admin role (one click could erase the training data).
+- Secrets: none found in the repository, its history, test reports or the published site (only public anon keys).
 
 ## Known defects / findings
 
