@@ -36,6 +36,12 @@ function fakeClient(rows: Record<string, Record<string, string>>) {
             return { error: null };
           },
         }),
+        update: (values: Record<string, unknown>) => ({
+          eq: async (_c: string, id: string) => {
+            calls.push(`update ${table}/${id} ${JSON.stringify(values)}`);
+            return { error: null };
+          },
+        }),
       };
     },
     async rpc(fn: string) {
@@ -66,5 +72,15 @@ describe("FND-04 narrow cleanup", () => {
     expect(report.refused[0]).toContain("clients/3");
     expect(report.kept[0]).toContain("invoices/4");
     expect(reg.size).toBe(0);
+  });
+
+  it("neutralises (e.g. deactivates) tagged records the app never deletes, and reports them as kept", async () => {
+    const { client, calls } = fakeClient({ "clients/9": { client_name: tagged("Test Client") } });
+    const reg = new CleanupRegistry();
+    reg.track({ table: "clients", id: "9", labelColumn: "client_name", undo: { kind: "update", values: { is_active: false }, reason: "clients cannot be deleted; deactivated" } });
+    const report = await reg.run(client);
+    expect(calls).toEqual(['update clients/9 {"is_active":false}']);
+    expect(report.kept[0]).toContain("deactivated");
+    expect(report.removed).toHaveLength(0);
   });
 });

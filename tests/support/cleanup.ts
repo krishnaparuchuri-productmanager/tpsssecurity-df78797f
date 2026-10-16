@@ -14,7 +14,12 @@ export interface TrackedRecord {
   /** Column that holds the tagged label, re-checked before removal. */
   labelColumn: string;
   /** How to remove it. */
-  undo: { kind: "delete" } | { kind: "rpc"; fn: string; args: Record<string, unknown> } | { kind: "keep"; reason: string };
+  undo:
+    | { kind: "delete" }
+    | { kind: "rpc"; fn: string; args: Record<string, unknown> }
+    /** For records the app never deletes (e.g. clients): neutralise them, e.g. deactivate. */
+    | { kind: "update"; values: Record<string, unknown>; reason: string }
+    | { kind: "keep"; reason: string };
 }
 
 export interface CleanupReport {
@@ -62,8 +67,11 @@ export class CleanupRegistry {
       const res =
         item.undo.kind === "delete"
           ? await client.from(item.table).delete().eq("id", item.id)
-          : await client.rpc(item.undo.fn, item.undo.args);
+          : item.undo.kind === "update"
+            ? await client.from(item.table).update(item.undo.values).eq("id", item.id)
+            : await client.rpc(item.undo.fn, item.undo.args);
       if (res.error) report.failed.push(`${name}: ${res.error.message}`);
+      else if (item.undo.kind === "update") report.kept.push(`${name} (${item.undo.reason})`);
       else report.removed.push(name);
     }
     this.items = [];

@@ -10,6 +10,11 @@ import { assertSandboxConfig } from "./tests/support/target-guard";
 const cfg = loadTestConfig();
 assertSandboxConfig(cfg);
 
+// The sandbox holds real client/employee data (owner decision 2026-10-16: kept for training).
+// Failure artifacts must therefore never contain page content: no screenshots, no traces,
+// and no page-text snapshot ("error-context"), which Playwright skips when this is set.
+process.env.PLAYWRIGHT_NO_COPY_PROMPT = "1";
+
 const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cfg.appBaseUrl);
 const port = isLocal ? Number(new URL(cfg.appBaseUrl).port || 80) : 0;
 
@@ -30,6 +35,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   reporter: [
+    ["./tests/support/redact-reporter.ts"],
     ["list"],
     ["html", { outputFolder: `./tests/reports/runs/${RUN_ID}/html`, open: "never" }],
     ["json", { outputFile: `./tests/reports/runs/${RUN_ID}/results.json` }],
@@ -37,8 +43,9 @@ export default defineConfig({
   metadata: { runId: RUN_ID, target: cfg.appBaseUrl, database: "sandbox", gitSha },
   use: {
     baseURL: cfg.appBaseUrl,
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
+    // Traces record typed text (including passwords); screenshots show real sandbox data. Both off.
+    trace: "off",
+    screenshot: "off",
     video: "off",
     serviceWorkers: "block",
   },

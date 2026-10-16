@@ -11,8 +11,13 @@ Plain-English guide for the business owner. The checkpoint file
 | API | The sandbox database directly, as signed-out or signed-in test users | Sandbox only | `npm run test:api` |
 | Browser | The real app in a hidden Chrome window | Sandbox only | `npm run test:e2e` |
 | Foundation | The safety checks of all three kinds | Sandbox, read-only | `npm run test:foundation` |
+| Smoke | Sign-in/out, access control, core screens, client → employee workflow | Sandbox (creates tagged test records) | `npm run test:smoke` |
 
-Smoke, regression and security suites are added in later phases.
+Regression and security suites are added in later phases.
+
+**The sandbox holds real client and employee data (kept for training).** Browser tests therefore save
+no screenshots, videos, traces or page text. Failure evidence is the error message and the test step.
+Don't run `test:smoke` during training hours: it creates (and then removes or deactivates) test records.
 
 ## Safety built in
 
@@ -72,8 +77,8 @@ Each browser run gets its own folder, `tests/reports/runs/<run id>/`, containing
 
 - `html/`: a readable report. Open the latest one with `npm run test:report`.
 - `results.json`: machine-readable results.
-- `artifacts/`: a screenshot and trace for **failed** tests only. These may show sandbox data; keep
-  them on this computer.
+- `artifacts/`: technical leftovers only. Screenshots, traces and page snapshots are switched off
+  and deleted automatically, because the sandbox holds real data.
 
 ## Rerunning one test
 
@@ -94,5 +99,7 @@ npx vitest run --config tests/vitest.api.config.ts -t "FND-05"
 | `UNSAFE TEST TARGET` | Settings point somewhere other than the sandbox | Check `tests/.env.test.local` against the example file |
 | `skipped … not configured` | A test account is missing | See "Test accounts" above |
 | `Sign-in failed for the … test account` | Wrong password, or the account isn't confirmed | Reset it in Supabase; update the local file |
+| `… test account must have its role` | The account was recreated in Supabase, which removes its role | Ask Claude to re-apply the role |
+| `… shorter than the login form's 8-character minimum` | The test password is too short for the login screen | Set an 8+ character password in Supabase and the local file |
 | `Blocked by test safety guard` | A test tried to send email or reach production | This is the guard working. Report it if it was unexpected |
 | Port 8090 already in use | Another copy of the app is running there | Close it, or set `TEST_APP_BASE_URL` to another local port |

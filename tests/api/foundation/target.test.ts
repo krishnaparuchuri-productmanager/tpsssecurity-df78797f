@@ -37,6 +37,9 @@ describe("FND-07 test accounts (live)", () => {
     const client = await signedInClient(role);
     const { data } = await client!.auth.getUser();
     expect(data.user?.email).toBe(accountFor(role)!.email);
+    // Recreating an account in Supabase drops its role; catch that here, before other tests run.
+    const { data: roles } = await client!.from("user_roles").select("role").eq("user_id", data.user!.id);
+    expect((roles ?? []).map((r) => r.role), `${role} test account must have its role`).toEqual([role === "inactive" ? "accountant" : role]);
     await client!.auth.signOut();
   });
 });

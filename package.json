@@ -15,6 +15,7 @@
     "test:api": "vitest run --config tests/vitest.api.config.ts",
     "test:e2e": "playwright test",
     "test:foundation": "vitest run --config tests/vitest.unit.config.ts foundation && vitest run --config tests/vitest.api.config.ts foundation && playwright test foundation",
+    "test:smoke": "vitest run --config tests/vitest.api.config.ts foundation smoke workflow && playwright test foundation smoke workflow",
     "test:report": "node tests/support/open-report.mjs"
   },
   "dependencies": {
