@@ -87,7 +87,18 @@ Supabase removes its role.** FND-07 now catches that; ask Claude to re-apply the
 
 Passwords (8+ characters, the login form's minimum) live only in `tests/.env.test.local`.
 
-## Test data left in sandbox (counts after the Phase 4 runs, 2026-10-16)
+## Sandbox clean-up (2026-10-16, owner approved, one-time, before training)
+
+All run-tagged test records removed in one all-or-nothing step: 30 clients, 26 employees, 29 paysheets,
+49 invoices, 18 receipts, 11 expenses, 15 advances (+20 recovery rows), 42 ledger entries, 237 in-app
+alerts, plus wage rows, billing lines and deduction templates. Verified afterwards: 0 tagged records left;
+real data intact (35 clients, 165 employees, 3 paysheets, 5 invoices). Read-only checks then passed
+(API 35, browser 27) against the redeployed sites. Audit-log history and QA sign-in records were kept.
+**Until training ends, run only read-only checks** (`foundation`, `smoke/signed-out`, `smoke/bundle`,
+`smoke/restricted-actions`, browser `foundation smoke`); `test:regression` and the workflow tests create
+records and alerts.
+
+## Test data history (counts before the clean-up, 2026-10-16)
 
 All run-tagged (`… [T2026…]`) and neutralised; none active:
 - 23 test clients (deactivated) with their wage rows/billing lines; 19 test employees (relieved).
